@@ -1,0 +1,65 @@
+// 自定义样式：美化侧边栏分类文章列表
+
+.category-section {
+  margin-bottom: 20px;
+  
+  .category-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+    margin: 10px 0 8px 0;
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+    
+    i {
+      margin-right: 5px;
+      color: #0684bd;
+    }
+  }
+  
+  .links-of-blogroll-list {
+    margin: 0;
+    padding: 0 0 0 15px;
+    list-style: none;
+    
+    .links-of-blogroll-item {
+      margin: 5px 0;
+      line-height: 1.6;
+      
+      a {
+        font-size: 13px;
+        color: #555;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          color: #0684bd;
+          padding-left: 5px;
+        }
+      }
+    }
+  }
+}
+
+// 暗色模式适配
+html[data-theme="dark"] {
+  .category-section {
+    .category-title {
+      color: #ccc;
+      border-bottom-color: #333;
+      
+      i {
+        color: #0a94c7;
+      }
+    }
+    
+    .links-of-blogroll-list {
+      .links-of-blogroll-item a {
+        color: #ccc;
+        
+        &:hover {
+          color: #0a94c7;
+        }
+      }
+    }
+  }
+}
