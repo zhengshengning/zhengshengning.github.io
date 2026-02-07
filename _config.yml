@@ -93,6 +93,10 @@ include:
 exclude:
 ignore:
 
+# 自动摘要设置
+excerpt_length: 200
+excerpt_separator: <!-- more -->
+
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
