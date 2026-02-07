@@ -1,10 +1,3 @@
-{# 文章详情页返回按钮 - 仅在文章页显示 #}
-{% if is_post() %}
-<div class="floating-back-btn" id="floatingBackBtn" title="返回">
-  <i class="fa fa-arrow-left"></i>
-</div>
-{% endif %}
-
 {# 悬浮搜索框 HTML 和 JavaScript #}
 <div class="floating-search-container">
   <button class="floating-search-btn" id="floatingSearchBtn" title="搜索">
@@ -172,11 +165,22 @@
   });
 })();
 
-// 文章页返回按钮功能
+// 文章页返回按钮功能 - 插入到文章标题前
 (function() {
-  const backBtn = document.getElementById('floatingBackBtn');
-  if (!backBtn) return;
+  // 检查是否在文章页
+  const postHeader = document.querySelector('.post-header');
+  if (!postHeader) return;
 
+  // 创建返回按钮
+  const backBtn = document.createElement('div');
+  backBtn.className = 'post-back-btn';
+  backBtn.innerHTML = '<i class="fa fa-arrow-left"></i>返回';
+  backBtn.style.cursor = 'pointer';
+  
+  // 插入到文章标题前
+  postHeader.insertBefore(backBtn, postHeader.firstChild);
+
+  // 点击返回
   backBtn.addEventListener('click', () => {
     // 优先返回上一页
     if (document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
