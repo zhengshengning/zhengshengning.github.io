@@ -69,6 +69,11 @@ $bg-light = #f8f8f8
   border-radius: 8px
   margin-bottom: 30px
   padding: 0
+  // 性能优化：启用 GPU 加速，减少重绘
+  transform: translateZ(0)
+  backface-visibility: hidden
+  will-change: auto
+  contain: layout style paint
   
   .readme-welcome-header {
     background: #333
