@@ -10,6 +10,33 @@ $text-light = #666
 $border-color = #e5e5e5
 $bg-light = #f8f8f8
 
+// 侧边栏头部统计信息样式
+.site-header-stats {
+  display: flex
+  justify-content: center
+  gap: 25px
+  margin-top: 15px
+  padding-top: 12px
+  border-top: 1px solid rgba(255, 255, 255, 0.2)
+  
+  .site-header-stat {
+    text-align: center
+    
+    .site-header-stat-num {
+      display: block
+      font-size: 20px
+      font-weight: 700
+      color: #fff
+      line-height: 1.2
+    }
+    
+    .site-header-stat-label {
+      font-size: 12px
+      color: rgba(255, 255, 255, 0.7)
+    }
+  }
+}
+
 // 侧边栏分类文章列表
 .category-section {
   margin-bottom: 15px
