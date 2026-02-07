@@ -1,0 +1,18 @@
+{# 自定义侧边栏：在站点统计下方添加所有文章列表 #}
+
+{# 显示所有文章列表 #}
+<div class="links-of-blogroll">
+  <div class="links-of-blogroll-title">
+    <i class="fa fa-book"></i>
+    所有文章
+  </div>
+  <ul class="links-of-blogroll-list">
+    {% for post in site.posts.sort('date', -1) %}
+      <li class="links-of-blogroll-item">
+        <a href="{{ url_for(post.path) }}" title="{{ post.title }}" rel="section">
+          {{ post.title }}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
