@@ -2,7 +2,7 @@
 title: CUDA编程入门指南
 date: 2026-02-07 18:30:00
 tags: [CUDA, GPU编程, 并行计算, NVIDIA]
-categories: 技术教程
+categories: CUDA编程
 ---
 
 # CUDA编程入门指南
