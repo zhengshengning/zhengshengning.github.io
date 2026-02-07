@@ -1,27 +1,42 @@
 {# 自定义头部：添加悬浮搜索框和返回按钮样式 #}
 <style>
-  /* 文章页返回按钮 - 放在文章标题左上角 */
-  .post-back-btn {
-    display: inline-block;
-    padding: 6px 12px;
-    margin-bottom: 10px;
-    background: #f0f0f0;
-    color: #555;
-    border-radius: 4px;
-    font-size: 14px;
+  /* 文章页返回按钮 - 悬浮在右上角搜索按钮左边 */
+  .floating-back-btn {
+    position: fixed;
+    top: 20px;
+    right: 85px;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 50%;
     cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid #e0e0e0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 9999;
   }
 
-  .post-back-btn:hover {
-    background: #0e83cd;
+  /* 只在文章页显示 */
+  .post .floating-back-btn,
+  body.post-type .floating-back-btn {
+    display: flex;
+  }
+
+  .floating-back-btn:hover {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    transform: translateY(-3px) scale(1.08);
+  }
+
+  .floating-back-btn:active {
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  .floating-back-btn i {
     color: #fff;
-    border-color: #0e83cd;
-  }
-
-  .post-back-btn i {
-    margin-right: 5px;
+    font-size: 20px;
   }
 
   /* 悬浮搜索框容器 */
@@ -255,16 +270,13 @@
 
   /* 暗色模式适配 */
   @media (prefers-color-scheme: dark) {
-    .post-back-btn {
-      background: #333;
-      color: #ccc;
-      border-color: #444;
+    .floating-back-btn {
+      background: linear-gradient(135deg, #4a5fe8 0%, #5a3d92 100%);
+      box-shadow: 0 4px 15px rgba(74, 95, 232, 0.4);
     }
 
-    .post-back-btn:hover {
-      background: #4a9eff;
-      color: #fff;
-      border-color: #4a9eff;
+    .floating-back-btn:hover {
+      box-shadow: 0 6px 20px rgba(74, 95, 232, 0.6);
     }
 
     .floating-search-btn {
@@ -345,9 +357,15 @@
 
   /* 移动端适配 */
   @media (max-width: 768px) {
-    .post-back-btn {
-      font-size: 13px;
-      padding: 5px 10px;
+    .floating-back-btn {
+      top: 15px;
+      right: 75px;
+      width: 45px;
+      height: 45px;
+    }
+
+    .floating-back-btn i {
+      font-size: 18px;
     }
 
     .floating-search-container {
