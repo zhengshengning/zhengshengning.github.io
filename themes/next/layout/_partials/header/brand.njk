@@ -23,18 +23,18 @@
       <p class="site-subtitle" itemprop="description">{{ subtitle }}</p>
     {%- endif %}
     <div class="site-header-stats">
-      <div class="site-header-stat">
+      <a href="{{ url_for('/archives/') }}" class="site-header-stat">
         <span class="site-header-stat-num">{{ site.posts.length }}</span>
         <span class="site-header-stat-label">日志</span>
-      </div>
-      <div class="site-header-stat">
+      </a>
+      <a href="{{ url_for('/categories/') }}" class="site-header-stat">
         <span class="site-header-stat-num">{{ site.categories.length }}</span>
         <span class="site-header-stat-label">分类</span>
-      </div>
-      <div class="site-header-stat">
+      </a>
+      <a href="{{ url_for('/tags/') }}" class="site-header-stat">
         <span class="site-header-stat-num">{{ site.tags.length }}</span>
         <span class="site-header-stat-label">标签</span>
-      </div>
+      </a>
     </div>
     {%- if theme.custom_logo and (theme.scheme === 'Gemini' or theme.scheme === 'Pisces') %}
       <img class="custom-logo-image" src="{{ url_for(theme.custom_logo) }}" alt="{{ title }}">
