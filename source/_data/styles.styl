@@ -63,15 +63,15 @@ $bg-light = #f8f8f8
 // 首页 README 卡片样式（独立命名空间）
 // ====================================
 .readme-welcome-card {
-  background: #f8fafc
-  border: 1px solid #e2e8f0
-  border-left: 4px solid #0e83cd
+  background: #fafafa
+  border: 1px solid #e0e0e0
+  border-left: 4px solid #333
   border-radius: 8px
   margin-bottom: 30px
   padding: 0
   
   .readme-welcome-header {
-    background: #0e83cd
+    background: #333
     color: #fff
     padding: 15px 20px
     font-size: 18px
@@ -102,11 +102,11 @@ $bg-light = #f8f8f8
       color: #333
       padding-bottom: 10px
       margin-bottom: 15px
-      border-bottom: 2px solid #e2e8f0
+      border-bottom: 2px solid #ddd
       
       i {
         margin-right: 8px
-        color: #0e83cd
+        color: #555
       }
     }
   }
@@ -117,11 +117,12 @@ $bg-light = #f8f8f8
     .readme-category-name {
       font-size: 15px
       font-weight: 600
-      color: #0e83cd
+      color: #333
       margin-bottom: 8px
       
       i {
         margin-right: 6px
+        color: #666
       }
       
       .readme-category-count {
@@ -144,13 +145,13 @@ $bg-light = #f8f8f8
       a {
         display: block
         font-size: 14px
-        color: #444
+        color: #555
         text-decoration: none
         padding: 4px 0
         transition: color 0.2s
         
         &:hover {
-          color: #0e83cd
+          color: #000
           
           .readme-article-title {
             text-decoration: underline
@@ -158,7 +159,7 @@ $bg-light = #f8f8f8
         }
         
         .readme-article-date {
-          color: #888
+          color: #999
           font-size: 12px
           margin-right: 10px
         }
@@ -173,14 +174,14 @@ $bg-light = #f8f8f8
   .readme-total-info {
     margin-top: 20px
     padding-top: 15px
-    border-top: 1px solid #e2e8f0
+    border-top: 1px solid #ddd
     text-align: center
     font-size: 14px
     color: #666
     
     i {
       margin-right: 6px
-      color: #0e83cd
+      color: #555
     }
   }
 }
@@ -390,14 +391,14 @@ html[data-theme="dark"] {
   .readme-welcome-card {
     background: #1e1e1e
     border-color: #333
-    border-left-color: #4a9eff
+    border-left-color: #ccc
     
     .readme-welcome-header {
-      background: #4a9eff
+      background: #444
     }
     
     .readme-welcome-intro {
-      color: #ccc
+      color: #bbb
     }
     
     .readme-category-nav .readme-category-title {
@@ -405,12 +406,12 @@ html[data-theme="dark"] {
       border-bottom-color: #444
       
       i {
-        color: #4a9eff
+        color: #aaa
       }
     }
     
     .readme-category-item .readme-category-name {
-      color: #4a9eff
+      color: #ddd
       
       .readme-category-count {
         color: #888
@@ -418,10 +419,10 @@ html[data-theme="dark"] {
     }
     
     .readme-article-list .readme-article-item a {
-      color: #ccc
+      color: #bbb
       
       &:hover {
-        color: #4a9eff
+        color: #fff
       }
       
       .readme-article-date {
@@ -434,7 +435,7 @@ html[data-theme="dark"] {
       color: #888
       
       i {
-        color: #4a9eff
+        color: #aaa
       }
     }
   }
