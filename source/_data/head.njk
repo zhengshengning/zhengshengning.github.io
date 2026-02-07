@@ -1,5 +1,38 @@
-{# 自定义头部：添加悬浮搜索框样式 #}
+{# 自定义头部：添加悬浮搜索框和返回按钮样式 #}
 <style>
+  /* 文章页悬浮返回按钮 */
+  .floating-back-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 9999;
+  }
+
+  .floating-back-btn:hover {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    transform: translateX(-3px) scale(1.08);
+  }
+
+  .floating-back-btn:active {
+    transform: translateX(-1px) scale(1.02);
+  }
+
+  .floating-back-btn i {
+    color: #fff;
+    font-size: 20px;
+  }
+
   /* 悬浮搜索框容器 */
   .floating-search-container {
     position: fixed;
@@ -231,6 +264,15 @@
 
   /* 暗色模式适配 */
   @media (prefers-color-scheme: dark) {
+    .floating-back-btn {
+      background: linear-gradient(135deg, #4a5fe8 0%, #5a3d92 100%);
+      box-shadow: 0 4px 15px rgba(74, 95, 232, 0.4);
+    }
+
+    .floating-back-btn:hover {
+      box-shadow: 0 6px 20px rgba(74, 95, 232, 0.6);
+    }
+
     .floating-search-btn {
       background: linear-gradient(135deg, #4a5fe8 0%, #5a3d92 100%);
       box-shadow: 0 4px 15px rgba(74, 95, 232, 0.4);
@@ -309,6 +351,17 @@
 
   /* 移动端适配 */
   @media (max-width: 768px) {
+    .floating-back-btn {
+      top: 15px;
+      left: 15px;
+      width: 45px;
+      height: 45px;
+    }
+
+    .floating-back-btn i {
+      font-size: 18px;
+    }
+
     .floating-search-container {
       top: 15px;
       right: 15px;

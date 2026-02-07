@@ -1,3 +1,10 @@
+{# 文章详情页返回按钮 - 仅在文章页显示 #}
+{% if is_post() %}
+<div class="floating-back-btn" id="floatingBackBtn" title="返回">
+  <i class="fa fa-arrow-left"></i>
+</div>
+{% endif %}
+
 {# 悬浮搜索框 HTML 和 JavaScript #}
 <div class="floating-search-container">
   <button class="floating-search-btn" id="floatingSearchBtn" title="搜索">
@@ -161,6 +168,22 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeSearch();
+    }
+  });
+})();
+
+// 文章页返回按钮功能
+(function() {
+  const backBtn = document.getElementById('floatingBackBtn');
+  if (!backBtn) return;
+
+  backBtn.addEventListener('click', () => {
+    // 优先返回上一页
+    if (document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
+      window.history.back();
+    } else {
+      // 如果没有来源页面，返回首页
+      window.location.href = '/';
     }
   });
 })();
