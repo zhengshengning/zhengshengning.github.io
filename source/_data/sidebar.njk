@@ -1,27 +1,30 @@
-{# 自定义侧边栏：按分类显示所有文章列表 #}
+{# 自定义侧边栏：仅在首页和文章页显示按分类组织的文章列表 #}
 
-<div class="links-of-blogroll motion-element">
-  <div class="links-of-blogroll-title">
-    <i class="fa fa-book"></i>
-    所有文章
-  </div>
-  
-  {# 遍历所有分类 #}
-  {% for category in site.categories.sort('name') %}
-    <div class="category-section">
-      <h4 class="category-title">
-        <i class="fa fa-folder-open"></i>
-        {{ category.name }}
-      </h4>
-      <ul class="links-of-blogroll-list">
-        {% for post in category.posts.sort('date', -1) %}
-          <li class="links-of-blogroll-item">
-            <a href="{{ url_for(post.path) }}" title="{{ post.title }}" rel="section">
-              {{ post.title }}
-            </a>
-          </li>
-        {% endfor %}
-      </ul>
+{# 只在首页或文章页显示文章列表 #}
+{% if is_home() or is_post() %}
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-book"></i>
+      所有文章
     </div>
-  {% endfor %}
-</div>
+    
+    {# 遍历所有分类 #}
+    {% for category in site.categories.sort('name') %}
+      <div class="category-section">
+        <h4 class="category-title">
+          <i class="fa fa-folder-open"></i>
+          {{ category.name }}
+        </h4>
+        <ul class="links-of-blogroll-list">
+          {% for post in category.posts.sort('date', -1) %}
+            <li class="links-of-blogroll-item">
+              <a href="{{ url_for(post.path) }}" title="{{ post.title }}" rel="section">
+                {{ post.title }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
