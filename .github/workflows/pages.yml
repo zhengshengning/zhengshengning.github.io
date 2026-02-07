@@ -28,9 +28,11 @@ jobs:
           restore-keys: |
             ${{ runner.OS }}-npm-cache
       - name: Install Dependencies
-        run: npm install
+        run: npm ci --prefer-offline --no-audit
+        timeout-minutes: 10
       - name: Build
         run: npm run build
+        timeout-minutes: 5
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
