@@ -7,6 +7,51 @@
 
 {% block content %}
 
+  {# 首页顶部 README 卡片 - 仅第一页显示 #}
+  {% if page.current === 1 %}
+  <div class="readme-welcome-card">
+    <div class="readme-welcome-header">
+      <i class="fa fa-book"></i>
+      <span>欢迎来到我的技术博客</span>
+    </div>
+    <div class="readme-welcome-content">
+      <p class="readme-welcome-intro">探索技术，分享知识。这里记录了我在 AI、大模型、CUDA 编程等领域的学习与实践。</p>
+      
+      <div class="readme-category-nav">
+        <div class="readme-category-title">
+          <i class="fa fa-folder-open"></i>
+          <span>文章分类导航</span>
+        </div>
+        
+        {% for category in site.categories.toArray() %}
+        <div class="readme-category-item">
+          <div class="readme-category-name">
+            <i class="fa fa-folder"></i>
+            <span>{{ category.name }}</span>
+            <span class="readme-category-count">({{ category.length }})</span>
+          </div>
+          <ul class="readme-article-list">
+            {% for post in category.posts.toArray() %}
+            <li class="readme-article-item">
+              <a href="{{ url_for(post.path) }}">
+                <span class="readme-article-date">{{ date(post.date, 'YYYY-MM-DD') }}</span>
+                <span class="readme-article-title">{{ post.title }}</span>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endfor %}
+        
+        <div class="readme-total-info">
+          <i class="fa fa-file-text"></i>
+          <span>共 {{ site.posts.length }} 篇文章</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   {%- for post in page.posts.toArray() %}
     {{ partial('_macro/post.njk', {post: post, is_index: true}) }}
   {%- endfor %}

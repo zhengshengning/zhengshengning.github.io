@@ -59,6 +59,132 @@ $bg-light = #f8f8f8
   }
 }
 
+// ====================================
+// 首页 README 卡片样式（独立命名空间）
+// ====================================
+.readme-welcome-card {
+  background: #f8fafc
+  border: 1px solid #e2e8f0
+  border-left: 4px solid #0e83cd
+  border-radius: 8px
+  margin-bottom: 30px
+  padding: 0
+  
+  .readme-welcome-header {
+    background: #0e83cd
+    color: #fff
+    padding: 15px 20px
+    font-size: 18px
+    font-weight: 600
+    border-radius: 4px 4px 0 0
+    
+    i {
+      margin-right: 10px
+    }
+  }
+  
+  .readme-welcome-content {
+    padding: 20px
+  }
+  
+  .readme-welcome-intro {
+    font-size: 15px
+    color: #555
+    line-height: 1.8
+    margin: 0 0 20px 0
+    padding: 0
+  }
+  
+  .readme-category-nav {
+    .readme-category-title {
+      font-size: 16px
+      font-weight: 600
+      color: #333
+      padding-bottom: 10px
+      margin-bottom: 15px
+      border-bottom: 2px solid #e2e8f0
+      
+      i {
+        margin-right: 8px
+        color: #0e83cd
+      }
+    }
+  }
+  
+  .readme-category-item {
+    margin-bottom: 15px
+    
+    .readme-category-name {
+      font-size: 15px
+      font-weight: 600
+      color: #0e83cd
+      margin-bottom: 8px
+      
+      i {
+        margin-right: 6px
+      }
+      
+      .readme-category-count {
+        font-size: 13px
+        color: #888
+        font-weight: normal
+        margin-left: 5px
+      }
+    }
+  }
+  
+  .readme-article-list {
+    list-style: none
+    margin: 0
+    padding: 0 0 0 20px
+    
+    .readme-article-item {
+      margin: 6px 0
+      
+      a {
+        display: block
+        font-size: 14px
+        color: #444
+        text-decoration: none
+        padding: 4px 0
+        transition: color 0.2s
+        
+        &:hover {
+          color: #0e83cd
+          
+          .readme-article-title {
+            text-decoration: underline
+          }
+        }
+        
+        .readme-article-date {
+          color: #888
+          font-size: 12px
+          margin-right: 10px
+        }
+        
+        .readme-article-title {
+          color: inherit
+        }
+      }
+    }
+  }
+  
+  .readme-total-info {
+    margin-top: 20px
+    padding-top: 15px
+    border-top: 1px solid #e2e8f0
+    text-align: center
+    font-size: 14px
+    color: #666
+    
+    i {
+      margin-right: 6px
+      color: #0e83cd
+    }
+  }
+}
+
 // 首页文章列表样式
 .posts-expand .post {
   .post-header {
@@ -261,6 +387,58 @@ $bg-light = #f8f8f8
 
 // 暗色模式适配
 html[data-theme="dark"] {
+  .readme-welcome-card {
+    background: #1e1e1e
+    border-color: #333
+    border-left-color: #4a9eff
+    
+    .readme-welcome-header {
+      background: #4a9eff
+    }
+    
+    .readme-welcome-intro {
+      color: #ccc
+    }
+    
+    .readme-category-nav .readme-category-title {
+      color: #e0e0e0
+      border-bottom-color: #444
+      
+      i {
+        color: #4a9eff
+      }
+    }
+    
+    .readme-category-item .readme-category-name {
+      color: #4a9eff
+      
+      .readme-category-count {
+        color: #888
+      }
+    }
+    
+    .readme-article-list .readme-article-item a {
+      color: #ccc
+      
+      &:hover {
+        color: #4a9eff
+      }
+      
+      .readme-article-date {
+        color: #777
+      }
+    }
+    
+    .readme-total-info {
+      border-top-color: #444
+      color: #888
+      
+      i {
+        color: #4a9eff
+      }
+    }
+  }
+  
   .category-section {
     .category-title {
       color: #ccc
