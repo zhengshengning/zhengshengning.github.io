@@ -1,0 +1,167 @@
+{# 悬浮搜索框 HTML 和 JavaScript #}
+<div class="floating-search-container">
+  <button class="floating-search-btn" id="floatingSearchBtn" title="搜索">
+    <i class="fa fa-search"></i>
+  </button>
+  <div class="floating-search-input-wrapper" id="floatingSearchInputWrapper">
+    <input type="text" class="floating-search-input" id="floatingSearchInput" placeholder="搜索文章...">
+    <button class="floating-search-close" id="floatingSearchClose">×</button>
+  </div>
+</div>
+
+<div class="floating-search-results" id="floatingSearchResults"></div>
+
+<script>
+(function() {
+  const searchBtn = document.getElementById('floatingSearchBtn');
+  const inputWrapper = document.getElementById('floatingSearchInputWrapper');
+  const searchInput = document.getElementById('floatingSearchInput');
+  const searchClose = document.getElementById('floatingSearchClose');
+  const searchResults = document.getElementById('floatingSearchResults');
+  
+  let searchData = [];
+  let isSearchDataLoaded = false;
+
+  // 加载搜索数据
+  function loadSearchData() {
+    if (isSearchDataLoaded) return Promise.resolve();
+    
+    return fetch('/search.xml')
+      .then(response => response.text())
+      .then(str => {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(str, 'text/xml');
+        const entries = xml.querySelectorAll('entry');
+        
+        searchData = Array.from(entries).map(entry => ({
+          title: entry.querySelector('title')?.textContent || '',
+          url: entry.querySelector('url')?.textContent || '',
+          content: entry.querySelector('content')?.textContent || ''
+        }));
+        
+        isSearchDataLoaded = true;
+      })
+      .catch(err => {
+        console.error('Failed to load search data:', err);
+      });
+  }
+
+  // 执行搜索
+  function performSearch(keyword) {
+    if (!keyword.trim()) {
+      searchResults.classList.remove('active');
+      return;
+    }
+
+    const lowerKeyword = keyword.toLowerCase();
+    const results = searchData.filter(item => {
+      return item.title.toLowerCase().includes(lowerKeyword) ||
+             item.content.toLowerCase().includes(lowerKeyword);
+    }).slice(0, 10); // 最多显示10条结果
+
+    displayResults(results, keyword);
+  }
+
+  // 显示搜索结果
+  function displayResults(results, keyword) {
+    if (results.length === 0) {
+      searchResults.innerHTML = '<div class="floating-search-no-result">没有找到相关文章</div>';
+    } else {
+      searchResults.innerHTML = results.map(item => {
+        // 高亮关键词
+        const titleHighlighted = highlightKeyword(item.title, keyword);
+        // 提取包含关键词的内容片段
+        const contentSnippet = getContentSnippet(item.content, keyword);
+        
+        return `
+          <div class="floating-search-result-item" onclick="window.location.href='${item.url}'">
+            <div class="floating-search-result-title">${titleHighlighted}</div>
+            <div class="floating-search-result-content">${contentSnippet}</div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    searchResults.classList.add('active');
+  }
+
+  // 高亮关键词
+  function highlightKeyword(text, keyword) {
+    const regex = new RegExp(`(${escapeRegex(keyword)})`, 'gi');
+    return text.replace(regex, '<mark>$1</mark>');
+  }
+
+  // 提取包含关键词的内容片段
+  function getContentSnippet(content, keyword) {
+    // 移除HTML标签
+    const plainText = content.replace(/<[^>]+>/g, '');
+    const lowerContent = plainText.toLowerCase();
+    const lowerKeyword = keyword.toLowerCase();
+    const index = lowerContent.indexOf(lowerKeyword);
+    
+    if (index === -1) {
+      return plainText.slice(0, 100) + '...';
+    }
+    
+    const start = Math.max(0, index - 50);
+    const end = Math.min(plainText.length, index + keyword.length + 50);
+    let snippet = plainText.slice(start, end);
+    
+    if (start > 0) snippet = '...' + snippet;
+    if (end < plainText.length) snippet = snippet + '...';
+    
+    return highlightKeyword(snippet, keyword);
+  }
+
+  // 转义正则表达式特殊字符
+  function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  // 点击搜索按钮
+  searchBtn.addEventListener('click', () => {
+    if (inputWrapper.classList.contains('active')) {
+      closeSearch();
+    } else {
+      openSearch();
+    }
+  });
+
+  // 打开搜索
+  function openSearch() {
+    inputWrapper.classList.add('active');
+    searchInput.focus();
+    loadSearchData();
+  }
+
+  // 关闭搜索
+  function closeSearch() {
+    inputWrapper.classList.remove('active');
+    searchResults.classList.remove('active');
+    searchInput.value = '';
+  }
+
+  // 点击关闭按钮
+  searchClose.addEventListener('click', closeSearch);
+
+  // 输入搜索关键词
+  searchInput.addEventListener('input', (e) => {
+    performSearch(e.target.value);
+  });
+
+  // 点击页面其他地方关闭搜索结果
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.floating-search-container') && 
+        !e.target.closest('.floating-search-results')) {
+      searchResults.classList.remove('active');
+    }
+  });
+
+  // ESC键关闭
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeSearch();
+    }
+  });
+})();
+</script>

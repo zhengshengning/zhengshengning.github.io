@@ -1,0 +1,214 @@
+{# 自定义头部：添加悬浮搜索框样式 #}
+<style>
+  /* 悬浮搜索框容器 */
+  .floating-search-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* 搜索按钮 */
+  .floating-search-btn {
+    width: 45px;
+    height: 45px;
+    background: #222;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+  }
+
+  .floating-search-btn:hover {
+    background: #333;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    transform: scale(1.05);
+  }
+
+  .floating-search-btn i {
+    color: #fff;
+    font-size: 18px;
+  }
+
+  /* 搜索框 */
+  .floating-search-input-wrapper {
+    position: relative;
+    display: none;
+    animation: slideIn 0.3s ease;
+  }
+
+  .floating-search-input-wrapper.active {
+    display: block;
+  }
+
+  .floating-search-input {
+    width: 280px;
+    height: 45px;
+    padding: 0 45px 0 15px;
+    border: 2px solid #222;
+    border-radius: 25px;
+    font-size: 14px;
+    outline: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+  }
+
+  .floating-search-input:focus {
+    border-color: #0e83cd;
+    box-shadow: 0 4px 12px rgba(14,131,205,0.3);
+  }
+
+  .floating-search-close {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 20px;
+    padding: 5px;
+    line-height: 1;
+  }
+
+  .floating-search-close:hover {
+    color: #222;
+  }
+
+  /* 搜索结果弹出层 */
+  .floating-search-results {
+    position: fixed;
+    top: 75px;
+    right: 20px;
+    width: 400px;
+    max-height: 70vh;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    overflow-y: auto;
+    display: none;
+    z-index: 9998;
+  }
+
+  .floating-search-results.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .floating-search-result-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .floating-search-result-item:hover {
+    background: #f5f5f5;
+  }
+
+  .floating-search-result-item:last-child {
+    border-bottom: none;
+  }
+
+  .floating-search-result-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #222;
+    margin-bottom: 5px;
+  }
+
+  .floating-search-result-content {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .floating-search-no-result {
+    padding: 30px;
+    text-align: center;
+    color: #999;
+  }
+
+  /* 动画 */
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* 暗色模式适配 */
+  @media (prefers-color-scheme: dark) {
+    .floating-search-btn {
+      background: #2d2d2d;
+    }
+    
+    .floating-search-btn:hover {
+      background: #3d3d3d;
+    }
+
+    .floating-search-input {
+      background: #2d2d2d;
+      color: #fff;
+      border-color: #3d3d3d;
+    }
+
+    .floating-search-results {
+      background: #2d2d2d;
+    }
+
+    .floating-search-result-item:hover {
+      background: #3d3d3d;
+    }
+
+    .floating-search-result-title {
+      color: #fff;
+    }
+
+    .floating-search-result-content {
+      color: #aaa;
+    }
+  }
+
+  /* 移动端适配 */
+  @media (max-width: 768px) {
+    .floating-search-container {
+      top: 10px;
+      right: 10px;
+    }
+
+    .floating-search-input {
+      width: calc(100vw - 100px);
+    }
+
+    .floating-search-results {
+      right: 10px;
+      width: calc(100vw - 20px);
+    }
+  }
+</style>
