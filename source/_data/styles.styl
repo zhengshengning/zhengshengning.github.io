@@ -1,64 +1,456 @@
-// 自定义样式：美化侧边栏分类文章列表
+// ===================================
+// 全局美化样式
+// ===================================
 
-.category-section {
-  margin-bottom: 20px;
+// 主题颜色定义
+$primary-color = #0e83cd
+$primary-hover = #0a6ba8
+$text-color = #333
+$text-light = #666
+$border-color = #e8e8e8
+$bg-light = #f7f9fa
+$shadow-sm = 0 2px 8px rgba(0, 0, 0, 0.08)
+$shadow-md = 0 4px 12px rgba(0, 0, 0, 0.12)
+$shadow-lg = 0 8px 20px rgba(0, 0, 0, 0.15)
+
+// 整体布局优化
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif
+  line-height: 1.8
+  color: $text-color
+}
+
+// 页面容器美化
+.container {
+  max-width: 1200px
+  margin: 0 auto
+}
+
+// 头部导航栏美化
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
+  box-shadow: $shadow-md
+  backdrop-filter: blur(10px)
+}
+
+.menu {
+  .menu-item {
+    transition: all 0.3s ease
+    border-radius: 6px
+    padding: 8px 15px
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1)
+      transform: translateY(-2px)
+    }
+  }
+}
+
+// 文章卡片美化
+.post {
+  background: #fff
+  border-radius: 12px
+  box-shadow: $shadow-sm
+  margin-bottom: 30px
+  overflow: hidden
+  transition: all 0.3s ease
   
-  .category-title {
-    font-size: 14px;
-    font-weight: bold;
-    color: #555;
-    margin: 10px 0 8px 0;
-    padding: 5px 0;
-    border-bottom: 1px solid #eee;
+  &:hover {
+    box-shadow: $shadow-lg
+    transform: translateY(-4px)
+  }
+}
+
+.post-header {
+  padding: 25px 30px 15px
+  border-bottom: 2px solid $bg-light
+  
+  .post-title {
+    font-size: 28px
+    font-weight: 700
+    line-height: 1.4
+    margin: 0 0 15px
+    color: $text-color
+    
+    a {
+      color: inherit
+      transition: color 0.3s ease
+      
+      &:hover {
+        color: $primary-color
+      }
+    }
+  }
+}
+
+.post-body {
+  padding: 20px 30px
+  font-size: 16px
+  line-height: 1.8
+  
+  p {
+    margin: 1em 0
+    text-align: justify
+  }
+  
+  h2, h3, h4 {
+    margin-top: 1.5em
+    margin-bottom: 0.8em
+    font-weight: 600
+    position: relative
+    padding-left: 15px
+    
+    &:before {
+      content: ""
+      position: absolute
+      left: 0
+      top: 50%
+      transform: translateY(-50%)
+      width: 4px
+      height: 70%
+      background: linear-gradient(to bottom, $primary-color, $primary-hover)
+      border-radius: 2px
+    }
+  }
+  
+  blockquote {
+    border-left: 4px solid $primary-color
+    background: $bg-light
+    padding: 15px 20px
+    margin: 1.5em 0
+    border-radius: 0 8px 8px 0
+  }
+  
+  code {
+    background: $bg-light
+    padding: 3px 8px
+    border-radius: 4px
+    font-size: 0.9em
+    color: #e83e8c
+  }
+  
+  pre {
+    background: #282c34
+    border-radius: 8px
+    padding: 20px
+    overflow-x: auto
+    box-shadow: $shadow-sm
+  }
+}
+
+// 阅读更多按钮美化
+.post-button {
+  margin: 20px 0
+  text-align: center
+  
+  .btn {
+    display: inline-block
+    padding: 10px 30px
+    background: linear-gradient(135deg, $primary-color 0%, $primary-hover 100%)
+    color: #fff
+    border-radius: 25px
+    transition: all 0.3s ease
+    box-shadow: $shadow-sm
+    
+    &:hover {
+      box-shadow: $shadow-md
+      transform: translateY(-2px)
+    }
+  }
+}
+
+// 侧边栏美化
+.sidebar {
+  .sidebar-inner {
+    background: #fff
+    border-radius: 12px
+    box-shadow: $shadow-sm
+    padding: 20px
+  }
+  
+  .site-state {
+    display: flex
+    justify-content: space-around
+    padding: 15px 0
+    border-bottom: 2px solid $bg-light
+    
+    .site-state-item {
+      text-align: center
+      
+      .site-state-item-count {
+        font-size: 24px
+        font-weight: 700
+        color: $primary-color
+        display: block
+      }
+      
+      .site-state-item-name {
+        font-size: 13px
+        color: $text-light
+        margin-top: 5px
+      }
+    }
+  }
+}
+
+// 侧边栏文章列表美化
+.links-of-blogroll {
+  margin-top: 20px
+  
+  .links-of-blogroll-title {
+    font-size: 16px
+    font-weight: 700
+    color: $text-color
+    margin-bottom: 15px
+    padding-bottom: 10px
+    border-bottom: 2px solid $bg-light
+    display: flex
+    align-items: center
     
     i {
-      margin-right: 5px;
-      color: #0684bd;
+      margin-right: 8px
+      color: $primary-color
+      font-size: 18px
     }
   }
   
   .links-of-blogroll-list {
-    margin: 0;
-    padding: 0 0 0 15px;
-    list-style: none;
+    list-style: none
+    padding: 0
+    margin: 0
     
     .links-of-blogroll-item {
-      margin: 5px 0;
-      line-height: 1.6;
+      margin: 8px 0
+      padding: 8px 12px
+      border-radius: 6px
+      transition: all 0.3s ease
+      
+      &:hover {
+        background: $bg-light
+        transform: translateX(5px)
+      }
       
       a {
-        font-size: 13px;
-        color: #555;
-        transition: all 0.2s ease;
+        color: $text-color
+        font-size: 14px
+        display: block
+        transition: color 0.3s ease
+        
+        span {
+          display: inline-block
+          padding: 2px 8px
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
+          color: #fff
+          border-radius: 4px
+          font-size: 12px
+          margin-right: 8px
+        }
         
         &:hover {
-          color: #0684bd;
-          padding-left: 5px;
+          color: $primary-color
         }
       }
     }
   }
 }
 
-// 暗色模式适配
-html[data-theme="dark"] {
-  .category-section {
-    .category-title {
-      color: #ccc;
-      border-bottom-color: #333;
-      
-      i {
-        color: #0a94c7;
-      }
+// 标签云美化
+.tag-cloud {
+  a {
+    display: inline-block
+    margin: 5px
+    padding: 6px 15px
+    background: $bg-light
+    border-radius: 20px
+    transition: all 0.3s ease
+    
+    &:hover {
+      background: $primary-color
+      color: #fff
+      transform: translateY(-2px)
+      box-shadow: $shadow-sm
+    }
+  }
+}
+
+// 分页美化
+.pagination {
+  text-align: center
+  margin: 40px 0
+  
+  .page-number,
+  .extend {
+    display: inline-block
+    margin: 0 5px
+    padding: 8px 15px
+    border-radius: 6px
+    background: $bg-light
+    transition: all 0.3s ease
+    
+    &:hover {
+      background: $primary-color
+      color: #fff
+      transform: translateY(-2px)
     }
     
-    .links-of-blogroll-list {
-      .links-of-blogroll-item a {
-        color: #ccc;
+    &.current {
+      background: $primary-color
+      color: #fff
+      font-weight: 700
+    }
+  }
+}
+
+// 返回顶部按钮美化
+.back-to-top {
+  background: linear-gradient(135deg, $primary-color 0%, $primary-hover 100%)
+  color: #fff
+  border-radius: 50%
+  width: 45px
+  height: 45px
+  box-shadow: $shadow-md
+  transition: all 0.3s ease
+  
+  &:hover {
+    box-shadow: $shadow-lg
+    transform: translateY(-3px) scale(1.05)
+  }
+}
+
+// 页脚美化
+.footer {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
+  color: rgba(255, 255, 255, 0.8)
+  padding: 30px 0
+  margin-top: 60px
+  
+  a {
+    color: #fff
+    transition: opacity 0.3s ease
+    
+    &:hover {
+      opacity: 0.8
+    }
+  }
+}
+
+// 动画效果
+@keyframes fadeInUp {
+  from {
+    opacity: 0
+    transform: translateY(30px)
+  }
+  to {
+    opacity: 1
+    transform: translateY(0)
+  }
+}
+
+.post,
+.sidebar-inner {
+  animation: fadeInUp 0.6s ease-out
+}
+
+// 响应式优化
+@media (max-width: 768px) {
+  .post-header {
+    padding: 20px 20px 10px
+    
+    .post-title {
+      font-size: 22px
+    }
+  }
+  
+  .post-body {
+    padding: 15px 20px
+    font-size: 15px
+  }
+  
+  .sidebar {
+    margin-top: 30px
+  }
+}
+
+// 暗色模式适配
+html[data-theme="dark"] {
+  background: #1a1a1a
+  color: #e0e0e0
+  
+  .post,
+  .sidebar .sidebar-inner {
+    background: #2d2d2d
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
+  }
+  
+  .post-header {
+    border-bottom-color: #3d3d3d
+    
+    .post-title a {
+      color: #e0e0e0
+      
+      &:hover {
+        color: #4a9eff
+      }
+    }
+  }
+  
+  .post-body {
+    h2, h3, h4 {
+      color: #e0e0e0
+    }
+    
+    blockquote {
+      background: #3d3d3d
+      border-left-color: #4a9eff
+    }
+    
+    code {
+      background: #3d3d3d
+      color: #ff79c6
+    }
+  }
+  
+  .links-of-blogroll {
+    .links-of-blogroll-title {
+      color: #e0e0e0
+      border-bottom-color: #3d3d3d
+    }
+    
+    .links-of-blogroll-item {
+      &:hover {
+        background: #3d3d3d
+      }
+      
+      a {
+        color: #e0e0e0
         
         &:hover {
-          color: #0a94c7;
+          color: #4a9eff
         }
+      }
+    }
+  }
+  
+  .tag-cloud a {
+    background: #3d3d3d
+    color: #e0e0e0
+    
+    &:hover {
+      background: #4a9eff
+      color: #fff
+    }
+  }
+  
+  .pagination {
+    .page-number,
+    .extend {
+      background: #3d3d3d
+      color: #e0e0e0
+      
+      &:hover,
+      &.current {
+        background: #4a9eff
+        color: #fff
       }
     }
   }

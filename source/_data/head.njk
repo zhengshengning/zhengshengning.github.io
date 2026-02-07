@@ -13,35 +13,38 @@
 
   /* 搜索按钮 */
   .floating-search-btn {
-    width: 45px;
-    height: 45px;
-    background: #222;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .floating-search-btn:hover {
-    background: #333;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    transform: translateY(-3px) scale(1.08);
+  }
+
+  .floating-search-btn:active {
+    transform: translateY(-1px) scale(1.02);
   }
 
   .floating-search-btn i {
     color: #fff;
-    font-size: 18px;
+    font-size: 20px;
   }
 
   /* 搜索框 */
   .floating-search-input-wrapper {
     position: relative;
     display: none;
-    animation: slideIn 0.3s ease;
+    animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .floating-search-input-wrapper.active {
@@ -49,69 +52,107 @@
   }
 
   .floating-search-input {
-    width: 280px;
-    height: 45px;
-    padding: 0 45px 0 15px;
-    border: 2px solid #222;
+    width: 320px;
+    height: 50px;
+    padding: 0 50px 0 20px;
+    border: 2px solid transparent;
     border-radius: 25px;
-    font-size: 14px;
+    font-size: 15px;
     outline: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    transition: all 0.3s ease;
+    background: #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .floating-search-input:focus {
-    border-color: #0e83cd;
-    box-shadow: 0 4px 12px rgba(14,131,205,0.3);
+    border-color: #667eea;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+  }
+
+  .floating-search-input::placeholder {
+    color: #999;
   }
 
   .floating-search-close {
     position: absolute;
-    right: 12px;
+    right: 15px;
     top: 50%;
     transform: translateY(-50%);
-    background: none;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
     cursor: pointer;
-    color: #666;
-    font-size: 20px;
-    padding: 5px;
-    line-height: 1;
+    color: #fff;
+    font-size: 16px;
+    padding: 0;
+    line-height: 28px;
+    text-align: center;
+    transition: all 0.3s ease;
   }
 
   .floating-search-close:hover {
-    color: #222;
+    transform: translateY(-50%) rotate(90deg);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
   }
 
   /* 搜索结果弹出层 */
   .floating-search-results {
     position: fixed;
-    top: 75px;
+    top: 85px;
     right: 20px;
-    width: 400px;
-    max-height: 70vh;
+    width: 450px;
+    max-height: 65vh;
     background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    overflow-y: auto;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
     display: none;
     z-index: 9998;
   }
 
   .floating-search-results.active {
     display: block;
-    animation: fadeIn 0.3s ease;
+    animation: fadeInScale 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .floating-search-results::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .floating-search-results::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  .floating-search-results::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+  }
+
+  .floating-search-results::-webkit-scrollbar-thumb:hover {
+    background: #555;
   }
 
   .floating-search-result-item {
-    padding: 15px;
-    border-bottom: 1px solid #eee;
+    padding: 18px 20px;
+    border-bottom: 1px solid #f0f0f0;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: all 0.3s ease;
+    position: relative;
   }
 
   .floating-search-result-item:hover {
-    background: #f5f5f5;
+    background: linear-gradient(to right, #f8f9ff 0%, #fff 100%);
+    padding-left: 25px;
+  }
+
+  .floating-search-result-item:hover:before {
+    content: "→";
+    position: absolute;
+    left: 10px;
+    color: #667eea;
+    font-weight: bold;
   }
 
   .floating-search-result-item:last-child {
@@ -120,32 +161,56 @@
 
   .floating-search-result-title {
     font-size: 16px;
-    font-weight: bold;
-    color: #222;
-    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  .floating-search-result-title mark {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 700;
   }
 
   .floating-search-result-content {
     font-size: 13px;
     color: #666;
-    line-height: 1.6;
+    line-height: 1.7;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
+  .floating-search-result-content mark {
+    background: #fff3cd;
+    color: #856404;
+    padding: 1px 3px;
+    border-radius: 2px;
+  }
+
   .floating-search-no-result {
-    padding: 30px;
+    padding: 40px 20px;
     text-align: center;
     color: #999;
+    font-size: 15px;
+  }
+
+  .floating-search-no-result i {
+    font-size: 48px;
+    color: #ddd;
+    display: block;
+    margin-bottom: 15px;
   }
 
   /* 动画 */
   @keyframes slideIn {
     from {
       opacity: 0;
-      transform: translateX(20px);
+      transform: translateX(30px);
     }
     to {
       opacity: 1;
@@ -153,62 +218,134 @@
     }
   }
 
-  @keyframes fadeIn {
+  @keyframes fadeInScale {
     from {
       opacity: 0;
+      transform: translateY(-10px) scale(0.95);
     }
     to {
       opacity: 1;
+      transform: translateY(0) scale(1);
     }
   }
 
   /* 暗色模式适配 */
   @media (prefers-color-scheme: dark) {
     .floating-search-btn {
-      background: #2d2d2d;
+      background: linear-gradient(135deg, #4a5fe8 0%, #5a3d92 100%);
+      box-shadow: 0 4px 15px rgba(74, 95, 232, 0.4);
     }
     
     .floating-search-btn:hover {
-      background: #3d3d3d;
+      box-shadow: 0 6px 20px rgba(74, 95, 232, 0.6);
     }
 
     .floating-search-input {
       background: #2d2d2d;
-      color: #fff;
+      color: #e0e0e0;
       border-color: #3d3d3d;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .floating-search-input:focus {
+      border-color: #4a5fe8;
+      box-shadow: 0 6px 20px rgba(74, 95, 232, 0.4);
+    }
+
+    .floating-search-input::placeholder {
+      color: #666;
+    }
+
+    .floating-search-close {
+      background: linear-gradient(135deg, #4a5fe8 0%, #5a3d92 100%);
     }
 
     .floating-search-results {
       background: #2d2d2d;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .floating-search-results::-webkit-scrollbar-track {
+      background: #1a1a1a;
+    }
+
+    .floating-search-results::-webkit-scrollbar-thumb {
+      background: #555;
+    }
+
+    .floating-search-result-item {
+      border-bottom-color: #3d3d3d;
     }
 
     .floating-search-result-item:hover {
-      background: #3d3d3d;
+      background: linear-gradient(to right, #3a3a4a 0%, #2d2d2d 100%);
     }
 
     .floating-search-result-title {
-      color: #fff;
+      color: #e0e0e0;
+    }
+
+    .floating-search-result-title mark {
+      background: linear-gradient(135deg, #4a5fe8 0%, #5a3d92 100%);
     }
 
     .floating-search-result-content {
       color: #aaa;
+    }
+
+    .floating-search-result-content mark {
+      background: #4a5fe8;
+      color: #fff;
+    }
+
+    .floating-search-no-result {
+      color: #666;
+    }
+
+    .floating-search-no-result i {
+      color: #555;
     }
   }
 
   /* 移动端适配 */
   @media (max-width: 768px) {
     .floating-search-container {
-      top: 10px;
-      right: 10px;
+      top: 15px;
+      right: 15px;
+    }
+
+    .floating-search-btn {
+      width: 45px;
+      height: 45px;
+    }
+
+    .floating-search-btn i {
+      font-size: 18px;
     }
 
     .floating-search-input {
-      width: calc(100vw - 100px);
+      width: calc(100vw - 110px);
+      height: 45px;
+      font-size: 14px;
     }
 
     .floating-search-results {
-      right: 10px;
-      width: calc(100vw - 20px);
+      top: 75px;
+      right: 15px;
+      width: calc(100vw - 30px);
+      max-height: 60vh;
+    }
+
+    .floating-search-result-item {
+      padding: 15px;
+    }
+
+    .floating-search-result-title {
+      font-size: 15px;
+    }
+
+    .floating-search-result-content {
+      font-size: 12px;
     }
   }
 </style>

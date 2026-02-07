@@ -65,7 +65,7 @@
   // 显示搜索结果
   function displayResults(results, keyword) {
     if (results.length === 0) {
-      searchResults.innerHTML = '<div class="floating-search-no-result">没有找到相关文章</div>';
+      searchResults.innerHTML = '<div class="floating-search-no-result"><i class="fa fa-search"></i>没有找到相关文章</div>';
     } else {
       searchResults.innerHTML = results.map(item => {
         // 高亮关键词
