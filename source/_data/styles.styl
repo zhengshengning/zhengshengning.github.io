@@ -598,6 +598,32 @@ html[data-theme="dark"] {
   margin-top: 40px
 }
 
+// 顶部导航菜单悬停效果
+.menu .menu-item {
+  transition: all 0.3s ease
+  border-radius: 6px
+  
+  a {
+    transition: all 0.3s ease
+  }
+  
+  &:hover {
+    transform: translateY(-3px)
+    box-shadow: 0 4px 12px rgba(14, 131, 205, 0.15)
+    
+    a {
+      color: $primary-color
+    }
+  }
+  
+  &.menu-item-active {
+    a {
+      color: $primary-color
+      font-weight: 600
+    }
+  }
+}
+
 // 归档页文章列表悬停效果
 .posts-collapse {
   .post-header {
@@ -821,5 +847,18 @@ html[data-theme="dark"] {
     .site-state-item-name {
       color: #4a9eff
     }
+  }
+  
+  // 暗色模式 - 顶部导航菜单悬停
+  .menu .menu-item:hover {
+    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.25)
+    
+    a {
+      color: #4a9eff
+    }
+  }
+  
+  .menu .menu-item.menu-item-active a {
+    color: #4a9eff
   }
 }
