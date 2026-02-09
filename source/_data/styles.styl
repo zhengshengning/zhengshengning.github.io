@@ -301,36 +301,49 @@ html[data-theme="dark"] {
     border: none !important
     
     .readme-article-item {
-      margin: 6px 0
+      margin: 4px 0
+      padding: 4px 8px
       border: none !important
       border-bottom: none !important
+      border-radius: 4px
+      transition: all 0.25s ease
       
       a {
         display: block
         font-size: 14px
         color: #555
         text-decoration: none
-        padding: 4px 0
-        transition: color 0.2s
+        padding: 2px 0
+        transition: all 0.25s ease
         border: none !important
         border-bottom: none !important
         
         &:hover {
-          color: #000
-          
-          .readme-article-title {
-            text-decoration: underline
-          }
+          color: $primary-color
         }
         
         .readme-article-date {
           color: #999
           font-size: 12px
           margin-right: 10px
+          transition: color 0.25s ease
         }
         
         .readme-article-title {
           color: inherit
+        }
+      }
+      
+      &:hover {
+        background: rgba(14, 131, 205, 0.08)
+        transform: translateX(4px)
+        
+        a {
+          color: $primary-color
+        }
+        
+        .readme-article-date {
+          color: #666
         }
       }
     }
@@ -588,15 +601,21 @@ html[data-theme="dark"] {
       }
     }
     
-    .readme-article-list .readme-article-item a {
-      color: #bbb
-      
+    .readme-article-list .readme-article-item {
       &:hover {
-        color: #fff
+        background: rgba(74, 158, 255, 0.12)
       }
       
-      .readme-article-date {
-        color: #777
+      a {
+        color: #bbb
+        
+        &:hover {
+          color: #4a9eff
+        }
+        
+        .readme-article-date {
+          color: #777
+        }
       }
     }
     
