@@ -43,6 +43,21 @@ $bg-light = #f8f8f8
   }
 }
 
+// 侧边栏同分类文章列表（文章详情页）
+.sidebar-category-posts {
+  .links-of-blogroll-item {
+    &.current-post {
+      background: rgba(14, 131, 205, 0.1)
+      border-radius: 3px
+      
+      a.current {
+        color: $primary-color !important
+        font-weight: 600
+      }
+    }
+  }
+}
+
 // 侧边栏分类文章列表
 .category-section {
   margin-bottom: 15px
