@@ -39,6 +39,29 @@
       {%- endif %}
     </div>
 
+    {# 同分类文章列表 - 仅在文章详情页显示 #}
+    {%- if page.categories and page.categories.length > 0 %}
+      {%- set currentCategory = page.categories.toArray()[0] %}
+      <div class="sidebar-inner sidebar-category-articles">
+        <div class="category-articles-card animated">
+          <div class="category-articles-title">
+            <i class="fa fa-folder-open fa-fw"></i>
+            {{ currentCategory.name }}
+            <span class="category-articles-count">({{ currentCategory.posts.length }}篇)</span>
+          </div>
+          <ul class="category-articles-list">
+            {%- for post in currentCategory.posts.sort('date', -1).toArray() %}
+              <li class="category-articles-item {% if post.path === page.path %}current-post{% endif %}">
+                <a href="{{ url_for(post.path) }}" title="{{ post.title }}" {% if post.path === page.path %}class="current"{% endif %}>
+                  {{ post.title }}
+                </a>
+              </li>
+            {%- endfor %}
+          </ul>
+        </div>
+      </div>
+    {%- endif %}
+
     {# Blogroll #}
     {%- if theme.links %}
     <div class="sidebar-inner sidebar-blogroll">
