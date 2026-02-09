@@ -513,6 +513,26 @@ html[data-theme="dark"] {
     padding: 10px 0
     margin-bottom: 10px
     border-bottom: 1px solid $border-color
+    
+    .site-state-item {
+      padding: 8px 12px
+      border-radius: 6px
+      transition: all 0.25s ease
+      
+      &:hover {
+        background: rgba(14, 131, 205, 0.08)
+        transform: translateY(-2px)
+        
+        .site-state-item-count {
+          color: $primary-color
+          transform: scale(1.1)
+        }
+      }
+      
+      .site-state-item-count {
+        transition: all 0.25s ease
+      }
+    }
   }
 }
 
@@ -775,6 +795,15 @@ html[data-theme="dark"] {
     background: rgba(74, 158, 255, 0.12)
     
     > a {
+      color: #4a9eff
+    }
+  }
+  
+  // 暗色模式 - 站点状态统计悬停
+  .site-state .site-state-item:hover {
+    background: rgba(74, 158, 255, 0.12)
+    
+    .site-state-item-count {
       color: #4a9eff
     }
   }
