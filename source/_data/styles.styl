@@ -568,6 +568,43 @@ html[data-theme="dark"] {
   margin-top: 40px
 }
 
+// 归档页文章列表悬停效果
+.posts-collapse {
+  .post-header {
+    padding: 4px 8px
+    margin: 2px 0
+    border-radius: 4px
+    transition: all 0.25s ease
+    
+    &:hover {
+      background: rgba(14, 131, 205, 0.08)
+      transform: translateX(4px)
+      
+      a {
+        color: $primary-color
+      }
+    }
+  }
+}
+
+// 分类页列表悬停效果
+.category-all-page {
+  .category-list-item {
+    padding: 4px 8px
+    border-radius: 4px
+    transition: all 0.25s ease
+    
+    &:hover {
+      background: rgba(14, 131, 205, 0.08)
+      transform: translateX(4px)
+      
+      > a {
+        color: $primary-color
+      }
+    }
+  }
+}
+
 // 移除进场动画
 .post,
 .sidebar-inner {
@@ -721,6 +758,24 @@ html[data-theme="dark"] {
       a:hover {
         color: #4a9eff
       }
+    }
+  }
+  
+  // 暗色模式 - 归档页悬停
+  .posts-collapse .post-header:hover {
+    background: rgba(74, 158, 255, 0.12)
+    
+    a {
+      color: #4a9eff
+    }
+  }
+  
+  // 暗色模式 - 分类页悬停
+  .category-all-page .category-list-item:hover {
+    background: rgba(74, 158, 255, 0.12)
+    
+    > a {
+      color: #4a9eff
     }
   }
 }
