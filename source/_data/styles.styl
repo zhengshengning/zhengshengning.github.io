@@ -515,22 +515,32 @@ html[data-theme="dark"] {
     border-bottom: 1px solid $border-color
     
     .site-state-item {
-      padding: 8px 12px
-      border-radius: 6px
-      transition: all 0.25s ease
+      padding: 10px 15px
+      border-radius: 8px
+      transition: all 0.3s ease
+      cursor: pointer
       
       &:hover {
-        background: rgba(14, 131, 205, 0.08)
-        transform: translateY(-2px)
+        background: rgba(14, 131, 205, 0.15)
+        transform: translateY(-4px)
+        box-shadow: 0 4px 12px rgba(14, 131, 205, 0.2)
         
         .site-state-item-count {
           color: $primary-color
-          transform: scale(1.1)
+          transform: scale(1.2)
+        }
+        
+        .site-state-item-name {
+          color: $primary-color
         }
       }
       
       .site-state-item-count {
-        transition: all 0.25s ease
+        transition: all 0.3s ease
+      }
+      
+      .site-state-item-name {
+        transition: all 0.3s ease
       }
     }
   }
@@ -801,9 +811,14 @@ html[data-theme="dark"] {
   
   // 暗色模式 - 站点状态统计悬停
   .site-state .site-state-item:hover {
-    background: rgba(74, 158, 255, 0.12)
+    background: rgba(74, 158, 255, 0.2)
+    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.25)
     
     .site-state-item-count {
+      color: #4a9eff
+    }
+    
+    .site-state-item-name {
       color: #4a9eff
     }
   }
