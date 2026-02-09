@@ -23,7 +23,7 @@
           <span>文章分类导航</span>
         </div>
         
-        {% for category in site.categories.toArray() %}
+        {% for category in sorted_categories() %}
         <div class="readme-category-item">
           <div class="readme-category-name">
             <i class="fa fa-folder"></i>
