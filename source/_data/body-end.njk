@@ -187,4 +187,53 @@
     }
   });
 })();
+
+// 主题切换功能
+(function() {
+  var themeSwitchBtns = document.querySelectorAll('.theme-switch-btn');
+  var html = document.documentElement;
+  var storedTheme = localStorage.getItem('theme');
+
+  // 初始化主题
+  if (storedTheme) {
+    html.setAttribute('data-theme', storedTheme);
+    setActiveBtn(storedTheme);
+  } else {
+    // 默认可以不设置，或者设置为 default
+    setActiveBtn('default');
+  }
+
+  function setActiveBtn(theme) {
+    themeSwitchBtns.forEach(function(btn) {
+      if (btn.getAttribute('data-theme') === theme) {
+        btn.classList.add('active');
+        // 动态设置样式以匹配 Stylus 中的 .active
+        btn.style.borderColor = '#555';
+        btn.style.boxShadow = '0 0 5px rgba(0,0,0,0.3)';
+        btn.style.transform = 'scale(1.1)';
+      } else {
+        btn.classList.remove('active');
+        btn.style.borderColor = '#ddd';
+        btn.style.boxShadow = 'none';
+        btn.style.transform = 'scale(1)';
+      }
+    });
+  }
+
+  themeSwitchBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var theme = this.getAttribute('data-theme');
+      
+      if (theme === 'default') {
+        html.removeAttribute('data-theme');
+        localStorage.removeItem('theme');
+      } else {
+        html.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+      }
+      
+      setActiveBtn(theme);
+    });
+  });
+})();
 </script>

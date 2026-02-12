@@ -862,3 +862,78 @@ html[data-theme="dark"] {
     color: #4a9eff
   }
 }
+
+// ===================================
+// 主题切换器样式
+// ===================================
+
+.theme-info {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.theme-switch-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.theme-switch-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #ddd;
+  transition: all 0.2s;
+  
+  &:hover {
+    transform: scale(1.1);
+    border-color: #999;
+  }
+  
+  &.active {
+    border-color: #555;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+  }
+}
+
+// 蓝色主题
+html[data-theme="blue"] {
+  background: #e3f2fd;
+  
+  .header-inner, .main-inner {
+    background: rgba(255,255,255,0.9);
+  }
+  
+  .sidebar-inner, .post-block, .content-wrap, .comments {
+    background: rgba(255,255,255,0.9);
+  }
+  
+  a {
+    color: #1976d2;
+    &:hover { color: #0d47a1; }
+  }
+  
+  .menu .menu-item:hover a { color: #1976d2; }
+}
+
+// 绿色主题
+html[data-theme="green"] {
+  background: #e8f5e9;
+  
+  .header-inner, .main-inner {
+    background: rgba(255,255,255,0.9);
+  }
+  
+  .sidebar-inner, .post-block, .content-wrap, .comments {
+    background: rgba(255,255,255,0.9);
+  }
+  
+  a {
+    color: #388e3c;
+    &:hover { color: #1b5e20; }
+  }
+  
+  .menu .menu-item:hover a { color: #388e3c; }
+}
