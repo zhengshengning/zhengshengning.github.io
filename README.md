@@ -1,2 +1,2 @@
-访问链接：[zhengshengning.github.io](https://ningzhengsheng.cn/)
+访问链接：[https://ningzhengsheng.cn/](zhengshengning.github.io)
 
