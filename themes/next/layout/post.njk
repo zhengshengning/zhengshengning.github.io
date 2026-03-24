@@ -7,6 +7,39 @@
 
 {% block content %}
 
+  {% set catSidebar = get_post_category_sidebar(page) %}
+  {% if catSidebar %}
+  <aside class="post-cat-sidebar">
+    <div class="category-landing-sidebar-header">
+      <a href="{{ catSidebar.landingPath }}" style="color:inherit;text-decoration:none;border:none;display:flex;align-items:center;gap:10px;flex:1">
+        <i class="fa {{ catSidebar.icon }}"></i>
+        <span>{{ catSidebar.name }}</span>
+      </a>
+      <span class="category-landing-post-count">{{ catSidebar.totalPosts }}</span>
+    </div>
+    <nav class="category-landing-nav">
+      {% for child in catSidebar.children %}
+      <div class="category-landing-sub">
+        <div class="category-landing-sub-title">
+          <i class="fa fa-folder"></i> {{ child.name }}
+          <span class="category-landing-sub-count">{{ child.posts.length }}</span>
+        </div>
+        <ul class="category-landing-post-list">
+          {% for post in child.posts %}
+          <li{% if post._id === page._id %} class="current-post"{% endif %}>
+            <a href="{{ url_for(post.path) }}">
+              <span class="category-landing-date">{{ date(post.date, 'MM-DD') }}</span>
+              <span>{{ post.title }}</span>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </nav>
+  </aside>
+  {% endif %}
+
   {{ partial('_macro/post.njk', {post: page}) }}
 
 {% endblock %}

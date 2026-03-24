@@ -15,13 +15,53 @@
   {%- endif %}
 {% endblock %}
 
-{% block class %}page posts-expand{% endblock %}
+{% block class %}page posts-expand{% if page.type === 'category-landing' %} category-landing-page{% endif %}{% endblock %}
 
 {% block content %}
 
     {##################}
     {### PAGE BLOCK ###}
     {##################}
+    {%- if page.type === 'category-landing' %}
+      {# 分类着陆页：左侧文章列表 + 右侧介绍 #}
+      {% set landing = get_category_landing(page.category) %}
+      <div class="category-landing">
+        <aside class="category-landing-sidebar">
+          <div class="category-landing-sidebar-header">
+            <i class="fa {{ landing.icon }}"></i>
+            <span>{{ landing.name }}</span>
+            <span class="category-landing-post-count">{{ landing.allPosts.length }}</span>
+          </div>
+          <nav class="category-landing-nav">
+            {% for child in landing.children %}
+            <div class="category-landing-sub">
+              <div class="category-landing-sub-title">
+                <i class="fa fa-folder"></i> {{ child.name }}
+                <span class="category-landing-sub-count">{{ child.posts.length }}</span>
+              </div>
+              <ul class="category-landing-post-list">
+                {% for post in child.posts %}
+                <li>
+                  <a href="{{ url_for(post.path) }}">
+                    <span class="category-landing-date">{{ date(post.date, 'MM-DD') }}</span>
+                    <span>{{ post.title }}</span>
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endfor %}
+          </nav>
+        </aside>
+        <main class="category-landing-content">
+          <div class="post-block" lang="{{ page.lang }}">
+            <div class="post-body">
+              {{ page.content }}
+            </div>
+          </div>
+        </main>
+      </div>
+    {%- else %}
     <div class="post-block" lang="{{ page.lang }}">
       {%- if page.header !== false %}
         {%- include '_partials/page/page-header.njk' -%}
@@ -45,6 +85,7 @@
       {#####################}
     </div>
     {%- include '_partials/page/breadcrumb.njk' -%}
+    {%- endif %}
     {######################}
     {### END PAGE BLOCK ###}
     {######################}
@@ -52,5 +93,7 @@
 {% endblock %}
 
 {% block sidebar %}
-  {{ sidebar_template.render(page.toc.enable) }}
+  {%- if page.type !== 'category-landing' %}
+    {{ sidebar_template.render(page.toc.enable) }}
+  {%- endif %}
 {% endblock %}

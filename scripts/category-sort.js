@@ -57,6 +57,109 @@ hexo.extend.helper.register('sorted_categories_tree', function() {
   });
 });
 
+// 一级分类的介绍文案
+const categoryDescriptions = {
+  'AI Infra': '涵盖计算机底层基础、大模型训练部署和 CUDA GPU 编程等基础设施技术。',
+  '战胜玩AI': '探索 AI 编程工具的最佳实践与 Agent 智能体的设计开发。',
+  '编程技能包': '实用编程技能：Web 开发、Python 生态、工具链与工程实践。'
+};
+
+// 一级分类对应的着陆页路径
+const categoryLandingPaths = {
+  'AI Infra': '/ai-infra/',
+  '战胜玩AI': '/play-ai/',
+  '编程技能包': '/coding-skills/'
+};
+
+// 根据文章获取其所属一级分类的 sidebar 数据（文章详情页使用）
+hexo.extend.helper.register('get_post_category_sidebar', function(post) {
+  if (!post.categories || !post.categories.length) return null;
+
+  const allCategories = this.site.categories.toArray();
+  const postCats = post.categories.toArray();
+
+  // 找到该文章所属的一级分类（无 parent 的分类）
+  let topCat = null;
+  for (const cat of postCats) {
+    if (!cat.parent) {
+      topCat = cat;
+      break;
+    }
+  }
+  // 如果没有直接的一级分类，通过子分类的 parent 找到
+  if (!topCat) {
+    for (const cat of postCats) {
+      if (cat.parent) {
+        topCat = allCategories.find(c => c._id === cat.parent);
+        if (topCat) break;
+      }
+    }
+  }
+  if (!topCat) return null;
+
+  // 复用 get_category_landing 的逻辑
+  const children = allCategories.filter(c => c.parent === topCat._id);
+  children.sort((a, b) => b.length - a.length);
+
+  return {
+    name: topCat.name,
+    icon: categoryIcons[topCat.name] || 'fa-folder-open',
+    landingPath: categoryLandingPaths[topCat.name] || '/categories/',
+    children: children.map(c => ({
+      name: c.name,
+      path: c.path,
+      posts: c.posts.toArray().sort((a, b) => b.date - a.date)
+    })),
+    totalPosts: children.reduce((sum, c) => sum + c.length, 0)
+  };
+});
+
+// 获取一级分类下的所有文章（含子分类），按时间倒序
+// 返回 { name, icon, description, children: [{ name, posts }], allPosts }
+hexo.extend.helper.register('get_category_landing', function(categoryName) {
+  const categories = this.site.categories.toArray();
+
+  // 找到对应的一级分类
+  const parent = categories.find(c => c.name === categoryName && !c.parent);
+  if (!parent) return null;
+
+  // 找到所有子分类
+  const children = categories.filter(c => c.parent === parent._id);
+  children.sort((a, b) => b.length - a.length);
+
+  // 收集所有文章并去重
+  const postMap = new Map();
+  children.forEach(child => {
+    child.posts.forEach(post => {
+      if (!postMap.has(post._id)) {
+        postMap.set(post._id, { post, subCategory: child.name });
+      }
+    });
+  });
+  // 也加入直接在父分类下的文章
+  parent.posts.forEach(post => {
+    if (!postMap.has(post._id)) {
+      postMap.set(post._id, { post, subCategory: parent.name });
+    }
+  });
+
+  // 按时间倒序
+  const allPosts = Array.from(postMap.values());
+  allPosts.sort((a, b) => b.post.date - a.post.date);
+
+  return {
+    name: parent.name,
+    icon: categoryIcons[parent.name] || 'fa-folder-open',
+    description: categoryDescriptions[parent.name] || '',
+    children: children.map(c => ({
+      name: c.name,
+      path: c.path,
+      posts: c.posts.toArray().sort((a, b) => b.date - a.date)
+    })),
+    allPosts: allPosts
+  };
+});
+
 // 注册树状分类列表 helper（分类页使用）
 hexo.extend.helper.register('list_categories_sorted', function() {
   const categories = this.site.categories.toArray();

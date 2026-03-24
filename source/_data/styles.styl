@@ -906,6 +906,375 @@ html[data-theme="dark"]
     .category-tree
       grid-template-columns: 1fr
 
+// ===================================
+// 文章详情页 - 三栏布局：左分类列表 | 文章 | 右目录
+// ===================================
+.main:has(.main-inner.post)
+  flex-direction: row-reverse
+  // 拉宽整体容器，靠近屏幕边界
+  width: calc(100% - 40px) !important
+  max-width: 1600px
+
+  .column > header.header
+    display: none
+
+// 文章详情页 .main-inner 变为 flex 容器
+.main-inner.post
+  display: flex
+  gap: 0
+  padding: 0 !important
+  width: 100% !important
+
+  // 文章内容区域占满剩余空间
+  > .post-block
+    flex: 1
+    min-width: 0
+
+// 文章页左侧分类文章列表
+.post-cat-sidebar
+  width: 280px
+  flex-shrink: 0
+  background: var(--content-bg-color)
+  border-right: 1px solid $light-border
+  overflow-y: auto
+  max-height: calc(100vh - 56px)
+  position: sticky
+  top: 56px
+
+  // 细滚动条
+  &::-webkit-scrollbar
+    width: 4px
+  &::-webkit-scrollbar-track
+    background: transparent
+  &::-webkit-scrollbar-thumb
+    background: rgba(0, 0, 0, 0.12)
+    border-radius: 4px
+    &:hover
+      background: rgba(0, 0, 0, 0.25)
+
+  .category-landing-sidebar-header
+    padding: 18px 20px
+    font-size: 16px
+    font-weight: 700
+    border-bottom: 2px solid $light-accent-green
+    letter-spacing: 0.3px
+
+    i
+      font-size: 16px
+      color: $light-accent-green
+
+    .category-landing-post-count
+      min-width: 22px
+      height: 22px
+      line-height: 22px
+      font-size: 12px
+      font-weight: 600
+      padding: 0 7px
+      background: $light-accent-green
+      color: #fff
+      border-radius: 11px
+
+  .category-landing-nav
+    padding: 10px 0
+
+  .category-landing-sub
+    margin-bottom: 2px
+
+  .category-landing-sub-title
+    padding: 10px 20px 6px
+    font-size: 13px
+    font-weight: 600
+    letter-spacing: 0.5px
+    text-transform: uppercase
+    color: var(--blockquote-color)
+
+    i
+      font-size: 12px
+      opacity: 0.6
+
+    .category-landing-sub-count
+      font-size: 11px
+      font-weight: 600
+      padding: 1px 7px
+      border-radius: 10px
+      background: rgba(8, 145, 178, 0.1)
+
+  .category-landing-post-list li
+    margin: 0
+
+    a
+      display: flex
+      align-items: baseline
+      gap: 8px
+      padding: 8px 16px 8px 32px
+      font-size: 14px
+      line-height: 1.5
+      color: var(--text-color)
+      text-decoration: none
+      border-bottom: none !important
+      border-left: 2px solid transparent
+      transition: all 0.2s ease
+
+      &:hover
+        background: rgba(8, 145, 178, 0.05)
+        color: var(--link-color)
+        border-left-color: var(--link-color)
+        padding-left: 34px
+
+      .category-landing-date
+        font-size: 12px
+        color: var(--blockquote-color)
+        flex-shrink: 0
+        font-family: 'Fira Code', monospace
+        opacity: 0.65
+
+    &.current-post a
+      color: var(--link-color)
+      font-weight: 600
+      background: rgba(8, 145, 178, 0.08)
+      border-left-color: var(--link-color)
+
+      .category-landing-date
+        color: var(--link-color)
+        opacity: 0.85
+
+// 文章详情页右侧 TOC 侧边栏优化
+.main:has(.main-inner.post) .sidebar
+  .sidebar-inner
+    padding: 12px 8px
+    border-radius: 8px
+
+  // TOC 目录标题切换
+  .sidebar-nav
+    margin-bottom: 8px
+    li
+      font-size: 13px
+      padding: 6px 12px
+
+  // TOC 目录内容
+  .post-toc
+    padding: 4px 0
+
+    ol
+      padding: 0 4px 0 12px
+
+    .nav-item
+      line-height: 2
+      margin: 1px 0
+
+      a
+        font-size: 13px
+        padding: 2px 8px
+        border-radius: 4px
+        display: block
+        color: var(--text-color)
+        border-bottom: none !important
+        transition: all 0.2s ease
+
+        &:hover
+          background: rgba(8, 145, 178, 0.06)
+          color: var(--link-color)
+
+    .nav .active > a
+      color: var(--link-color)
+      font-weight: 600
+
+    .nav .active-current > a
+      color: var(--link-color)
+      background: rgba(8, 145, 178, 0.08)
+      font-weight: 600
+
+  // 返回顶部按钮
+  .back-to-top
+    font-size: 13px
+    padding: 8px 0
+    border-radius: 6px
+    margin-top: 8px
+
+@media (max-width: 1100px)
+  .post-cat-sidebar
+    display: none
+
+  .main-inner.post
+    display: block
+    padding: 0 !important
+
+// ===================================
+// 分类着陆页 - 隐藏主题左侧栏，全宽展示
+// ===================================
+.main:has(.category-landing-page)
+  .column
+    display: none
+
+  .category-landing-page
+    width: 100%
+    max-width: 100%
+    margin: 0
+    padding: 0
+
+// ===================================
+// 分类着陆页 - 左侧文章列表 + 右侧介绍
+// ===================================
+.category-landing
+  display: flex
+  gap: 0
+  min-height: calc(100vh - 140px)
+
+.category-landing-sidebar
+  width: 300px
+  flex-shrink: 0
+  background: var(--content-bg-color)
+  border-right: 1px solid $light-border
+  padding: 0
+  overflow-y: auto
+  max-height: calc(100vh - 56px)
+  position: sticky
+  top: 56px
+
+.category-landing-sidebar-header
+  display: flex
+  align-items: center
+  gap: 10px
+  padding: 20px
+  font-size: 18px
+  font-weight: 700
+  color: var(--text-color)
+  border-bottom: 2px solid $light-accent-green
+  position: sticky
+  top: 0
+  background: var(--content-bg-color)
+  z-index: 10
+
+  i
+    color: $light-accent-green
+    font-size: 16px
+
+  .category-landing-post-count
+    margin-left: auto
+    font-size: 12px
+    font-weight: 600
+    color: #fff
+    background: $light-accent-green
+    min-width: 24px
+    height: 24px
+    line-height: 24px
+    text-align: center
+    border-radius: 12px
+    padding: 0 8px
+
+.category-landing-nav
+  padding: 12px 0
+
+.category-landing-sub
+  margin-bottom: 4px
+
+.category-landing-sub-title
+  display: flex
+  align-items: center
+  gap: 6px
+  padding: 8px 20px
+  font-size: 13px
+  font-weight: 600
+  color: var(--blockquote-color)
+  text-transform: uppercase
+  letter-spacing: 0.5px
+
+  i
+    font-size: 12px
+    opacity: 0.6
+
+  .category-landing-sub-count
+    margin-left: auto
+    font-size: 11px
+    font-weight: 600
+    background: rgba(8, 145, 178, 0.1)
+    color: var(--blockquote-color)
+    padding: 1px 7px
+    border-radius: 10px
+
+.category-landing-post-list
+  list-style: none
+  margin: 0
+  padding: 0
+
+  li
+    margin: 0
+
+    a
+      display: flex
+      align-items: baseline
+      gap: 8px
+      padding: 7px 20px 7px 36px
+      font-size: 14px
+      color: var(--text-color)
+      text-decoration: none
+      border-bottom: none !important
+      transition: all 0.2s ease
+      line-height: 1.5
+
+      &:hover
+        background: rgba(8, 145, 178, 0.06)
+        color: var(--link-color)
+        padding-left: 40px
+
+      .category-landing-date
+        font-size: 12px
+        color: var(--blockquote-color)
+        flex-shrink: 0
+        font-family: 'Fira Code', monospace
+        opacity: 0.7
+
+.category-landing-content
+  flex: 1
+  min-width: 0
+  padding: 30px 40px
+
+  .post-block
+    background: none
+    box-shadow: none
+    margin: 0
+    padding: 0
+
+  .post-body
+    padding: 0
+    font-size: 16px
+    line-height: 1.8
+
+    h3
+      font-size: 20px
+      margin-top: 2em
+      color: var(--text-color)
+
+    ul
+      padding-left: 0
+      list-style: none
+
+      li
+        padding: 6px 0
+        font-size: 15px
+        line-height: 1.7
+
+        strong
+          color: var(--link-color)
+
+        &:before
+          content: none
+
+// 分类着陆页 - 移动端
+@media (max-width: 900px)
+  .category-landing
+    flex-direction: column
+
+  .category-landing-sidebar
+    width: 100%
+    max-height: none
+    position: static
+    border-right: none
+    border-bottom: 1px solid $light-border
+
+  .category-landing-content
+    padding: 20px
+
 // 移除进场动画
 .post,
 .sidebar-inner
@@ -1048,6 +1417,63 @@ html[data-theme="dark"]
     .category-tree-child-count
       background: rgba(0, 212, 255, 0.12)
       color: $cyber-neon-cyan
+
+  // 分类着陆页 + 文章页分类侧边栏
+  .category-landing-sidebar,
+  .post-cat-sidebar
+    background: $cyber-bg-tertiary
+    border-right-color: $cyber-border
+
+  .category-landing-sidebar-header
+    background: $cyber-bg-tertiary
+    border-bottom-color: $cyber-neon-green
+
+    i
+      color: $cyber-neon-green
+
+    .category-landing-post-count
+      background: $cyber-neon-green
+      color: $cyber-bg-primary
+
+  .category-landing-sub-title
+    color: $cyber-text-secondary
+
+    .category-landing-sub-count
+      background: rgba(0, 255, 136, 0.12)
+      color: $cyber-neon-green
+
+  .category-landing-post-list li a
+    &:hover
+      background: rgba(0, 212, 255, 0.08)
+      color: $cyber-neon-cyan
+      border-left-color: $cyber-neon-cyan
+
+  .category-landing-post-list li.current-post a
+    background: rgba(0, 212, 255, 0.12)
+    color: $cyber-neon-cyan
+    border-left-color: $cyber-neon-cyan
+
+  // 文章页侧边栏滚动条
+  .post-cat-sidebar
+    &::-webkit-scrollbar-thumb
+      background: $cyber-border
+      &:hover
+        background: $cyber-neon-green
+
+  // 文章详情页右侧 TOC 暗色模式
+  .main:has(.main-inner.post) .sidebar
+    .post-toc .nav-item a
+      &:hover
+        background: rgba(0, 212, 255, 0.08)
+        color: $cyber-neon-cyan
+
+    .post-toc .nav .active-current > a
+      background: rgba(0, 212, 255, 0.12)
+      color: $cyber-neon-cyan
+
+  @media (max-width: 900px)
+    .category-landing-sidebar
+      border-bottom-color: $cyber-border
 
   // （导航菜单已移至顶部导航栏）
 
