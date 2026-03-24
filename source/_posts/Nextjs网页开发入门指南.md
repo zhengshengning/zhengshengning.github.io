@@ -1,7 +1,8 @@
 ---
 title: Next.js入门指南：从零构建现代Web应用
 date: 2026-02-10 16:00:00
-categories: 应用与网页开发
+categories:
+  - [编程技能包, Web开发]
 tags: [Next.js, React, 前端开发]
 ---
 

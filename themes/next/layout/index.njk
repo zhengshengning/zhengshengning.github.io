@@ -22,24 +22,34 @@
           <i class="fa fa-folder-open"></i>
           <span>文章分类导航</span>
         </div>
-        
-        {% for category in sorted_categories() %}
-        <div class="readme-category-item">
-          <div class="readme-category-name">
-            <i class="fa fa-folder"></i>
-            <span>{{ category.name }}</span>
-            <span class="readme-category-count">({{ category.length }})</span>
+
+        {% for group in sorted_categories_tree() %}
+        <div class="readme-category-group">
+          <div class="readme-category-group-header">
+            <i class="fa {{ group.icon }}"></i>
+            <span>{{ group.name }}</span>
+            <span class="readme-category-count">({{ group.totalPosts }})</span>
           </div>
-          <ul class="readme-article-list">
-            {% for post in category.posts.toArray() %}
-            <li class="readme-article-item">
-              <a href="{{ url_for(post.path) }}">
-                <span class="readme-article-date">{{ date(post.date, 'YYYY-MM-DD') }}</span>
-                <span class="readme-article-title">{{ post.title }}</span>
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
+
+          {% for child in group.children %}
+          <div class="readme-category-item">
+            <div class="readme-category-name">
+              <i class="fa fa-folder"></i>
+              <span>{{ child.name }}</span>
+              <span class="readme-category-count">({{ child.length }})</span>
+            </div>
+            <ul class="readme-article-list">
+              {% for post in child.posts.toArray() %}
+              <li class="readme-article-item">
+                <a href="{{ url_for(post.path) }}">
+                  <span class="readme-article-date">{{ date(post.date, 'YYYY-MM-DD') }}</span>
+                  <span class="readme-article-title">{{ post.title }}</span>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endfor %}
         </div>
         {% endfor %}
         

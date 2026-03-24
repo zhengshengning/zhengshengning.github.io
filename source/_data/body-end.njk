@@ -1,30 +1,95 @@
-{# 文章页悬浮返回按钮 - 仅在文章页显示 #}
-{% if page.layout === 'post' %}
-<div class="floating-back-btn" id="floatingBackBtn" title="返回">
-  <i class="fa fa-arrow-left"></i>
-</div>
-{% endif %}
-
-{# 悬浮搜索框 HTML #}
-<div class="floating-search-container">
-  <button class="floating-search-btn" id="floatingSearchBtn" title="搜索">
-    <i class="fa fa-search"></i>
-  </button>
-  <div class="floating-search-input-wrapper" id="floatingSearchInputWrapper">
-    <input type="text" class="floating-search-input" id="floatingSearchInput" placeholder="搜索文章...">
-    <button class="floating-search-close" id="floatingSearchClose">&times;</button>
+{# 顶部导航栏 #}
+<nav class="top-navbar" id="topNavbar">
+  <div class="top-navbar-inner">
+    <a href="/" class="top-navbar-brand">
+      <i class="fa-solid fa-terminal"></i>
+      技术博客
+    </a>
+    <div class="top-navbar-links" id="navbarLinks">
+      <a href="/" class="top-navbar-link"><i class="fa fa-home"></i> 首页</a>
+      <a href="/archives/" class="top-navbar-link"><i class="fa fa-archive"></i> 归档</a>
+      <a href="/categories/" class="top-navbar-link"><i class="fa fa-th"></i> 分类</a>
+      <a href="/tags/" class="top-navbar-link"><i class="fa fa-tags"></i> 标签</a>
+      <a href="/about/" class="top-navbar-link"><i class="fa fa-user"></i> 关于</a>
+      <a href="https://github.com/zhengshengning" class="top-navbar-link" target="_blank" rel="noopener"><i class="fab fa-github"></i> GitHub</a>
+    </div>
+    <div class="top-navbar-actions">
+      {# 返回按钮（仅文章页） #}
+      {% if page.layout === 'post' %}
+      <button class="navbar-action-btn" id="floatingBackBtn" title="返回" aria-label="返回">
+        <i class="fa fa-arrow-left"></i>
+      </button>
+      {% endif %}
+      {# 搜索按钮 #}
+      <div class="floating-search-container">
+        <button class="navbar-action-btn" id="floatingSearchBtn" title="搜索" aria-label="搜索">
+          <i class="fa fa-search"></i>
+        </button>
+        <div class="floating-search-input-wrapper" id="floatingSearchInputWrapper">
+          <input type="text" class="floating-search-input" id="floatingSearchInput" placeholder="搜索文章...">
+          <button class="floating-search-close" id="floatingSearchClose">&times;</button>
+        </div>
+      </div>
+      {# 主题切换按钮 #}
+      <button class="navbar-action-btn" id="themeToggleBtn" title="切换主题" aria-label="切换主题">
+        <i class="fa-solid fa-moon icon-moon"></i>
+        <i class="fa-solid fa-sun icon-sun"></i>
+      </button>
+    </div>
+    <button class="top-navbar-hamburger" id="navbarHamburger" aria-label="菜单">
+      <span></span><span></span><span></span>
+    </button>
   </div>
-</div>
+</nav>
 
 <div class="floating-search-results" id="floatingSearchResults"></div>
 
-{# 暗/亮模式切换按钮 #}
-<button class="theme-toggle-btn" id="themeToggleBtn" title="切换主题">
-  <i class="fa-solid fa-moon icon-moon"></i>
-  <i class="fa-solid fa-sun icon-sun"></i>
-</button>
-
 <script>
+// 顶部导航栏 - 移动端汉堡菜单切换
+(function() {
+  var hamburger = document.getElementById('navbarHamburger');
+  var links = document.getElementById('navbarLinks');
+  if (!hamburger || !links) return;
+
+  hamburger.addEventListener('click', function() {
+    hamburger.classList.toggle('active');
+    links.classList.toggle('active');
+  });
+
+  // 点击导航链接后自动收起菜单
+  links.querySelectorAll('.top-navbar-link').forEach(function(link) {
+    link.addEventListener('click', function() {
+      hamburger.classList.remove('active');
+      links.classList.remove('active');
+    });
+  });
+
+  // 点击页面其他区域收起菜单
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.top-navbar')) {
+      hamburger.classList.remove('active');
+      links.classList.remove('active');
+    }
+  });
+})();
+
+// 导航栏滚动效果
+(function() {
+  var navbar = document.getElementById('topNavbar');
+  if (!navbar) return;
+  var lastScroll = 0;
+
+  window.addEventListener('scroll', function() {
+    var currentScroll = window.pageYOffset;
+    if (currentScroll > 50) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+    lastScroll = currentScroll;
+  });
+})();
+
 // 悬浮搜索功能
 (function() {
   const searchBtn = document.getElementById('floatingSearchBtn');
@@ -147,6 +212,14 @@
 
   searchInput.addEventListener('input', (e) => {
     performSearch(e.target.value);
+  });
+
+  // 失去焦点后自动收起
+  searchInput.addEventListener('blur', () => {
+    // 延迟以允许点击搜索结果
+    setTimeout(() => {
+      closeSearch();
+    }, 200);
   });
 
   document.addEventListener('click', (e) => {

@@ -1,7 +1,8 @@
 ---
 title: C++入门教程
 date: 2026-02-09 12:15:00
-categories: 计算机基础
+categories:
+  - [AI Infra, 计算机基础]
 tags: [C++, 编程语言, 入门教程, 面向对象]
 ---
 

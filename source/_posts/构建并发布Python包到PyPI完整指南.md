@@ -1,7 +1,8 @@
 ---
 title: 构建并发布Python包到PyPI完整指南
 date: 2026-03-11 10:00:00
-categories: 编程技能包
+categories:
+  - [编程技能包, Python]
 tags: [Python, PyPI, 包管理, GitHub Actions, CI/CD, uv, hatch]
 ---
 

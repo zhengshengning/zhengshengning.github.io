@@ -1,7 +1,8 @@
 ---
 title: 如何创建自定义Agent Skills
 date: 2026-02-12 10:55:00
-categories: AI编程
+categories:
+  - [战胜玩AI, AI编程]
 tags: [AI编程, Agent Skills, Claude]
 ---
 
