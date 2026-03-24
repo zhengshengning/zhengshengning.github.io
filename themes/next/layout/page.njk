@@ -43,7 +43,6 @@
                 {% for post in child.posts %}
                 <li>
                   <a href="{{ url_for(post.path) }}">
-                    <span class="category-landing-date">{{ date(post.date, 'MM-DD') }}</span>
                     <span>{{ post.title }}</span>
                   </a>
                 </li>

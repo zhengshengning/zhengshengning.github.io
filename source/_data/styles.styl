@@ -910,7 +910,9 @@ html[data-theme="dark"]
 // 文章详情页 - 三栏布局：左分类列表 | 文章 | 右目录
 // ===================================
 .main:has(.main-inner.post)
+  display: flex
   flex-direction: row-reverse
+  gap: 10px
   // 拉宽整体容器，靠近屏幕边界
   width: calc(100% - 40px) !important
   max-width: 1600px
@@ -921,9 +923,10 @@ html[data-theme="dark"]
 // 文章详情页 .main-inner 变为 flex 容器
 .main-inner.post
   display: flex
-  gap: 0
+  gap: 10px
   padding: 0 !important
-  width: 100% !important
+  flex: 1
+  min-width: 0
 
   // 文章内容区域占满剩余空间
   > .post-block
@@ -954,7 +957,7 @@ html[data-theme="dark"]
 
   .category-landing-sidebar-header
     padding: 18px 20px
-    font-size: 16px
+    font-size: 20px
     font-weight: 700
     border-bottom: 2px solid $light-accent-green
     letter-spacing: 0.3px
@@ -982,7 +985,7 @@ html[data-theme="dark"]
 
   .category-landing-sub-title
     padding: 10px 20px 6px
-    font-size: 13px
+    font-size: 15px
     font-weight: 600
     letter-spacing: 0.5px
     text-transform: uppercase
@@ -1173,7 +1176,7 @@ html[data-theme="dark"]
   align-items: center
   gap: 6px
   padding: 8px 20px
-  font-size: 13px
+  font-size: 15px
   font-weight: 600
   color: var(--blockquote-color)
   text-transform: uppercase
@@ -1522,6 +1525,7 @@ html[data-theme="dark"]
   .code-container
     border: 1px solid $cyber-border
     border-left: 3px solid $cyber-neon-green
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2)
 
   // 自定义滚动条
   ::-webkit-scrollbar
@@ -1555,6 +1559,7 @@ html:not([data-theme="dark"])
   .code-container
     border: 1px solid $light-border
     border-left: 3px solid $light-accent-green
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08)
 
 // 终端光标闪烁动画
 @keyframes cursor-blink

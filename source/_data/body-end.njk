@@ -3,7 +3,7 @@
   <div class="top-navbar-inner">
     <a href="/" class="top-navbar-brand">
       <i class="fa-solid fa-terminal"></i>
-      技术博客
+      战胜的技术博客
     </a>
     <div class="top-navbar-links" id="navbarLinks">
       <a href="/" class="top-navbar-link"><i class="fa fa-home"></i> 首页</a>
@@ -14,12 +14,6 @@
       <a href="https://github.com/zhengshengning" class="top-navbar-link" target="_blank" rel="noopener"><i class="fab fa-github"></i> GitHub</a>
     </div>
     <div class="top-navbar-actions">
-      {# 返回按钮（仅文章页） #}
-      {% if page.layout === 'post' %}
-      <button class="navbar-action-btn" id="floatingBackBtn" title="返回" aria-label="返回">
-        <i class="fa fa-arrow-left"></i>
-      </button>
-      {% endif %}
       {# 搜索按钮 #}
       <div class="floating-search-container">
         <button class="navbar-action-btn" id="floatingSearchBtn" title="搜索" aria-label="搜索">
@@ -232,20 +226,6 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeSearch();
-    }
-  });
-})();
-
-// 文章页返回按钮功能
-(function() {
-  const backBtn = document.getElementById('floatingBackBtn');
-  if (!backBtn) return;
-
-  backBtn.addEventListener('click', () => {
-    if (document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
-      window.history.back();
-    } else {
-      window.location.href = '/';
     }
   });
 })();

@@ -28,7 +28,6 @@
           {% for post in child.posts %}
           <li{% if post._id === page._id %} class="current-post"{% endif %}>
             <a href="{{ url_for(post.path) }}">
-              <span class="category-landing-date">{{ date(post.date, 'MM-DD') }}</span>
               <span>{{ post.title }}</span>
             </a>
           </li>

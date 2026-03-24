@@ -1,5 +1,5 @@
 ---
-title: 关于
+title: 作者介绍
 date: 2026-02-07 18:42:00
 type: "about"
 comments: false
