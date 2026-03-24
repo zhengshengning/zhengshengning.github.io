@@ -1,36 +1,45 @@
-{# 自定义头部：添加悬浮搜索框和返回按钮样式 #}
+{# FOUC 防闪烁：在 CSS 加载前立即应用主题 #}
+<script>
+  (function(){
+    var t = localStorage.getItem('blog-theme');
+    if (t === 'light') { /* default is light, do nothing */ }
+    else { document.documentElement.setAttribute('data-theme', 'dark'); }
+  })();
+</script>
+
+{# 自定义头部：悬浮搜索框和返回按钮样式 #}
 <style>
-  /* 文章页返回按钮 - 悬浮在右上角搜索按钮左边 */
+  /* 文章页返回按钮 - 悬浮在右上角 */
   .floating-back-btn {
     position: fixed;
     top: 20px;
     right: 85px;
-    width: 50px;
-    height: 50px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
+    width: 44px;
+    height: 44px;
+    background: #1a1a2e;
+    border: 1px solid transparent;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 15px rgba(26, 26, 46, 0.3);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 9999;
   }
 
   .floating-back-btn:hover {
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-    transform: translateY(-3px) scale(1.08);
+    box-shadow: 0 6px 20px rgba(26, 26, 46, 0.5);
+    transform: translateY(-2px);
   }
 
   .floating-back-btn:active {
-    transform: translateY(-1px) scale(1.02);
+    transform: translateY(0);
   }
 
   .floating-back-btn i {
     color: #fff;
-    font-size: 20px;
+    font-size: 18px;
   }
 
   /* 悬浮搜索框容器 */
@@ -46,31 +55,31 @@
 
   /* 搜索按钮 */
   .floating-search-btn {
-    width: 50px;
-    height: 50px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
+    width: 44px;
+    height: 44px;
+    background: #1a1a2e;
+    border: 1px solid transparent;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 15px rgba(26, 26, 46, 0.3);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .floating-search-btn:hover {
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-    transform: translateY(-3px) scale(1.08);
+    box-shadow: 0 6px 20px rgba(26, 26, 46, 0.5);
+    transform: translateY(-2px);
   }
 
   .floating-search-btn:active {
-    transform: translateY(-1px) scale(1.02);
+    transform: translateY(0);
   }
 
   .floating-search-btn i {
     color: #fff;
-    font-size: 20px;
+    font-size: 18px;
   }
 
   /* 搜索框 */
@@ -86,61 +95,62 @@
 
   .floating-search-input {
     width: 320px;
-    height: 50px;
-    padding: 0 50px 0 20px;
-    border: 2px solid transparent;
-    border-radius: 25px;
+    height: 44px;
+    padding: 0 44px 0 18px;
+    border: 1px solid #e0e0e8;
+    border-radius: 22px;
     font-size: 15px;
     outline: none;
     background: #fff;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    color: #1a1a2e;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .floating-search-input:focus {
-    border-color: #667eea;
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    border-color: #059669;
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.2);
   }
 
   .floating-search-input::placeholder {
-    color: #999;
+    color: #8888a0;
   }
 
   .floating-search-close {
     position: absolute;
-    right: 15px;
+    right: 10px;
     top: 50%;
     transform: translateY(-50%);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1a1a2e;
     border: none;
     border-radius: 50%;
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     cursor: pointer;
     color: #fff;
-    font-size: 16px;
+    font-size: 14px;
     padding: 0;
-    line-height: 28px;
+    line-height: 26px;
     text-align: center;
     transition: all 0.3s ease;
   }
 
   .floating-search-close:hover {
     transform: translateY(-50%) rotate(90deg);
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
   }
 
   /* 搜索结果弹出层 */
   .floating-search-results {
     position: fixed;
-    top: 85px;
+    top: 80px;
     right: 20px;
-    width: 450px;
+    width: 420px;
     max-height: 65vh;
     background: #fff;
+    border: 1px solid #e0e0e8;
     border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
     display: none;
     z-index: 9998;
   }
@@ -155,37 +165,25 @@
   }
 
   .floating-search-results::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: transparent;
   }
 
   .floating-search-results::-webkit-scrollbar-thumb {
-    background: #888;
+    background: #ccc;
     border-radius: 3px;
   }
 
-  .floating-search-results::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  }
-
   .floating-search-result-item {
-    padding: 18px 20px;
+    padding: 16px 18px;
     border-bottom: 1px solid #f0f0f0;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     position: relative;
   }
 
   .floating-search-result-item:hover {
-    background: linear-gradient(to right, #f8f9ff 0%, #fff 100%);
-    padding-left: 25px;
-  }
-
-  .floating-search-result-item:hover:before {
-    content: "→";
-    position: absolute;
-    left: 10px;
-    color: #667eea;
-    font-weight: bold;
+    background: #f5f5fa;
+    padding-left: 22px;
   }
 
   .floating-search-result-item:last-child {
@@ -193,24 +191,24 @@
   }
 
   .floating-search-result-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
-    color: #333;
-    margin-bottom: 8px;
+    color: #1a1a2e;
+    margin-bottom: 6px;
     line-height: 1.4;
   }
 
   .floating-search-result-title mark {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #059669;
     color: #fff;
-    padding: 2px 6px;
+    padding: 1px 5px;
     border-radius: 3px;
     font-weight: 700;
   }
 
   .floating-search-result-content {
     font-size: 13px;
-    color: #666;
+    color: #8888a0;
     line-height: 1.7;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -219,8 +217,8 @@
   }
 
   .floating-search-result-content mark {
-    background: #fff3cd;
-    color: #856404;
+    background: #d1fae5;
+    color: #065f46;
     padding: 1px 3px;
     border-radius: 2px;
   }
@@ -228,138 +226,126 @@
   .floating-search-no-result {
     padding: 40px 20px;
     text-align: center;
-    color: #999;
+    color: #8888a0;
     font-size: 15px;
   }
 
   .floating-search-no-result i {
-    font-size: 48px;
-    color: #ddd;
+    font-size: 40px;
+    color: #ccc;
     display: block;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
   }
 
   /* 动画 */
   @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateX(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
   }
 
   @keyframes fadeInScale {
-    from {
-      opacity: 0;
-      transform: translateY(-10px) scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
+    from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  /* 暗色模式适配 */
-  @media (prefers-color-scheme: dark) {
-    .floating-back-btn {
-      background: linear-gradient(135deg, #4a5fe8 0%, #5a3d92 100%);
-      box-shadow: 0 4px 15px rgba(74, 95, 232, 0.4);
-    }
+  /* 暗色模式（赛博朋克） */
+  html[data-theme="dark"] .floating-back-btn,
+  html[data-theme="dark"] .floating-search-btn {
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  }
 
-    .floating-back-btn:hover {
-      box-shadow: 0 6px 20px rgba(74, 95, 232, 0.6);
-    }
+  html[data-theme="dark"] .floating-back-btn:hover,
+  html[data-theme="dark"] .floating-search-btn:hover {
+    border-color: #00ff88;
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+  }
 
-    .floating-search-btn {
-      background: linear-gradient(135deg, #4a5fe8 0%, #5a3d92 100%);
-      box-shadow: 0 4px 15px rgba(74, 95, 232, 0.4);
-    }
-    
-    .floating-search-btn:hover {
-      box-shadow: 0 6px 20px rgba(74, 95, 232, 0.6);
-    }
+  html[data-theme="dark"] .floating-back-btn i,
+  html[data-theme="dark"] .floating-search-btn i {
+    color: #00ff88;
+  }
 
-    .floating-search-input {
-      background: #2d2d2d;
-      color: #e0e0e0;
-      border-color: #3d3d3d;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    }
+  html[data-theme="dark"] .floating-search-input {
+    background: #1a1a2e;
+    color: #e0e0e8;
+    border-color: #2a2a3e;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  }
 
-    .floating-search-input:focus {
-      border-color: #4a5fe8;
-      box-shadow: 0 6px 20px rgba(74, 95, 232, 0.4);
-    }
+  html[data-theme="dark"] .floating-search-input:focus {
+    border-color: #00ff88;
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+  }
 
-    .floating-search-input::placeholder {
-      color: #666;
-    }
+  html[data-theme="dark"] .floating-search-input::placeholder {
+    color: #555;
+  }
 
-    .floating-search-close {
-      background: linear-gradient(135deg, #4a5fe8 0%, #5a3d92 100%);
-    }
+  html[data-theme="dark"] .floating-search-close {
+    background: #2a2a3e;
+  }
 
-    .floating-search-results {
-      background: #2d2d2d;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-    }
+  html[data-theme="dark"] .floating-search-results {
+    background: #12121a;
+    border-color: #2a2a3e;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  }
 
-    .floating-search-results::-webkit-scrollbar-track {
-      background: #1a1a1a;
-    }
+  html[data-theme="dark"] .floating-search-results::-webkit-scrollbar-track {
+    background: #0a0a0f;
+  }
 
-    .floating-search-results::-webkit-scrollbar-thumb {
-      background: #555;
-    }
+  html[data-theme="dark"] .floating-search-results::-webkit-scrollbar-thumb {
+    background: #2a2a3e;
+  }
 
-    .floating-search-result-item {
-      border-bottom-color: #3d3d3d;
-    }
+  html[data-theme="dark"] .floating-search-result-item {
+    border-bottom-color: #2a2a3e;
+  }
 
-    .floating-search-result-item:hover {
-      background: linear-gradient(to right, #3a3a4a 0%, #2d2d2d 100%);
-    }
+  html[data-theme="dark"] .floating-search-result-item:hover {
+    background: #1a1a2e;
+  }
 
-    .floating-search-result-title {
-      color: #e0e0e0;
-    }
+  html[data-theme="dark"] .floating-search-result-title {
+    color: #e0e0e8;
+  }
 
-    .floating-search-result-title mark {
-      background: linear-gradient(135deg, #4a5fe8 0%, #5a3d92 100%);
-    }
+  html[data-theme="dark"] .floating-search-result-title mark {
+    background: #00ff88;
+    color: #0a0a0f;
+  }
 
-    .floating-search-result-content {
-      color: #aaa;
-    }
+  html[data-theme="dark"] .floating-search-result-content {
+    color: #8888a0;
+  }
 
-    .floating-search-result-content mark {
-      background: #4a5fe8;
-      color: #fff;
-    }
+  html[data-theme="dark"] .floating-search-result-content mark {
+    background: rgba(0, 255, 136, 0.2);
+    color: #00ff88;
+  }
 
-    .floating-search-no-result {
-      color: #666;
-    }
+  html[data-theme="dark"] .floating-search-no-result {
+    color: #555;
+  }
 
-    .floating-search-no-result i {
-      color: #555;
-    }
+  html[data-theme="dark"] .floating-search-no-result i {
+    color: #2a2a3e;
   }
 
   /* 移动端适配 */
   @media (max-width: 768px) {
     .floating-back-btn {
       top: 15px;
-      right: 75px;
-      width: 45px;
-      height: 45px;
+      right: 70px;
+      width: 40px;
+      height: 40px;
     }
 
     .floating-back-btn i {
-      font-size: 18px;
+      font-size: 16px;
     }
 
     .floating-search-container {
@@ -368,33 +354,33 @@
     }
 
     .floating-search-btn {
-      width: 45px;
-      height: 45px;
+      width: 40px;
+      height: 40px;
     }
 
     .floating-search-btn i {
-      font-size: 18px;
+      font-size: 16px;
     }
 
     .floating-search-input {
-      width: calc(100vw - 110px);
-      height: 45px;
+      width: calc(100vw - 100px);
+      height: 40px;
       font-size: 14px;
     }
 
     .floating-search-results {
-      top: 75px;
+      top: 70px;
       right: 15px;
       width: calc(100vw - 30px);
       max-height: 60vh;
     }
 
     .floating-search-result-item {
-      padding: 15px;
+      padding: 14px;
     }
 
     .floating-search-result-title {
-      font-size: 15px;
+      font-size: 14px;
     }
 
     .floating-search-result-content {

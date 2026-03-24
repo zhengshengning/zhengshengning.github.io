@@ -3,13 +3,13 @@
 <div class="links-of-blogroll motion-element">
   <div class="links-of-blogroll-title">
     <i class="fa fa-book fa-fw"></i>
-    所有文章
+    近期文章
   </div>
   <ul class="links-of-blogroll-list">
     {% for post in site.posts.sort('date', -1).toArray() %}
       <li class="links-of-blogroll-item">
         <a href="{{ url_for(post.path) }}" title="{{ post.title }}">
-          <span style="color: #999; font-size: 0.9em;">[{{ post.categories.toArray()[0].name }}]</span>
+          <span style="color: var(--blockquote-color); font-size: 0.9em;">[{{ post.categories.toArray()[0].name }}]</span>
           {{ post.title }}
         </a>
       </li>

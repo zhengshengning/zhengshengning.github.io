@@ -1,939 +1,842 @@
 // ===================================
-// 自定义样式 - 简洁协调版
+// 赛博朋克/开发者主题 - 自定义样式
 // ===================================
 
-// 主题颜色定义
-$primary-color = #0e83cd
-$primary-hover = #0a6ba8
-$text-color = #333
-$text-light = #666
-$border-color = #e5e5e5
-$bg-light = #f8f8f8
+// 设计系统变量
+$cyber-bg-primary    = #0a0a0f
+$cyber-bg-secondary  = #12121a
+$cyber-bg-tertiary   = #1a1a2e
+$cyber-neon-green    = #00ff88
+$cyber-neon-cyan     = #00d4ff
+$cyber-neon-purple   = #b44aff
+$cyber-text-primary  = #e0e0e8
+$cyber-text-secondary = #8888a0
+$cyber-border        = #2a2a3e
 
-// 侧边栏头部统计信息样式
-.site-header-stats {
+$light-bg            = #fafafa
+$light-card          = #ffffff
+$light-text          = #1a1a2e
+$light-accent-green  = #059669
+$light-accent-cyan   = #0891b2
+$light-border        = #e0e0e8
+
+// ===================================
+// 暗色模式 CSS 自定义属性覆盖
+// (NexT 的 darkmode: false 时 _colors.styl 只生成亮色 :root)
+// ===================================
+html[data-theme="dark"]
+  --body-bg-color: $cyber-bg-primary
+  --content-bg-color: $cyber-bg-secondary
+  --card-bg-color: $cyber-bg-tertiary
+  --text-color: $cyber-text-primary
+  --blockquote-color: $cyber-text-secondary
+  --link-color: $cyber-neon-cyan
+  --link-hover-color: $cyber-neon-green
+  --brand-color: $cyber-neon-green
+  --brand-hover-color: $cyber-neon-cyan
+  --table-row-odd-bg-color: #161622
+  --table-row-hover-bg-color: #1e1e30
+  --menu-item-bg-color: $cyber-bg-tertiary
+  --theme-color: $cyber-bg-primary
+  --selection-bg: $cyber-neon-green
+  --selection-color: $cyber-bg-primary
+  --btn-default-bg: transparent
+  --btn-default-color: $cyber-neon-green
+  --btn-default-border-color: $cyber-neon-green
+  --btn-default-hover-bg: $cyber-neon-green
+  --btn-default-hover-color: $cyber-bg-primary
+  --btn-default-hover-border-color: $cyber-neon-green
+  --highlight-background: #1e1e2e
+  --highlight-foreground: $cyber-text-primary
+  --highlight-gutter-background: #161622
+  --highlight-gutter-foreground: $cyber-text-secondary
+  color-scheme: dark
+
+  img
+    opacity: 0.85
+    &:hover
+      opacity: 1
+
+// ===================================
+// 侧边栏头部统计信息
+// ===================================
+.site-header-stats
   display: flex
   justify-content: center
   gap: 25px
   margin-top: 15px
   padding-top: 12px
-  border-top: 1px solid rgba(255, 255, 255, 0.2)
-  
-  .site-header-stat {
+  border-top: 1px solid rgba(255, 255, 255, 0.15)
+
+  .site-header-stat
     text-align: center
     text-decoration: none
     transition: opacity 0.2s
-    
-    &:hover {
+
+    &:hover
       opacity: 0.8
-    }
-    
-    .site-header-stat-num {
+
+    .site-header-stat-num
       display: block
       font-size: 20px
       font-weight: 700
       color: #fff
       line-height: 1.2
-    }
-    
-    .site-header-stat-label {
-      font-size: 12px
-      color: rgba(255, 255, 255, 0.7)
-    }
-  }
-}
 
-// 侧边栏同分类文章卡片（独立卡片，仅文章详情页显示）
-.sidebar-category-articles {
+    .site-header-stat-label
+      font-size: 12px
+      color: rgba(255, 255, 255, 0.6)
+
+// ===================================
+// 侧边栏同分类文章卡片
+// ===================================
+.sidebar-category-articles
   margin-top: 15px
   padding: 15px
-  font-size: 0.875em  // 与文章目录字体大小一致
-  
-  .category-articles-card {
-    .category-articles-title {
+  font-size: 0.875em
+
+  .category-articles-card
+    .category-articles-title
       font-size: 1em
       font-weight: 600
-      color: #555
+      color: var(--text-color)
       margin-bottom: 12px
       padding-bottom: 8px
-      border-bottom: 1px solid #eee
-      
-      i {
+      border-bottom: 1px solid $light-border
+
+      i
         margin-right: 6px
-        color: $primary-color
-      }
-      
-      .category-articles-count {
+        color: var(--link-color)
+
+      .category-articles-count
         font-size: 0.85em
         font-weight: normal
-        color: #888
+        color: var(--blockquote-color)
         margin-left: 5px
-      }
-    }
-    
-    .category-articles-list {
+
+    .category-articles-list
       list-style: none
       margin: 0
       padding: 0
-      
-      .category-articles-item {
+
+      .category-articles-item
         margin: 4px 0
         padding: 4px 8px
         border-radius: 4px
-        line-height: 1.8  // 与文章目录行高一致
+        line-height: 1.8
         transition: all 0.25s ease
-        
-        a {
+
+        a
           display: block
-          font-size: 1em  // 继承父级字体大小
-          color: #555
+          font-size: 1em
+          color: var(--text-color)
           text-decoration: none
           border: none !important
           transition: all 0.25s ease
-          
-          &:hover {
-            color: $primary-color
-          }
-        }
-        
-        &:hover {
-          background: rgba(14, 131, 205, 0.08)
+
+          &:hover
+            color: var(--link-color)
+
+        &:hover
+          background: rgba(8, 145, 178, 0.08)
           transform: translateX(4px)
-          
-          a {
-            color: $primary-color
-          }
-        }
-        
-        &.current-post {
-          background: rgba(14, 131, 205, 0.12)
-          
-          a.current {
-            color: $primary-color !important
+
+          a
+            color: var(--link-color)
+
+        &.current-post
+          background: rgba(8, 145, 178, 0.12)
+
+          a.current
+            color: var(--link-color) !important
             font-weight: 600
-          }
-          
-          &:hover {
-            background: rgba(14, 131, 205, 0.18)
-          }
-        }
-      }
-    }
-  }
-}
 
-// 暗色模式 - 同分类文章卡片
-html[data-theme="dark"] {
-  .sidebar-category-articles {
-    .category-articles-title {
-      color: #ccc
-      border-bottom-color: #444
-    }
-    
-    .category-articles-list .category-articles-item {
-      a {
-        color: #bbb
-        
-        &:hover {
-          color: #4a9eff
-        }
-      }
-      
-      &:hover {
-        background: rgba(74, 158, 255, 0.12)
-        
-        a {
-          color: #4a9eff
-        }
-      }
-      
-      &.current-post {
-        background: rgba(74, 158, 255, 0.15)
-        
-        a.current {
-          color: #4a9eff !important
-        }
-        
-        &:hover {
-          background: rgba(74, 158, 255, 0.22)
-        }
-      }
-    }
-  }
-}
+          &:hover
+            background: rgba(8, 145, 178, 0.18)
 
+// ===================================
+// 侧边栏近期文章整体左对齐
+// ===================================
+.links-of-blogroll
+  text-align: left
+
+  .links-of-blogroll-list
+    display: flex
+    flex-direction: column
+    justify-content: flex-start
+    align-items: flex-start
+
+    .links-of-blogroll-item
+      width: 100%
+
+      a
+        display: block
+        white-space: normal
+        overflow: visible
+        text-overflow: unset
+
+// ===================================
 // 侧边栏分类文章列表
-.category-section {
+// ===================================
+.category-section
   margin-bottom: 15px
-  
-  .category-title {
+
+  .category-title
     font-size: 14px
     font-weight: 600
-    color: #555
+    color: var(--text-color)
     margin: 8px 0 6px 0
     padding: 4px 0
-    border-bottom: 1px solid #eee
-    
-    i {
+    border-bottom: 1px solid $light-border
+
+    i
       margin-right: 5px
-      color: $primary-color
-    }
-  }
-  
-  .links-of-blogroll-list {
+      color: var(--link-color)
+
+  .links-of-blogroll-list
     margin: 0
-    padding: 0 0 0 12px
+    padding: 0
     list-style: none
-    
-    .links-of-blogroll-item {
+    text-align: left
+
+    .links-of-blogroll-item
       margin: 4px 0
       line-height: 1.5
-      
-      a {
+
+      a
         font-size: 13px
-        color: #555
+        color: var(--text-color)
         transition: all 0.25s ease
-        
-        &:hover {
-          color: $primary-color
+
+        &:hover
+          color: var(--link-color)
           padding-left: 6px
-        }
-      }
-    }
-  }
-}
 
 // 站点概览中的所有文章列表悬停效果
-.site-overview-wrap {
-  .links-of-blogroll-list {
-    .links-of-blogroll-item {
+.site-overview-wrap
+  .links-of-blogroll-list
+    .links-of-blogroll-item
       padding: 3px 6px
       margin: 2px 0
       border-radius: 4px
       transition: all 0.25s ease
-      
-      a {
+
+      a
         display: block
         transition: all 0.25s ease
         border: none !important
-        
-        &:hover {
-          color: $primary-color
-        }
-      }
-      
-      &:hover {
-        background: rgba(14, 131, 205, 0.08)
-        transform: translateX(4px)
-      }
-    }
-  }
-}
 
+        &:hover
+          color: var(--link-color)
+
+      &:hover
+        background: rgba(8, 145, 178, 0.08)
+        transform: translateX(4px)
+
+// ===================================
 // 文章卡片
-.post {
+// ===================================
+.post
   margin-bottom: 20px
-  
-  &:hover {
-    // 移除悬停上浮效果
-  }
-}
-
-// ====================================
-// 首页 README 卡片样式（独立命名空间）
-// ====================================
-.readme-welcome-card {
-  background: #fafafa
-  border: 1px solid #e0e0e0
-  border-left: 4px solid #333
-  border-radius: 8px
-  margin-bottom: 30px
-  padding: 0
-  // 性能优化：启用 GPU 加速，减少重绘
-  transform: translateZ(0)
-  backface-visibility: hidden
-  will-change: auto
-  contain: layout style paint
-  
-  .readme-welcome-header {
-    background: #333
-    color: #fff
-    padding: 15px 20px
-    font-size: 18px
-    font-weight: 600
-    border-radius: 4px 4px 0 0
-    
-    i {
-      margin-right: 10px
-    }
-  }
-  
-  .readme-welcome-content {
-    padding: 20px
-  }
-  
-  .readme-welcome-intro {
-    font-size: 15px
-    color: #555
-    line-height: 1.8
-    margin: 0 0 20px 0
-    padding: 0
-  }
-  
-  .readme-category-nav {
-    .readme-category-title {
-      font-size: 16px
-      font-weight: 600
-      color: #333
-      padding-bottom: 10px
-      margin-bottom: 15px
-      border-bottom: 2px solid #ddd
-      
-      i {
-        margin-right: 8px
-        color: #555
-      }
-    }
-  }
-  
-  .readme-category-item {
-    margin-bottom: 15px
-    
-    .readme-category-name {
-      font-size: 15px
-      font-weight: 600
-      color: #333
-      margin-bottom: 8px
-      
-      i {
-        margin-right: 6px
-        color: #666
-      }
-      
-      .readme-category-count {
-        font-size: 13px
-        color: #888
-        font-weight: normal
-        margin-left: 5px
-      }
-    }
-  }
-  
-  .readme-article-list {
-    list-style: none
-    margin: 0
-    padding: 0 0 0 20px
-    border: none !important
-    
-    .readme-article-item {
-      margin: 4px 0
-      padding: 4px 8px
-      border: none !important
-      border-bottom: none !important
-      border-radius: 4px
-      transition: all 0.25s ease
-      
-      a {
-        display: block
-        font-size: 14px
-        color: #555
-        text-decoration: none
-        padding: 2px 0
-        transition: all 0.25s ease
-        border: none !important
-        border-bottom: none !important
-        
-        &:hover {
-          color: $primary-color
-        }
-        
-        .readme-article-date {
-          color: #999
-          font-size: 12px
-          margin-right: 10px
-          transition: color 0.25s ease
-        }
-        
-        .readme-article-title {
-          color: inherit
-        }
-      }
-      
-      &:hover {
-        background: rgba(14, 131, 205, 0.08)
-        transform: translateX(4px)
-        
-        a {
-          color: $primary-color
-        }
-        
-        .readme-article-date {
-          color: #666
-        }
-      }
-    }
-  }
-  
-  .readme-total-info {
-    margin-top: 20px
-    padding-top: 15px
-    border-top: 1px solid #ddd
-    text-align: center
-    font-size: 14px
-    color: #666
-    
-    i {
-      margin-right: 6px
-      color: #555
-    }
-  }
-}
 
 // 隐藏首页文章分隔线
-.post-eof {
+.post-eof
   display: none !important
-}
 
 // 首页文章列表样式
-.posts-expand .post {
-  .post-header {
+.posts-expand .post
+  .post-header
     padding: 15px 20px 0
-    
-    .post-title {
+
+    .post-title
       font-size: 24px
       font-weight: 600
       line-height: 1.3
       margin: 0 0 2px
-    }
-    
-    .post-meta {
+
+    .post-meta
       font-size: 13px
       margin: 0
       line-height: 1.3
-    }
-  }
-  
-  .post-body {
+
+  .post-body
     padding: 0 20px 15px
     font-size: 15px
-    
-    // 限制摘要显示两行
-    p {
+
+    p
       display: -webkit-box
       -webkit-line-clamp: 1
       -webkit-box-orient: vertical
       overflow: hidden
       margin: 0
       line-height: 1
-    }
-  }
-}
 
 // 文章详情页样式
-.post-header {
+.post-header
   padding: 15px 20px 0
-  
-  .post-title {
+
+  .post-title
     font-size: 24px
     font-weight: 600
     line-height: 1.4
     margin: 0 0 5px
-  }
-  
-  .post-meta {
+
+  .post-meta
     font-size: 13px
     margin: 0
-  }
-}
 
-.post-body {
+.post-body
   padding: 5px 20px 15px
   font-size: 15px
   line-height: 1.7
-  
-  p {
+
+  p
     margin: 0.8em 0
-  }
-  
-  h2, h3, h4 {
+
+  h2, h3, h4
     margin-top: 1.2em
     margin-bottom: 0.6em
     font-weight: 600
-    // 移除左侧装饰条
     padding-left: 0
-    
-    &:before {
+
+    &:before
       display: none
-    }
-  }
-  
-  blockquote {
-    border-left: 3px solid $primary-color
-    background: $bg-light
+
+  blockquote
+    border-left: 3px solid var(--link-color)
+    background: var(--card-bg-color)
     padding: 10px 15px
     margin: 1em 0
-  }
-  
-  code {
-    background: $bg-light
+
+  code
+    background: var(--card-bg-color)
     padding: 2px 6px
     border-radius: 3px
     font-size: 0.9em
-  }
-}
 
 // 阅读更多按钮
-.post-button {
+.post-button
   margin: 15px 0
   text-align: center
-  
-  .btn {
+
+  .btn
     display: inline-block
     padding: 8px 20px
-    background: $primary-color
-    color: #fff
     border-radius: 4px
     font-size: 14px
-    transition: background 0.2s ease
-    
-    &:hover {
-      background: $primary-hover
-      // 移除上浮效果
-    }
-  }
-}
+    transition: all 0.2s ease
 
+// ===================================
+// 首页 README 卡片
+// ===================================
+.readme-welcome-card
+  background: $light-card
+  border: 1px solid $light-border
+  border-left: 4px solid $light-accent-green
+  border-radius: 8px
+  margin-bottom: 30px
+  padding: 0
+  transform: translateZ(0)
+  backface-visibility: hidden
+  contain: layout style paint
+
+  .readme-welcome-header
+    background: $light-text
+    color: #fff
+    padding: 15px 20px
+    font-size: 18px
+    font-weight: 600
+    border-radius: 4px 4px 0 0
+
+    i
+      margin-right: 10px
+
+  .readme-welcome-content
+    padding: 20px
+
+  .readme-welcome-intro
+    font-size: 15px
+    color: var(--blockquote-color)
+    line-height: 1.8
+    margin: 0 0 20px 0
+    padding: 0
+
+  .readme-category-nav
+    .readme-category-title
+      font-size: 16px
+      font-weight: 600
+      color: var(--text-color)
+      padding-bottom: 10px
+      margin-bottom: 15px
+      border-bottom: 2px solid $light-border
+
+      i
+        margin-right: 8px
+        color: var(--blockquote-color)
+
+  .readme-category-item
+    margin-bottom: 15px
+
+    .readme-category-name
+      font-size: 15px
+      font-weight: 600
+      color: var(--text-color)
+      margin-bottom: 8px
+
+      i
+        margin-right: 6px
+        color: var(--blockquote-color)
+
+      .readme-category-count
+        font-size: 13px
+        color: var(--blockquote-color)
+        font-weight: normal
+        margin-left: 5px
+
+  .readme-article-list
+    list-style: none
+    margin: 0
+    padding: 0 0 0 20px
+    border: none !important
+
+    .readme-article-item
+      margin: 4px 0
+      padding: 4px 8px
+      border: none !important
+      border-bottom: none !important
+      border-radius: 4px
+      transition: all 0.25s ease
+
+      a
+        display: block
+        font-size: 14px
+        color: var(--text-color)
+        text-decoration: none
+        padding: 2px 0
+        transition: all 0.25s ease
+        border: none !important
+        border-bottom: none !important
+
+        &:hover
+          color: var(--link-color)
+
+        .readme-article-date
+          color: var(--blockquote-color)
+          font-size: 12px
+          margin-right: 10px
+          transition: color 0.25s ease
+
+        .readme-article-title
+          color: inherit
+
+      &:hover
+        background: rgba(8, 145, 178, 0.08)
+        transform: translateX(4px)
+
+        a
+          color: var(--link-color)
+
+  .readme-total-info
+    margin-top: 20px
+    padding-top: 15px
+    border-top: 1px solid $light-border
+    text-align: center
+    font-size: 14px
+    color: var(--blockquote-color)
+
+    i
+      margin-right: 6px
+
+// ===================================
 // 侧边栏
-.sidebar {
-  .sidebar-inner {
+// ===================================
+.sidebar
+  .sidebar-inner
     padding: 15px
-  }
-  
-  .site-state {
+
+  .site-state
     padding: 10px 0
     margin-bottom: 10px
-    border-bottom: 1px solid $border-color
-    
-    .site-state-item {
+    border-bottom: 1px solid var(--card-bg-color)
+
+    .site-state-item
       padding: 10px 15px
       border-radius: 8px
       transition: all 0.3s ease
       cursor: pointer
-      
-      &:hover {
-        background: rgba(14, 131, 205, 0.15)
-        transform: translateY(-4px)
-        box-shadow: 0 4px 12px rgba(14, 131, 205, 0.2)
-        
-        .site-state-item-count {
-          color: $primary-color
-          transform: scale(1.2)
-        }
-        
-        .site-state-item-name {
-          color: $primary-color
-        }
-      }
-      
-      .site-state-item-count {
-        transition: all 0.3s ease
-      }
-      
-      .site-state-item-name {
-        transition: all 0.3s ease
-      }
-    }
-  }
-}
 
+      &:hover
+        background: rgba(8, 145, 178, 0.1)
+        transform: translateY(-4px)
+        box-shadow: 0 4px 12px rgba(8, 145, 178, 0.15)
+
+        .site-state-item-count
+          color: var(--link-color)
+          transform: scale(1.2)
+
+        .site-state-item-name
+          color: var(--link-color)
+
+      .site-state-item-count
+        transition: all 0.3s ease
+
+      .site-state-item-name
+        transition: all 0.3s ease
+
+// ===================================
 // 标签云
-.tag-cloud {
-  a {
+// ===================================
+.tag-cloud
+  a
     display: inline-block
     margin: 3px
     padding: 4px 10px
-    background: $bg-light
+    background: var(--card-bg-color)
     border-radius: 3px
     font-size: 13px
     transition: all 0.2s ease
-    
-    &:hover {
-      background: $primary-color
-      color: #fff
-      // 移除上浮效果
-    }
-  }
-}
 
+    &:hover
+      background: var(--link-color)
+      color: #fff !important
+
+// ===================================
 // 分页
-.pagination {
+// ===================================
+.pagination
   text-align: center
   margin: 25px 0
-  
+
   .page-number,
-  .extend {
+  .extend
     display: inline-block
     margin: 0 3px
     padding: 6px 12px
     border-radius: 3px
-    background: $bg-light
+    background: var(--card-bg-color)
     transition: all 0.2s ease
-    
-    &:hover {
-      background: $primary-color
-      color: #fff
-      // 移除上浮效果
-    }
-    
-    &.current {
-      background: $primary-color
-      color: #fff
-    }
-  }
-}
 
+    &:hover
+      background: var(--link-color)
+      color: #fff
+
+    &.current
+      background: var(--link-color)
+      color: #fff
+
+// ===================================
 // 页脚
-.footer {
+// ===================================
+.footer
   padding: 20px 0
   margin-top: 40px
-}
 
-// 顶部导航菜单悬停效果
-.menu .menu-item {
+// ===================================
+// 顶部导航菜单
+// ===================================
+.menu .menu-item
   transition: all 0.3s ease
   border-radius: 6px
-  
-  a {
-    transition: all 0.3s ease
-  }
-  
-  &:hover {
-    transform: translateY(-3px)
-    box-shadow: 0 4px 12px rgba(14, 131, 205, 0.15)
-    
-    a {
-      color: $primary-color
-    }
-  }
-  
-  &.menu-item-active {
-    a {
-      color: $primary-color
-      font-weight: 600
-    }
-  }
-}
 
-// 归档页文章列表悬停效果
-.posts-collapse {
-  .post-header {
+  a
+    transition: all 0.3s ease
+
+  &:hover
+    transform: translateY(-3px)
+    box-shadow: 0 4px 12px rgba(8, 145, 178, 0.12)
+
+    a
+      color: var(--link-color)
+
+  &.menu-item-active
+    a
+      color: var(--link-color)
+      font-weight: 600
+
+// ===================================
+// 归档页文章列表悬停
+// ===================================
+.posts-collapse
+  .post-header
     padding: 4px 8px
     margin: 2px 0
     border-radius: 4px
     transition: all 0.25s ease
-    
-    &:hover {
-      background: rgba(14, 131, 205, 0.08)
-      transform: translateX(4px)
-      
-      a {
-        color: $primary-color
-      }
-    }
-  }
-}
 
-// 分类页列表悬停效果
-.category-all-page {
-  .category-list-item {
+    &:hover
+      background: rgba(8, 145, 178, 0.08)
+      transform: translateX(4px)
+
+      a
+        color: var(--link-color)
+
+// ===================================
+// 分类页列表悬停
+// ===================================
+.category-all-page
+  .category-list-item
     padding: 4px 8px
     border-radius: 4px
     transition: all 0.25s ease
-    
-    &:hover {
-      background: rgba(14, 131, 205, 0.08)
+
+    &:hover
+      background: rgba(8, 145, 178, 0.08)
       transform: translateX(4px)
-      
-      > a {
-        color: $primary-color
-      }
-    }
-  }
-}
+
+      > a
+        color: var(--link-color)
 
 // 移除进场动画
 .post,
-.sidebar-inner {
+.sidebar-inner
   animation: none
-}
 
+// ===================================
 // 响应式优化
-@media (max-width: 768px) {
-  .post-header {
+// ===================================
+@media (max-width: 768px)
+  .post-header
     padding: 12px 15px 8px
-    
-    .post-title {
+
+    .post-title
       font-size: 20px
-    }
-  }
-  
-  .post-body {
+
+  .post-body
     padding: 12px 15px
     font-size: 14px
-  }
-  
-  .sidebar {
+
+  .sidebar
     margin-top: 20px
-  }
-}
 
-// 暗色模式适配
-html[data-theme="dark"] {
-  .readme-welcome-card {
-    background: #1e1e1e
-    border-color: #333
-    border-left-color: #ccc
-    
-    .readme-welcome-header {
-      background: #444
-    }
-    
-    .readme-welcome-intro {
-      color: #bbb
-    }
-    
-    .readme-category-nav .readme-category-title {
-      color: #e0e0e0
-      border-bottom-color: #444
-      
-      i {
-        color: #aaa
-      }
-    }
-    
-    .readme-category-item .readme-category-name {
-      color: #ddd
-      
-      .readme-category-count {
-        color: #888
-      }
-    }
-    
-    .readme-article-list .readme-article-item {
-      &:hover {
-        background: rgba(74, 158, 255, 0.12)
-      }
-      
-      a {
-        color: #bbb
-        
-        &:hover {
-          color: #4a9eff
-        }
-        
-        .readme-article-date {
-          color: #777
-        }
-      }
-    }
-    
-    .readme-total-info {
-      border-top-color: #444
-      color: #888
-      
-      i {
-        color: #aaa
-      }
-    }
-  }
-  
-  .category-section {
-    .category-title {
-      color: #ccc
-      border-bottom-color: #333
-    }
-    
-    .links-of-blogroll-list {
-      .links-of-blogroll-item a {
-        color: #ccc
-        
-        &:hover {
-          color: #4a9eff
-        }
-      }
-    }
-  }
-  
+// ===================================
+// 暗色模式（赛博朋克）适配
+// ===================================
+html[data-theme="dark"]
+  // README 欢迎卡片
+  .readme-welcome-card
+    background: $cyber-bg-secondary
+    border-color: $cyber-border
+    border-left-color: $cyber-neon-green
+
+    .readme-welcome-header
+      background: $cyber-bg-tertiary
+
+    .readme-category-nav .readme-category-title
+      border-bottom-color: $cyber-border
+
+    .readme-article-list .readme-article-item
+      &:hover
+        background: rgba(0, 212, 255, 0.08)
+
+    .readme-total-info
+      border-top-color: $cyber-border
+
+  // 分类列表
+  .category-section
+    .category-title
+      border-bottom-color: $cyber-border
+
+  // 文章卡片和侧边栏背景
   .post,
-  .sidebar .sidebar-inner {
-    background: #2d2d2d
-  }
-  
-  .post-body {
-    blockquote {
-      background: #333
-      border-left-color: #4a9eff
-    }
-    
-    code {
-      background: #333
-    }
-  }
-  
-  .tag-cloud a {
-    background: #333
-    color: #ccc
-    
-    &:hover {
-      background: #4a9eff
-      color: #fff
-    }
-  }
-  
-  .pagination {
-    .page-number,
-    .extend {
-      background: #333
-      color: #ccc
-      
-      &:hover,
-      &.current {
-        background: #4a9eff
-        color: #fff
-      }
-    }
-  }
-  
-  // 暗色模式 - 站点概览文章列表悬停
-  .site-overview-wrap {
-    .links-of-blogroll-list .links-of-blogroll-item {
-      &:hover {
-        background: rgba(74, 158, 255, 0.12)
-      }
-      
-      a:hover {
-        color: #4a9eff
-      }
-    }
-  }
-  
-  // 暗色模式 - 归档页悬停
-  .posts-collapse .post-header:hover {
-    background: rgba(74, 158, 255, 0.12)
-    
-    a {
-      color: #4a9eff
-    }
-  }
-  
-  // 暗色模式 - 分类页悬停
-  .category-all-page .category-list-item:hover {
-    background: rgba(74, 158, 255, 0.12)
-    
-    > a {
-      color: #4a9eff
-    }
-  }
-  
-  // 暗色模式 - 站点状态统计悬停
-  .site-state .site-state-item:hover {
-    background: rgba(74, 158, 255, 0.2)
-    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.25)
-    
-    .site-state-item-count {
-      color: #4a9eff
-    }
-    
-    .site-state-item-name {
-      color: #4a9eff
-    }
-  }
-  
-  // 暗色模式 - 顶部导航菜单悬停
-  .menu .menu-item:hover {
-    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.25)
-    
-    a {
-      color: #4a9eff
-    }
-  }
-  
-  .menu .menu-item.menu-item-active a {
-    color: #4a9eff
-  }
-}
+  .sidebar .sidebar-inner
+    background: $cyber-bg-secondary
+
+  // 文章内容
+  .post-body
+    blockquote
+      background: $cyber-bg-tertiary
+      border-left-color: $cyber-neon-cyan
+
+    code
+      background: $cyber-bg-tertiary
+
+  // 侧边栏分类文章
+  .sidebar-category-articles
+    .category-articles-title
+      border-bottom-color: $cyber-border
+
+    .category-articles-list .category-articles-item
+      &:hover
+        background: rgba(0, 212, 255, 0.08)
+
+      &.current-post
+        background: rgba(0, 212, 255, 0.12)
+
+        &:hover
+          background: rgba(0, 212, 255, 0.18)
+
+  // 站点概览文章列表
+  .site-overview-wrap
+    .links-of-blogroll-list .links-of-blogroll-item
+      &:hover
+        background: rgba(0, 212, 255, 0.08)
+
+  // 侧边栏状态统计
+  .site-state .site-state-item:hover
+    background: rgba(0, 255, 136, 0.1)
+    box-shadow: 0 4px 12px rgba(0, 255, 136, 0.15)
+
+    .site-state-item-count
+      color: $cyber-neon-green
+
+    .site-state-item-name
+      color: $cyber-neon-green
+
+  // 归档页悬停
+  .posts-collapse .post-header:hover
+    background: rgba(0, 212, 255, 0.08)
+
+  // 分类页悬停
+  .category-all-page .category-list-item:hover
+    background: rgba(0, 212, 255, 0.08)
+
+  // 导航菜单
+  .menu .menu-item:hover
+    box-shadow: 0 4px 12px rgba(0, 255, 136, 0.15)
 
 // ===================================
-// 主题切换器样式
+// 赛博朋克特效（仅暗色模式）
 // ===================================
 
-.theme-info {
-  margin-top: 20px;
-  text-align: center;
-}
+// Fira Code 连字
+code, pre, .highlight
+  font-feature-settings: "liga" 1, "calt" 1
 
-.theme-switch-container {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 5px;
-}
+html[data-theme="dark"]
+  // 站点标题霓虹绿发光
+  .site-title
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.3)
 
-.theme-switch-btn {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid #ddd;
-  transition: all 0.2s;
-  
-  &:hover {
-    transform: scale(1.1);
-    border-color: #999;
-  }
-  
-  &.active {
-    border-color: #555;
-    box-shadow: 0 0 5px rgba(0,0,0,0.3);
-  }
-}
+  // 链接悬停发光
+  a:hover
+    text-shadow: 0 0 6px rgba(0, 212, 255, 0.25)
 
-// 蓝色主题
-html[data-theme="blue"] {
-  background: #e3f2fd;
-  
-  .header-inner, .main-inner {
-    background: rgba(255,255,255,0.9);
-  }
-  
-  .sidebar-inner, .post-block, .content-wrap, .comments {
-    background: rgba(255,255,255,0.9);
-  }
-  
-  a {
-    color: #1976d2;
-    &:hover { color: #0d47a1; }
-  }
-  
-  .menu .menu-item:hover a { color: #1976d2; }
-}
+  // 极细扫描线背景
+  body
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 255, 136, 0.008) 2px,
+      rgba(0, 255, 136, 0.008) 4px
+    )
 
-// 绿色主题
-html[data-theme="green"] {
-  background: #e8f5e9;
-  
-  .header-inner, .main-inner {
-    background: rgba(255,255,255,0.9);
-  }
-  
-  .sidebar-inner, .post-block, .content-wrap, .comments {
-    background: rgba(255,255,255,0.9);
-  }
-  
-  a {
-    color: #388e3c;
-    &:hover { color: #1b5e20; }
-  }
-  
-  .menu .menu-item:hover a { color: #388e3c; }
-}
+  // 文章卡片悬停发光
+  .post-block:hover
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.08), 0 2px 2px 0 rgba(0, 0, 0, 0.12)
+
+  // 文章标题下划线
+  .post-body h2
+    border-bottom: 1px solid rgba(0, 255, 136, 0.15)
+    padding-bottom: 0.3em
+
+  // 阅读进度条发光
+  .reading-progress-bar
+    box-shadow: 0 0 8px rgba(0, 255, 136, 0.3)
+
+  // 代码块边框
+  figure.highlight,
+  .code-container
+    border: 1px solid $cyber-border
+    border-left: 3px solid $cyber-neon-green
+
+  // 自定义滚动条
+  ::-webkit-scrollbar
+    width: 8px
+    height: 8px
+
+  ::-webkit-scrollbar-track
+    background: $cyber-bg-primary
+
+  ::-webkit-scrollbar-thumb
+    background: $cyber-border
+    border-radius: 4px
+
+    &:hover
+      background: $cyber-neon-green
+
+  // 站点描述终端光标
+  .site-description::after
+    content: '|'
+    animation: cursor-blink 1s step-end infinite
+    color: $cyber-neon-green
+    margin-left: 2px
+
+// 亮色模式代码块边框
+html:not([data-theme="dark"])
+  .post-body h2
+    border-bottom: 1px solid $light-border
+    padding-bottom: 0.3em
+
+  figure.highlight,
+  .code-container
+    border: 1px solid $light-border
+    border-left: 3px solid $light-accent-green
+
+// 终端光标闪烁动画
+@keyframes cursor-blink
+  0%, 50%
+    opacity: 1
+  51%, 100%
+    opacity: 0
+
+// ===================================
+// 暗/亮模式切换按钮
+// ===================================
+.theme-toggle-btn
+  position: fixed
+  top: 20px
+  right: 145px
+  width: 44px
+  height: 44px
+  border: none
+  border-radius: 50%
+  cursor: pointer
+  display: flex
+  align-items: center
+  justify-content: center
+  z-index: 9999
+  transition: all 0.3s ease
+  font-size: 18px
+
+// 亮色模式下的切换按钮
+html:not([data-theme="dark"])
+  .theme-toggle-btn
+    background: $light-text
+    color: #ffd700
+    box-shadow: 0 4px 15px rgba(26, 26, 46, 0.3)
+
+    &:hover
+      transform: translateY(-2px)
+      box-shadow: 0 6px 20px rgba(26, 26, 46, 0.5)
+
+    .icon-sun
+      display: none
+    .icon-moon
+      display: block
+
+// 暗色模式下的切换按钮
+html[data-theme="dark"]
+  .theme-toggle-btn
+    background: $cyber-bg-tertiary
+    border: 1px solid $cyber-border
+    color: $cyber-neon-green
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4)
+
+    &:hover
+      transform: translateY(-2px)
+      border-color: $cyber-neon-green
+      box-shadow: 0 0 15px rgba(0, 255, 136, 0.2)
+
+    .icon-sun
+      display: block
+    .icon-moon
+      display: none
+
+@media (max-width: 768px)
+  .theme-toggle-btn
+    top: 15px
+    right: 125px
+    width: 40px
+    height: 40px
+    font-size: 16px

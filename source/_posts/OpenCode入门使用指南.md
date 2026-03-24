@@ -5,6 +5,10 @@ categories: AI编程
 tags: [AI编程, OpenCode, 终端工具]
 ---
 
+OpenCode 是一个开源的 AI 编程智能体，提供基于终端的界面、桌面应用程序或 IDE 扩展。本文介绍 OpenCode 的安装、配置和使用方法。
+
+<!-- more -->
+
 # 简介 | OpenCode
 
 来源: https://opencode.ai/docs/
