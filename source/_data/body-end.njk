@@ -142,10 +142,10 @@
         const contentSnippet = getContentSnippet(item.content, keyword);
 
         return `
-          <div class="floating-search-result-item" onclick="window.location.href='${item.url}'">
+          <a class="floating-search-result-item" href="${item.url}">
             <div class="floating-search-result-title">${titleHighlighted}</div>
             <div class="floating-search-result-content">${contentSnippet}</div>
-          </div>
+          </a>
         `;
       }).join('');
     }
