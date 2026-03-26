@@ -69,11 +69,12 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 ### 1.3 检验标准
 
-- 能画出 A100/H100 的存储层次图，标注各级带宽和容量
-- 能解释 NVLink 与 PCIe 的带宽差异及其对分布式训练的影响
-- 能用 `nvidia-smi` 和 `nvidia-smi topo -m` 读懂 GPU 拓扑信息
-- 能用 Nsight Systems 说明瓶颈在 host、PCIe/NVLink、kernel、mem 的哪一层
-- 能用 Nsight Compute 说清关键 kernel 是 memory bound 还是 compute bound
+以下问题如果你能脱口而出，说明这一层已经过关：
+
+- **存储层次**：拿到一块 H100，不查资料能说出 HBM 容量（80GB）、HBM 带宽（~3.35TB/s）、L2 大小（50MB）、共享内存上限（228KB/SM）的量级，并解释为什么"显存带宽"往往比"算力"先成为瓶颈
+- **拓扑感知**：在一台 8 卡机器上执行 `nvidia-smi topo -m`，能看懂输出矩阵里的 NV12、SYS、NODE 等标记，判断哪些卡之间走 NVLink、哪些走 PCIe，并据此决定 TP 应该把哪几张卡分到同一组
+- **带宽估算**：给定一个 AllReduce 操作的数据量（比如 2GB 梯度），能估算在 NVLink（900GB/s per GPU）vs PCIe Gen5（64GB/s）下的理论耗时差异
+- **Profiling 实战**：用 Nsight Systems 抓一次训练 iteration 的 trace，能指出 GPU idle gap 是来自 CPU 数据预处理、通信等待、还是 kernel launch overhead；用 Nsight Compute 打开一个 kernel 报告，能读懂 SOL（Speed of Light）面板判断该 kernel 是 memory bound 还是 compute bound
 
 ---
 
@@ -135,12 +136,13 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 ### 2.3 检验标准
 
-- 能独立编写一个正确的 CUDA Reduce kernel 并做至少两轮优化
-- 能解释 Shared Memory Bank Conflict 并写出避免冲突的访问模式
-- 能用 Nsight Compute 分析自己写的 kernel，判断是 memory bound 还是 compute bound
-- 能解释 FlashAttention 的核心思想：为什么 tiling 能减少 HBM 访问
-- 能解释 Attention 推理时的数据流：Q/K/V、KV Cache、Softmax、写回
-- 能用 Triton 写出一个简单算子（如向量加法或 Softmax）并对比 CUDA 实现
+动手是检验这一层的唯一标准，纸上谈兵不算数：
+
+- **Reduce 三连**：从最朴素的全局内存原子加开始，写一个 Reduce Sum kernel；然后用共享内存 + 树形归约消除原子操作；最后用 Warp Shuffle 干掉共享内存，三个版本跑 Nsight Compute 对比 throughput，能说清每一步优化到底省在哪里
+- **Bank Conflict 直觉**：手动构造一个 32x32 矩阵转置 kernel，先写一个有 32-way bank conflict 的版本，再加一列 padding 消除冲突，用 Nsight Compute 的 Shared Memory 面板验证 conflict 数从几十降到 0
+- **GEMM 分块**：实现一个基于 Shared Memory Tiling 的 GEMM kernel，在 1024x1024 矩阵上与 cuBLAS 对比，达到其 50% 以上的性能即为合格——这个过程中你会真正理解"为什么访存模式决定一切"
+- **FlashAttention 白板推导**：不看论文，能在白板上画出 FlashAttention 的 tiling 过程——外层循环遍历 KV 的 block，内层循环遍历 Q 的 block，每个 tile 在 SRAM 中完成 QK^T → scale → mask → softmax → PV，用 online softmax 避免两次遍历，关键是说清楚为什么 HBM 读写从 O(N^2) 降到了 O(N)
+- **Triton 上手**：用 Triton 实现一个 fused Softmax kernel（参考官方教程），与 PyTorch 原生实现对比正确性和性能，体会 Triton 的 block-level 编程模型与 CUDA 的 thread-level 编程模型有何不同
 
 ---
 
@@ -201,12 +203,13 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 ### 3.3 检验标准
 
-- 能用 PyTorch DDP 将单卡训练脚本改造为多卡分布式训练
-- 能解释 ZeRO-1/2/3 各切分了什么，通信量如何变化
-- 能画出 TP + PP 的 3D 并行拓扑图，标注通信位置与通信量
-- 能计算给定模型的参数量、优化器状态、梯度所需的显存占用
-- 能解释混合精度训练为什么需要 Loss Scaling，以及 BF16 vs FP16 的差异
-- 能配置 DeepSpeed ZeRO Stage 2/3 并跑通一个训练任务
+这一层的检验核心是**算得清账、跑得通代码**：
+
+- **显存账本**：拿到一个 7B 参数的模型（如 LLaMA-2-7B），不查资料能口算出 FP16 下参数占 ~14GB、Adam 优化器状态占 ~56GB（FP32 参数副本 + 一阶/二阶动量各 14GB），进而判断单卡 80GB 能否放下完整训练状态、是否必须上 ZeRO
+- **ZeRO 拆解**：有人问你"ZeRO-2 和 ZeRO-3 到底差在哪"，你能一句话讲清：ZeRO-2 只在 backward 时按需 AllReduce 梯度，参数每卡各存一份；ZeRO-3 连参数也切了，forward/backward 都要 AllGather 拿参数、用完即弃，通信量约翻倍但每卡显存降到 1/N
+- **DDP 改造**：拿到一个单卡 PyTorch 训练脚本，30 分钟内改成 DDP 多卡版本并跑通——包括 `init_process_group`、`DistributedSampler`、模型 wrap、梯度同步，不需要查太多文档就能搞定
+- **3D 并行拓扑**：给一个 64 卡集群（8 节点 x 8 卡），能设计出 TP=8（机内）、PP=4（跨机）、DP=2 的并行方案，画出拓扑图标注哪些通信走 NVLink、哪些走 IB，并解释为什么 TP 不能跨机（带宽不够）
+- **混合精度原理**：能回答"BF16 和 FP16 都是 16 位，为什么大模型训练更偏爱 BF16"——因为 BF16 的指数位更宽（8 位 vs 5 位），动态范围接近 FP32，不容易 overflow/underflow，大多数情况下可以不做 Loss Scaling
 
 ---
 
@@ -231,9 +234,11 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 **检验标准**
 
-- 能解释 Prefill 和 Decode 的计算特性差异（compute bound vs memory bound）
-- 能给出 KV Cache 的显存占用公式，并据此估算给定 batch size 下的显存需求
-- 能把推理链路拆成：tokenize → prefill → decode → sampling → postprocess，并标出每段耗时特征
+把自己当成一个刚拿到推理需求的工程师，回答以下问题：
+
+- **两阶段直觉**：同事问你"为什么 Prefill 快但 Decode 慢"，你能秒答：Prefill 一次处理整个 prompt，矩阵大、算力利用率高（compute bound）；Decode 每步只生成一个 token，矩阵退化成向量，大部分时间在等显存搬运 KV Cache（memory bound）
+- **KV Cache 算账**：给定 LLaMA-2-7B（32 层、32 头、head_dim=128），上下文长度 4096，batch_size=16，FP16 存储，能手算 KV Cache 总量 = 2 × 32 × 32 × 128 × 4096 × 16 × 2B ≈ 32GB，进而判断 80GB 显卡还剩多少空间给模型参数和临时 buffer
+- **链路拆解**：把一次推理请求从头到尾拆成 tokenize → prefill（GEMM 密集）→ decode loop（逐 token 生成，memory bound）→ sampling（Top-p/Top-k）→ detokenize，能指出在高并发场景下哪个环节最容易成为瓶颈（通常是 decode 阶段的 KV Cache 带宽）
 
 ### 4.2 推理引擎
 
@@ -269,10 +274,12 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 **检验标准**
 
-- 能用同一模型在 vLLM 和 SGLang 上跑出可对比的 TTFT / TPOT
-- 能解释 Continuous Batching 与传统 Static Batching 的差异与收益
-- 能说清 KV Cache 的生命周期、碎片问题，以及 PagedAttention / RadixAttention 如何缓解
-- 能给出选型建议：低延迟、长上下文、多并发、结构化输出各用哪个框架更合理
+推理引擎是工程落地的核心，检验标准偏重"会用、会选、会排查"：
+
+- **端到端部署**：拿到一个 7B 模型，分别用 vLLM 和 SGLang 部署成 OpenAI 兼容 API，用相同的压测脚本（固定并发、输入输出长度）跑出 TTFT、TPOT、throughput 三个指标的对比表
+- **Continuous Batching 原理**：能向非技术同事解释清楚——传统 Static Batching 必须等一批请求全部生成完才能接新请求，短请求被长请求拖累；Continuous Batching 允许已完成的请求随时退出、新请求随时插入，GPU 利用率可以从 30% 拉到 80%+
+- **KV Cache 管理全链路**：从 KV Cache 的分配、使用、碎片化，到 PagedAttention 的虚拟页/物理页映射，再到 Prefix Cache 如何通过 hash 匹配复用已有的 KV 块，能画出完整的数据流
+- **选型决策**：老板问"我们该用哪个推理框架"，你能给出结构化的回答——追求吞吐和社区生态选 vLLM；多轮对话 / Agent / 结构化输出选 SGLang（RadixAttention + cFSM）；追求极限延迟且愿意投入适配工作选 TensorRT-LLM
 
 ### 4.3 量化
 
@@ -305,11 +312,12 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 **检验标准**
 
-- 能区分并选择 W8A8 vs Weight-only INT4 的适用场景、代价与收益
-- 能在同模型上跑通 FP16 baseline 与 INT4 量化版本，输出精度对比
-- 能解释为什么有时"更低 bit 反而更慢"（kernel 开销、packing、带宽、并行度）
-- 能给出量化失败排查清单（数值爆炸、输出退化、吞吐无提升）
-- 能写出一个可复用的量化评测脚本（吞吐 + 延迟 + 简单质量指标）
+量化是"看起来简单、调起来玄学"的领域，检验重点在于理解 trade-off 而非死记方案：
+
+- **方案选择**：团队要上线一个 70B 模型但只有 2 张 A100 80GB，你能快速判断：FP16 参数就要 140GB 放不下，必须量化；W8A8 可以压到 ~70GB 但两卡还是紧张；INT4 weight-only 可以压到 ~35GB 单卡就能放下，但要评估精度损失和 kernel 效率
+- **动手验证**：用 vLLM 或 TensorRT-LLM 分别加载同一模型的 FP16 和 AWQ-INT4 版本，跑同一组 benchmark prompt，输出 throughput 对比 + 几组生成结果的人工比对，能写成一个可复用的评测报告
+- **反直觉理解**：别人说"量化位数越低越快"，你能解释为什么某些场景下 INT4 反而比 INT8 慢——INT4 kernel 需要额外的 unpack/dequant 计算，在小 batch size 下这个开销可能超过带宽节省；或者 INT4 的 Tensor Core 利用率不如 INT8 的 native 支持
+- **故障排查**：量化后模型输出质量明显下降，你能列出排查清单——某些层的 activation outlier 特别大（需要 per-channel 或 SmoothQuant 处理）、量化校准数据不具代表性、某些特殊结构（如 MoE 的 gate）不适合低 bit 量化
 
 ### 4.4 Speculative Decoding
 
@@ -333,11 +341,12 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 **检验标准**
 
-- 能解释 Speculative Decoding 的正确性保证（目标分布不变）
-- 能在同模型上跑出 baseline vs speculative 的 TPOT 改善，并分析 TTFT 变化
-- 能给出"什么时候 speculative 不赚"的判断依据（任务类型、温度、Draft 质量、batch 大小）
-- 能输出 acceptance length / ratio 的统计表
-- 能提出至少 1 个与量化 / 批处理 / 长上下文耦合的风险点及规避策略
+Speculative Decoding 的精髓在于"用空间换时间、用并行换串行"，检验时重点考察对正确性和收益边界的理解：
+
+- **正确性保证**：面试官问"Speculative Decoding 会不会改变模型的输出分布"，你能回答：不会，因为 rejection sampling 机制保证了接受的 token 严格服从 target model 的分布——Draft model 猜对了直接用，猜错了按照 target 与 draft 的概率差做修正采样，数学上等价于直接从 target model 采样
+- **收益实测**：用 vLLM 的 speculative decoding 功能，分别在代码生成（高接受率场景）和开放对话（低接受率场景）上跑 benchmark，能解释为什么前者加速明显（代码 token 可预测性强，Draft 猜中率高）而后者收益有限甚至为负
+- **不赚的边界**：能列出至少 3 种 speculative decoding 效果不佳的情况——高温度采样时 Draft 命中率骤降、batch size 已经很大时额外的 Draft forward pass 抢占计算资源、Draft model 与 Target model 能力差距过大导致 acceptance rate < 50%
+- **工程耦合风险**：能指出 speculative decoding 与其他优化技术的冲突点——比如与量化叠加时 Draft model 的精度下降可能进一步降低接受率；与 Continuous Batching 叠加时不同请求的 speculative 长度不同，调度复杂度上升
 
 ### 4.5 系统架构：Prefill/Decode 解耦
 
@@ -369,10 +378,12 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 **检验标准**
 
-- 能清楚定义并计算 TTFT SLO、TPOT SLO、goodput
-- 能解释 Prefill/Decode 互扰的来源（batch 资源耦合、调度冲突）
-- 能给出 Prefill-heavy vs Decode-heavy 的资源配比方案并解释依据
-- 能列出至少 3 个系统风险点（KV 迁移延迟、网络带宽、尾延迟、队列震荡）及缓解手段
+Prefill/Decode 解耦是系统架构层面的优化，检验重点在于理解"为什么要拆"以及"拆了之后新的问题是什么"：
+
+- **互扰定量分析**：在一个混合 batching 的推理服务上，构造一个场景——几个超长 prompt 的 prefill 请求和大量短 decode 请求同时到达，用指标证明 decode 的 P95 TPOT 被 prefill 拖慢了 3-5 倍，这就是解耦的动机
+- **Goodput 概念**：老板问"我们系统 QPS 很高啊为什么用户还在抱怨慢"，你能解释 goodput 的含义——满足 SLO（比如 TTFT < 500ms 且 TPOT < 50ms）的有效请求占比才是真正的服务质量指标，raw QPS 不等于用户体验
+- **资源配比推导**：给定一个工作负载特征（平均 prompt 长度 2000 token、平均输出 500 token），能估算 prefill 和 decode 的计算量比例，进而推导出 Prefill GPU 池和 Decode GPU 池的合理配比（比如 1:3 或 1:4）
+- **风险清单**：能列出解耦架构引入的新问题——KV Cache 从 Prefill 节点迁移到 Decode 节点的网络带宽压力（一个 7B 模型 2048 长度的 KV 约 4GB，IB 200Gb/s 也需要 ~160ms）、调度器的队列管理复杂度、Prefill/Decode 负载不均时某一池空转浪费资源
 
 ### 4.6 性能分析与 Benchmark
 
@@ -399,12 +410,12 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 **检验标准**
 
-- 能同时报告至少 5 个指标：QPS、TTFT、TPOT、token/s、P50/P95
-- 有一套固定的 benchmark 配置（模型、batch、context、并发、硬件）
-- 每次改动都能输出同一张指标对比表
-- 能把一次性能回退定位到具体 commit / 配置 / 驱动变化
-- 能写出"上线门禁"规则：什么指标退化会阻止合并
-- 能写出一份"一页纸"性能报告模板
+性能分析不是"会用工具"就行，核心是建立**可重复、可对比、可追溯**的工程体系：
+
+- **指标全集**：每次性能评测输出的报告至少包含 6 个指标——QPS、TTFT（P50/P95）、TPOT（P50/P95）、端到端 throughput（token/s）、GPU 显存占用峰值、GPU 利用率，缺任何一个都可能遗漏瓶颈
+- **Benchmark 可复现**：你的 benchmark 配置（模型、batch size、输入输出长度、并发数、硬件型号、驱动版本）全部写在一个 config 文件里，任何人拿到这个文件都能复现你的结果，两次测试之间只改一个变量
+- **回归定位**：某次代码提交后 TPOT P95 退化了 15%，你能用 `git bisect` 缩小到具体 commit，再用 Nsight Systems 对比退化前后的 trace 差异——是某个 kernel 变慢了、新增了一次不必要的 sync、还是 batch 调度策略变了
+- **上线门禁**：能给团队制定一套简单可执行的性能门禁规则——比如"TPOT P95 退化超过 5% 则 block merge"、"显存占用增长超过 10% 需要附上分析报告"，并集成到 CI 流程中自动执行
 
 ---
 
