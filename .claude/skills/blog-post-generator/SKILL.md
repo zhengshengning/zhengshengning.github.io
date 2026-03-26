@@ -23,6 +23,8 @@ description: >
 
 根据内容匹配博客的分类体系，参考 [references/categories.md](references/categories.md) 中的分类映射表。若无法确定，询问用户。
 
+**如果文章需要使用映射表中不存在的新分类**，必须同步更新 `references/categories.md`，添加新的分类行并填写适用主题和已有文章。
+
 ### 3. 补充和优化内容
 
 按需执行：
@@ -31,7 +33,7 @@ description: >
 - **补充缺失章节**：根据主题补充必要的背景介绍、步骤说明、代码示例、总结等
 - **代码块规范化**：所有代码块加语言标识符（```python、```bash 等）
 - **格式统一**：列表用 `- `，粗体用 `**text**`，行内代码用反引号，表格用 pipe 语法
-- **补充参考资料**：如有引用来源，在末尾添加 `## 参考资料` 章节
+- **补充参考资料**：如有引用来源，在末尾添加 `## 参考资料` 章节，每条参考资料必须附上可点击的链接，格式为 `- [资源名称](URL)`。对于论文优先使用 arXiv 链接，官方文档使用官网链接，开源项目使用 GitHub 链接。如果某条资料确实无法找到公开链接，可以省略链接但需标注来源
 
 ### 4. 生成 Frontmatter
 
@@ -89,7 +91,9 @@ tags: [CUDA, GPU, 并行计算]
 
 ## 参考资料
 
-- [资源名称](URL)
+- [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135)
+- [NVIDIA CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/)
+- [vLLM - GitHub](https://github.com/vllm-project/vllm)
 ```
 
 ## 注意事项

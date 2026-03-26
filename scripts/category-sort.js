@@ -8,6 +8,26 @@
 // 一级分类的展示顺序
 const topLevelOrder = ['AI Infra', '战胜玩AI', '编程技能包'];
 
+// 二级分类的展示顺序（按一级分类分组，顺序与 categories.md 一致）
+const subCategoryOrder = {
+  'AI Infra': ['学习路线', '硬件与通信网络', 'CUDA编程与算子优化', '分布式训练', '推理与部署', '性能分析与Benchmark'],
+  '战胜玩AI': ['AI编程', 'Agent开发'],
+  '编程技能包': ['Python', 'C++基础', 'Web开发']
+};
+
+// 二级分类排序函数
+function sortSubCategories(children, parentName) {
+  const order = subCategoryOrder[parentName] || [];
+  children.sort((a, b) => {
+    const idxA = order.indexOf(a.name);
+    const idxB = order.indexOf(b.name);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return a.name.localeCompare(b.name, 'zh-CN');
+  });
+}
+
 // 一级分类的图标映射
 const categoryIcons = {
   'AI Infra': 'fa-server',
@@ -45,7 +65,7 @@ hexo.extend.helper.register('sorted_categories_tree', function() {
 
   return topLevel.map(parent => {
     const children = childrenMap[parent._id] || [];
-    children.sort((a, b) => b.length - a.length);
+    sortSubCategories(children, parent.name);
     return {
       name: parent.name,
       icon: categoryIcons[parent.name] || 'fa-folder-open',
@@ -99,7 +119,7 @@ hexo.extend.helper.register('get_post_category_sidebar', function(post) {
 
   // 复用 get_category_landing 的逻辑
   const children = allCategories.filter(c => c.parent === topCat._id);
-  children.sort((a, b) => b.length - a.length);
+  sortSubCategories(children, topCat.name);
 
   return {
     name: topCat.name,
@@ -125,7 +145,7 @@ hexo.extend.helper.register('get_category_landing', function(categoryName) {
 
   // 找到所有子分类
   const children = categories.filter(c => c.parent === parent._id);
-  children.sort((a, b) => b.length - a.length);
+  sortSubCategories(children, parent.name);
 
   // 收集所有文章并去重
   const postMap = new Map();
@@ -201,8 +221,8 @@ hexo.extend.helper.register('list_categories_sorted', function() {
       : parent.length;
     const icon = categoryIcons[parent.name] || 'fa-folder-open';
 
-    // 按文章数降序排列子分类
-    children.sort((a, b) => b.length - a.length);
+    // 按 categories.md 预定义顺序排列子分类
+    sortSubCategories(children, parent.name);
 
     result += '<div class="category-tree-group">';
     result += '<div class="category-tree-parent">';

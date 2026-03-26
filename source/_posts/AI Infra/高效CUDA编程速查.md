@@ -2,7 +2,7 @@
 title: 高效CUDA编程速查
 date: 2026-03-25 15:00:00
 categories:
-  - [AI Infra, CUDA编程]
+  - [AI Infra, CUDA编程与算子优化]
 tags: [CUDA, GPU, 性能优化, Tensor Core, Nsight]
 ---
 

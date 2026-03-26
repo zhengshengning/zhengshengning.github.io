@@ -2,15 +2,19 @@
 
 ## 分类体系
 
-| 一级分类 | 二级分类 | 适用主题 |
-|---------|---------|---------|
-| AI Infra | CUDA编程 | CUDA、GPU编程、并行计算、NVIDIA相关 |
-| AI Infra | 大模型训练部署 | LLM训练、模型部署、推理优化、vLLM、TensorRT |
-| AI Infra | 计算机基础 | 操作系统、网络、编译原理、数据结构等基础知识 |
-| 战胜玩AI | AI编程 | AI辅助编程、Claude Code、Copilot、AI IDE |
-| 战胜玩AI | Agent开发 | AI Agent框架、多智能体系统、Agent SDK |
-| 编程技能包 | Python | Python开发、包管理、CLI工具、uv、pip |
-| 编程技能包 | Web开发 | Next.js、React、前端开发、Web框架 |
+| 一级分类 | 二级分类 | 适用主题 | 已有文章 |
+|---------|---------|---------|---------|
+| AI Infra | 学习路线 | AI Infra 整体学习路径、知识图谱 | AI Infra学习路线 |
+| AI Infra | 硬件与通信网络 | GPU架构、NVLink、InfiniBand、NCCL、集合通信 | 硬件与通信网络介绍 |
+| AI Infra | CUDA编程与算子优化 | CUDA编程、算子开发、Kernel优化、FlashAttention、Triton | CUDA编程入门指南、高效CUDA编程速查、Thread Block Cluster 架构特性 |
+| AI Infra | 分布式训练 | DDP、FSDP、3D并行、ZeRO、DeepSpeed、Megatron-LM | 分布式训练入门 |
+| AI Infra | 推理与部署 | LLM推理、vLLM、SGLang、TensorRT-LLM、量化、KV Cache | 大模型推理与部署入门 |
+| AI Infra | 性能分析与Benchmark | Nsight Systems、Nsight Compute、Profiling、Roofline、Benchmark | Nsight Systems性能分析实战指南、Nsight Compute性能分析实战指南 |
+| 战胜玩AI | AI编程 | AI辅助编程、Claude Code、Copilot、AI IDE、Agent Skills | ClaudeCode使用指南、OpenCode入门使用指南、如何创建自定义Agent Skills、Claude多智能体系统构建指南 |
+| 战胜玩AI | Agent开发 | AI Agent框架、多智能体系统、Agent SDK | Agent框架设计与实现 |
+| 编程技能包 | Python | Python开发、包管理、CLI工具、uv、pip、PyPI | 使用uv构建Python命令行工具、构建并发布Python包到PyPI完整指南 |
+| 编程技能包 | C++基础 | C++语法、STL、面向对象、现代C++ | C++入门教程 |
+| 编程技能包 | Web开发 | Next.js、React、前端开发、Web框架 | Nextjs网页开发入门指南 |
 
 ## 选择规则
 
