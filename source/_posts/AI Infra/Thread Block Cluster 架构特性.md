@@ -26,9 +26,13 @@ Thread → Warp → Thread Block → Thread Block Cluster → Grid
 
 一个Cluster由多个Thread Block组成（最多8个），这些Block被调度到物理上相邻的SM上，可以通过硬件互连直接通信，无需经过Global Memory。
 
+> **白话理解**：传统的 Block 就像一个独立的教室，学生只能在自己教室的黑板上写字；Cluster 把几个相邻教室打通了，学生可以跑到隔壁教室看黑板，不用通过走廊（全局内存）传纸条。
+
 ## 2. Distributed Shared Memory (DSM)
 
 Cluster最核心的能力是 **Distributed Shared Memory**，允许一个Block直接访问同Cluster内其他Block的Shared Memory。
+
+> **白话理解**：多个 Block 的 Shared Memory 连成一片，像把几个小仓库打通成一个大仓库，拿隔壁仓库的东西不用绕远路（不用走全局内存这条"高速公路"，直接从内部通道拿）。
 
 ```cpp
 // 传统 Shared Memory（仅限Block内）
@@ -137,6 +141,29 @@ conv2d_cluster() {
 ## 总结
 
 Thread Block Cluster是Hopper架构的重要创新，为大规模协作并行计算提供了更高效的硬件支持。其核心价值在于通过Distributed Shared Memory实现低延迟的跨Block数据共享，特别适合需要大量Block间数据交换的算法（如大型矩阵运算、3D卷积等）。
+
+## 检验标准与进阶方向
+
+### 自我检验清单
+
+学完本文后，你应该能做到以下几点：
+
+- [ ] 能解释 Thread Block Cluster 在 CUDA 编程模型中的层级位置（Thread → Warp → Block → Cluster → Grid）
+- [ ] 能说明 Cluster 相比传统 Block 的核心优势：跨 Block 的 Shared Memory 直接访问，无需经过 Global Memory
+- [ ] 能描述 Distributed Shared Memory（DSM）的工作原理，以及它与传统 Shared Memory 的区别
+- [ ] 能在 CUDA 代码中使用 `__cluster_dims__` 属性声明 Cluster 的维度
+- [ ] 能使用 `cooperative_groups` API 获取 Cluster 信息（`block_rank()`、`num_blocks()`）并进行 Cluster 级别同步
+- [ ] 能通过 `cluster.map_shared_rank()` 访问 Cluster 内其他 Block 的 Shared Memory 数据
+- [ ] 能结合实际场景（矩阵乘法、卷积等）分析 Thread Block Cluster 带来的性能收益
+
+### 进阶方向
+
+| 方向 | 说明 | 推荐资料 |
+|------|------|---------|
+| TMA（Tensor Memory Accelerator） | Hopper 架构的异步数据搬运引擎，与 Cluster 配合可实现高效的多 Block 数据预取 | [CUDA PTX - TMA](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#data-movement-and-conversion-instructions-cp-async-bulk-tensor) |
+| Warp Specialization | 在 Cluster 内对不同 Warp 分工（生产者/消费者模式），最大化流水线并行 | [CUTLASS Warp Specialization](https://github.com/NVIDIA/cutlass/blob/main/media/docs/efficient_gemm.md) |
+| CUTLASS 3.x Cluster 支持 | CUTLASS 3.x 原生支持 Cluster 级别的 GEMM 分块策略，可直接参考工业级实现 | [CUTLASS 3.x](https://github.com/NVIDIA/cutlass/tree/main/examples/cute) |
+| Hopper 架构深度分析 | 全面理解 Hopper 架构的硬件特性（SM 结构、内存层次、互连拓扑），为 Cluster 编程打下硬件基础 | [H100 Architecture Whitepaper](https://resources.nvidia.com/en-us-tensor-core) |
 
 ## 参考资料
 

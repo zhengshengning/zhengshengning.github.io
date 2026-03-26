@@ -14,6 +14,8 @@ tags: [Python, uv, CLI, Click, 命令行工具]
 
 `uv` 是 Astral 团队（ruff 的开发者）推出的新一代 Python 包管理工具，它比传统的 `pip` 快 10-100 倍，并且原生支持 `pyproject.toml` 标准。使用 uv 管理 Python 项目，不仅能获得极快的安装速度，还能享受更现代化的开发体验。
 
+> **白话理解**：uv 是用 Rust 写的超快 Python 包管理器，可以理解为 pip 的"涡轮增压版"——做的事情和 pip 一样，但速度快了几十倍，还自带项目管理功能。
+
 ## 最终效果预览
 
 完成本教程后，你将能够：
@@ -159,11 +161,13 @@ build-backend = "setuptools.build_meta"
 ```
 
 **关键点解析：**
-- `[project.scripts]` 是配置命令行入口的地方
+- `[project.scripts]` 是配置命令行入口的地方（也叫 `entry_points` / `console_scripts`）
 - `nzs-tool = "nzs_tool.cli:cli"` 表示：
   - 创建名为 `nzs-tool` 的命令
   - 调用 `nzs_tool.cli` 模块中的 `cli` 函数
 - `cli` 函数就是我们之前在 `cli.py` 中用 `@click.group()` 装饰的函数
+
+> **白话理解**：`[project.scripts]`（即 entry_points / console_scripts）的作用是告诉 Python"安装完之后，在终端输入这个命令就能启动这个程序"——就像给程序创建了一个桌面快捷方式，双击（输入命令）就能运行。
 
 ## 第五步：安装工具
 
@@ -213,6 +217,8 @@ nzs-tool myhello --help
 ```
 
 如果你使用的是虚拟环境但没有激活，可以使用 `uv run` 来执行：
+
+> **白话理解**：虚拟环境就是给每个项目一个独立的"沙盒"，装的包互不影响——就像每个项目有自己的工具箱，不会和别的项目的工具混在一起。没有激活虚拟环境时，`uv run` 能帮你自动找到正确的工具箱来运行命令。
 
 ```bash
 uv run nzs-tool myhello Alice
@@ -375,6 +381,35 @@ Click 和 uv 都完美支持 Windows。如果遇到路径问题，确保在命�
 - **易扩展**：可以轻松添加更多子命令和功能
 
 现在，你已经掌握了使用 uv 构建 Python 命令行工具的全部技巧。快去创建属于你自己的命令行工具吧！
+
+## 检验标准与进阶方向
+
+### 自我检验清单
+
+完成本教程后，用以下清单检验自己的掌握程度：
+
+- [ ] 能使用 `uv init` 初始化一个新的 Python 项目，并理解生成的 `pyproject.toml` 各字段含义
+- [ ] 能使用 `src` 布局组织项目代码，并解释为什么包名要用下划线而命令名用短横线
+- [ ] 能使用 Click 的 `@click.group()`、`@click.command()`、`@click.argument()`、`@click.option()` 创建带子命令的 CLI 工具
+- [ ] 能正确配置 `[project.scripts]` 入口点，将 Python 函数映射为终端命令
+- [ ] 能区分可编辑安装（`-e`）和普通安装的区别，并根据场景选择合适的方式
+- [ ] 能使用 `uv run` 在未激活虚拟环境的情况下运行项目命令
+- [ ] 能使用 `uv build` 构建分发包，并理解 `.tar.gz` 和 `.whl` 的区别
+- [ ] 能独立排查"命令找不到"等常见问题，知道从虚拟环境、入口点配置等方面定位原因
+
+### 进阶方向
+
+掌握基础之后，可以沿以下方向继续深入：
+
+| 方向 | 说明 | 推荐资源 |
+|------|------|----------|
+| Click 高级用法 | 自定义类型、回调函数、命令组嵌套、插件机制 | [Click 高级模式](https://click.palletsprojects.com/en/stable/advanced/) |
+| Typer 框架 | 基于 Click 的更现代封装，利用类型注解自动生成 CLI | [Typer 官方文档](https://typer.tiangolo.com/) |
+| Rich 终端美化 | 为 CLI 工具添加进度条、表格、Markdown 渲染等丰富输出 | [Rich 官方文档](https://rich.readthedocs.io/) |
+| 自动补全 | 为命令行工具添加 Tab 自动补全支持（Bash/Zsh/Fish） | [Click Shell Completion](https://click.palletsprojects.com/en/stable/shell-completion/) |
+| 配置管理 | 使用 `pydantic-settings` 或 `dynaconf` 管理多层级配置 | [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) |
+| 测试 CLI | 使用 Click 的 `CliRunner` 或 `pytest` 编写命令行工具的自动化测试 | [Click Testing](https://click.palletsprojects.com/en/stable/testing/) |
+| 跨平台分发 | 使用 PyInstaller 或 Nuitka 将 Python CLI 打包为独立可执行文件 | [PyInstaller 文档](https://pyinstaller.org/) |
 
 ## 参考资料
 

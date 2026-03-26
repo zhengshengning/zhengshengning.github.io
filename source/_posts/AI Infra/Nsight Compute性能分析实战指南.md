@@ -22,6 +22,7 @@ Nsight Compute 是 NVIDIA 提供的 CUDA Kernel 级深度分析工具，能够�
 - [8. 深度学习 Kernel 分析](#8-深度学习-kernel-分析)
 - [9. 高级用法](#9-高级用法)
 - [10. 常见问题与最佳实践](#10-常见问题与最佳实践)
+- [检验标准与进阶方向](#检验标准与进阶方向)
 - [参考资料](#参考资料)
 
 ---
@@ -46,7 +47,11 @@ ncu 验证:  SM 利用率提升到 78%，kernel 耗时减少 25%
 
 ### 1.2 ncu 的工作原理
 
-Nsight Compute 使用 **Kernel Replay** 机制：对目标 kernel 反复执行多次，每次采集不同的硬件计数器组。这意味着：
+Nsight Compute 使用 **Kernel Replay** 机制：对目标 kernel 反复执行多次，每次采集不同的硬件计数器组。
+
+> **白话理解**：ncu 分析一个 kernel 时会让它反复执行多次，每次采不同的"体检指标"——就像体检要分别做验血、B超、心电图，每项检查跑一遍。
+
+这意味着：
 
 - **高开销**：一个 kernel 可能被执行 10-50 次（采集不同 metric set）
 - **结果精确**：每组计数器的值都是从完整 kernel 执行中采集的
@@ -312,7 +317,9 @@ ncu --kernel-name "my_kernel" -o optimized ./program_v2
 
 ### 5.1 Speed Of Light（SOL）
 
-Speed Of Light 是最重要的汇总指标，直接告诉你 kernel 是 **compute bound** 还是 **memory bound**：
+Speed Of Light 是最重要的汇总指标，直接告诉你 kernel 是 **compute bound** 还是 **memory bound**。
+
+> **白话理解**：SOL 告诉你这个 kernel 离理论极限还有多远——就像跑步成绩和世界纪录的差距。Compute SOL 80% 意味着你的计算效率已经达到了硬件理论峰值的 80%。
 
 ```
 Compute (SM) Throughput: 实际计算吞吐 / 理论峰值计算吞吐
@@ -387,6 +394,8 @@ SM 活跃周期: 实际计算的周期数 / 总周期数
 
 Warp 停滞原因分布，直接指出 kernel 瓶颈：
 
+> **白话理解**：Warp Stall 就是线程组被卡住的原因——就像工人停下来等原料（内存等待）、等同事干完上一步（同步等待）、或者工具被占用（计算管线满）。这张表告诉你工人们主要在等什么。
+
 | 停滞原因 | 含义 | 优化方向 |
 |---------|------|---------|
 | **Stall Long Scoreboard** | 等待长延迟内存操作（HBM/L2） | 优化内存访问模式、提高 Occupancy |
@@ -421,6 +430,8 @@ ncu --section SourceCounters --kernel-name "my_kernel" ./my_program
 ### 6.1 Roofline 基础
 
 Roofline 模型用一张图展示 kernel 的性能与理论极限的关系：
+
+> **白话理解**：Roofline 给 kernel 画一张"能力边界图"——屋顶的斜边是内存带宽上限，平顶是算力上限，你的 kernel 在图上的位置决定了它被哪个天花板卡住。如果点落在斜边下方，说明内存带宽是瓶颈；如果落在平顶下方，说明算力是瓶颈。
 
 ```
 性能                    ┌─── Compute Ceiling (理论峰值算力)
@@ -875,6 +886,35 @@ Kernel 在 Roofline 的位置       优化策略
 | 数据传输是否与计算重叠 | nsys |
 | Shared Memory 有没有 bank conflict | ncu |
 | 某行代码执行了多少条指令 | ncu (source) |
+
+---
+
+## 检验标准与进阶方向
+
+### 自我检验清单
+
+学完本文后，你应该能够做到以下几点：
+
+- [ ] 能使用 `ncu` 命令行对指定 kernel 进行深度分析，生成 `.ncu-rep` 报告
+- [ ] 能解读 Speed Of Light 指标，判断 kernel 是 compute bound 还是 memory bound
+- [ ] 能在 Roofline 图上定位 kernel 的位置，并判断优化方向
+- [ ] 能通过 Warp State Statistics 找到 warp 停滞的主要原因
+- [ ] 能通过 Memory Workload Analysis 判断是否存在 uncoalesced access 或 bank conflict
+- [ ] 能使用 `--kernel-name` 和 `--launch-skip` 精确采集目标 kernel，避免分析所有 kernel 导致的性能开销
+- [ ] 能对比优化前后的 ncu 报告，验证性能改善（命令行或 GUI 对比）
+- [ ] 能根据 ncu 的 Rules 自动建议，快速定位 kernel 的优化切入点
+
+### 进阶方向
+
+| 方向 | 内容 | 推荐资源 |
+|------|------|---------|
+| SASS 级指令分析 | 学习 GPU 汇编（SASS），在 ncu Source 页面分析指令级瓶颈 | [CUDA Binary Utilities](https://docs.nvidia.com/cuda/cuda-binary-utilities/) |
+| 自定义 Section / Rule | 编写 `.section` 和 `.py` 规则文件，定制 ncu 的分析面板和优化建议 | [Nsight Compute Customization Guide](https://docs.nvidia.com/nsight-compute/CustomizationGuide/) |
+| Tensor Core 深度分析 | 分析 wmma/mma 指令利用率，判断 Tensor Core 是否被充分使用 | [Tensor Core Programming](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#wmma) |
+| 多 Kernel 联合优化 | 结合 nsys 的时间线视图和 ncu 的 kernel 级数据，做全局优化决策 | [Nsight Systems + Compute Workflow](https://developer.nvidia.com/nsight-systems) |
+| Kernel 自动调优 | 使用 ncu 的 CSV 导出 + 脚本自动化，构建 kernel 参数搜索和性能回归检测 | [Triton Autotuner](https://triton-lang.org/) |
+
+---
 
 ## 参考资料
 

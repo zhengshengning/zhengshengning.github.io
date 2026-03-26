@@ -6,7 +6,7 @@ categories:
 tags: [Python, PyPI, 包管理, GitHub Actions, CI/CD, uv, hatch]
 ---
 
-本文将详细介绍如何构建并发布一个 Python 包到 Python Package Index (PyPI)，涵盖从手动发布到 CI 自动化发布的完整流程。
+本文将详细介绍如何构建并发布一个 Python 包到 Python Package Index (PyPI，可以理解为 Python 的"应用商店"，所有人都可以上传和下载 Python 包)，涵盖从手动发布到 CI 自动化发布的完整流程。
 
 <!-- more -->
 
@@ -74,7 +74,7 @@ __all__ = ["say_hello"]
 
 ## 二、编写 pyproject.toml
 
-`pyproject.toml` 是 Python 包的核心配置文件，遵循 PEP 517/518/621 规范。
+`pyproject.toml` 是 Python 包的核心配置文件（可以把它想象成项目的"身份证"，记录了包名、版本、依赖等所有元信息），遵循 PEP 517/518/621 规范。
 
 ### 2.1 基础配置（使用 uv 构建）
 
@@ -211,8 +211,8 @@ dist/
 
 | 文件类型 | 说明 |
 |----------|------|
-| `.tar.gz` | 源码分发包，安装时需要构建 |
-| `.whl` | wheel 包，预构建的二进制格式，安装更快 |
+| `.tar.gz` | 源码分发包（sdist），安装时需要构建 |
+| `.whl` | wheel 包——Python 包的"安装包"格式，已经预编译好，安装时直接解压就行，比 sdist（源码包）快得多 |
 
 ---
 
@@ -498,6 +498,34 @@ pip install dist/*.whl
 # 从 PyPI 安装
 pip install my-package-demo
 ```
+
+---
+
+## 检验标准与进阶方向
+
+### 自我检验清单
+
+读完本文后，你应该能做到以下几点：
+
+- [ ] 能独立创建一个符合 `src/` 布局规范的 Python 项目结构
+- [ ] 能编写 `pyproject.toml`，正确配置包名、版本、依赖、入口点等关键字段
+- [ ] 能使用 `uv build` 在本地构建出 `.tar.gz` 和 `.whl` 两种分发包
+- [ ] 能使用 `twine` 手动将包上传到 PyPI
+- [ ] 能编写 GitHub Actions workflow，实现 tag 触发自动构建与发布
+- [ ] 能在 PyPI 上配置 Trusted Publisher，用 OIDC 替代 API Token 认证
+- [ ] 能使用 `hatch-vcs` 从 git tag 自动生成版本号，不再手动维护版本
+- [ ] 能区分 sdist 与 wheel 两种分发格式的适用场景
+
+### 进阶方向
+
+| 方向 | 说明 | 推荐资源 |
+|------|------|----------|
+| 多平台 wheel 构建 | 为不同操作系统和 Python 版本构建 C 扩展 wheel | [cibuildwheel](https://cibuildwheel.pypa.io/) |
+| 私有 PyPI 仓库 | 企业内部搭建私有包索引 | [devpi](https://devpi.net/)、[Artifactory](https://jfrog.com/artifactory/) |
+| 包安全与签名 | 对发布的包进行数字签名，防止篡改 | [Sigstore](https://www.sigstore.dev/) |
+| Monorepo 多包管理 | 在同一仓库中管理多个 Python 包的构建与发布 | [uv workspaces](https://docs.astral.sh/uv/concepts/workspaces/) |
+| 发布前自动化测试 | 在 CI 中集成 lint、类型检查、单元测试后再发布 | [nox](https://nox.thea.codes/)、[tox](https://tox.wiki/) |
+| 条件依赖与可选特性 | 使用 `[project.optional-dependencies]` 提供额外功能 | [PEP 631](https://peps.python.org/pep-0631/) |
 
 ---
 

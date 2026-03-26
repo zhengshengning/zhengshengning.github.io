@@ -105,7 +105,7 @@ CUDA 有三种函数修饰符：
 
 ### 2.2 Grid / Block / Thread 三层线程层级
 
-CUDA 将线程组织为三层结构，这是理解并行编程的关键：
+CUDA 将线程组织为三层结构，这是理解并行编程的关键。可以把它比喻为"学校 / 班级 / 学生"——Grid 是整个学校，Block 是一个班级，Thread 是班里的每个学生，每个学生独立做自己那份作业，但同一个班级的学生可以通过"黑板"（Shared Memory）互相交流。
 
 ```
 Grid（网格）—— 一次 kernel 启动的所有线程
@@ -289,7 +289,7 @@ nvcc -Xptxas -v kernel.cu
 
 ### 3.3 共享内存（Shared Memory）
 
-共享内存是程序员可控的片上高速缓存，同一个 Block 内的线程共享。它的典型用途是**缓存从全局内存加载的数据，供 Block 内线程重复使用**。
+共享内存是程序员可控的片上高速缓存，相当于同一个 Block 内线程共享的"黑板"——任何一个线程往上面写了东西，同 Block 的其他线程都能看到，而且读写速度比全局内存快得多。它的典型用途是**缓存从全局内存加载的数据，供 Block 内线程重复使用**。
 
 ```cpp
 __global__ void sharedMemDemo(float* input, float* output, int n) {
@@ -325,7 +325,7 @@ kernel<<<gridDim, blockDim, sharedMemBytes>>>(args);
 
 全局内存就是"显存"，容量最大但速度最慢。`cudaMalloc` 分配的内存、kernel 参数中的指针都指向全局内存。
 
-**合并访问（Coalesced Access）** 是全局内存优化的黄金法则：同一个 Warp 内的 32 个线程应该访问连续的内存地址，这样硬件可以将多次访问合并为少量内存事务。
+**合并访问（Coalesced Access）** 是全局内存优化的黄金法则：同一个 Warp 内的 32 个线程应该访问连续的内存地址，这样硬件可以将多次访问合并为少量内存事务。打个比方，合并访问就像一排人依次从传送带上拿东西，一次就能拿完；如果每个人跳着拿，传送带要来回好多次，效率大打折扣。
 
 ```cpp
 // 好：合并访问——相邻线程访问相邻地址
@@ -386,7 +386,7 @@ float c = coefficients[idx];
 
 ### 4.1 Warp
 
-Warp 是 GPU 执行的最小调度单位，由 **32 个连续线程** 组成。同一个 Warp 内的线程在同一时刻执行相同的指令（SIMT）。
+Warp 是 GPU 执行的最小调度单位，由 **32 个连续线程** 组成。同一个 Warp 内的线程在同一时刻执行相同的指令（SIMT）。可以把 Warp 想象成一排 32 个士兵齐步走，步调必须一致——如果有人要向左转、有人要向右转，就只能先让一拨人转完，再让另一拨人转，效率减半。
 
 ```
 Block (256 threads)
@@ -434,7 +434,7 @@ float sum = __reduce_add_sync(0xFFFFFFFF, myVal);
 
 ### 4.2 Bank Conflict
 
-共享内存被分为 **32 个 Bank**，每个 Bank 宽度为 4 字节。同一 Warp 内的不同线程如果访问同一 Bank 的不同地址，就会产生 Bank Conflict，访问变为串行。
+共享内存被分为 **32 个 Bank**，每个 Bank 宽度为 4 字节。同一 Warp 内的不同线程如果访问同一 Bank 的不同地址，就会产生 Bank Conflict，访问变为串行。可以把 Shared Memory 的 32 个 Bank 想象成银行的 32 个柜台，如果多个线程同时排到同一个柜台，就得排队等候；理想情况是每个线程各去一个柜台，大家同时办完。
 
 ```cpp
 __shared__ float smem[32][32];
@@ -677,7 +677,7 @@ __global__ void gemmNaive(float* A, float* B, float* C,
 
 **优化 1：Shared Memory Tiling（分块）**
 
-核心思想：将大矩阵分成小块（Tile），每次将一个 Tile 加载到 Shared Memory 中，Block 内所有线程共享使用。
+核心思想：将大矩阵分成小块（Tile），每次将一个 Tile 加载到 Shared Memory 中，Block 内所有线程共享使用。这就像搬家时家具太多一次搬不完，于是分批搬到桌上再整理——每批数据搬进快速的 Shared Memory 后，所有线程可以反复使用，避免每次都回慢速的全局内存去取。
 
 ```cpp
 #define TILE_SIZE 32
@@ -824,7 +824,7 @@ for (int i = tid; i < N; i += blockDim.x) {
 
 ### 6.4 算子融合（Kernel Fusion）
 
-算子融合是将多个小操作合并为一个 kernel 执行，避免中间结果写回全局内存。
+算子融合是将多个小操作合并为一个 kernel 执行，避免中间结果写回全局内存。就像做菜时一次洗好所有菜，而不是做一道菜洗一次——每次写回全局内存再读回来，就像反复跑去水龙头前洗菜，白白浪费时间在"搬运"上。
 
 ```
 未融合：
@@ -1125,25 +1125,26 @@ cuobjdump -sass kernel
 
 完成本文学习后，你应该能够：
 
-- 能解释 Grid / Block / Thread 的三层关系，并正确计算全局线程索引
-- 能说出 5 种 CUDA 内存的特性（寄存器、共享内存、全局内存、常量内存、L2 Cache），并知道何时使用哪种
+- 能解释 Grid → Block → Thread 的三层结构，并根据数据规模配置合适的 Block 大小
+- 能区分 GPU 的 5 种内存类型（寄存器、Local、Shared、Global、Constant），并说明各自的作用域和生命周期
+- 能解释什么是 Warp、合并访存（Coalesced Access）和 Bank Conflict
+- 能编写一个基本的 CUDA Kernel（如向量加法），并用 nvcc 编译运行
 - 能独立编写一个正确的 Reduce kernel，并做至少两轮优化（Warp Shuffle + 多元素累加）
-- 能编写 Tiled GEMM 并解释分块为何能提升性能
-- 能解释 Shared Memory Bank Conflict 并写出避免冲突的访问模式（Padding）
-- 能用 `nvcc -Xptxas -v` 检查寄存器使用，判断是否有溢出
+- 能实现 Tiled GEMM 并解释为什么 Tiling 能减少全局内存访问
+- 能写出 Online Softmax 的算法流程，解释为什么它比 Naive Softmax 更好
+- 能解释 FlashAttention 的核心思想（Tiling + Online Softmax + 不存中间矩阵）
+- 能使用 Triton 编写一个简单的 kernel（如向量加法或 Softmax），并与 PyTorch 结果对比
 - 能用 Nsight Compute 分析自己写的 kernel，判断是 memory bound 还是 compute bound
-- 能解释 FlashAttention 的核心思想：为什么 Tiling 能减少 HBM 访问
-- 能解释 Attention 推理时的数据流：Q/K/V → KV Cache → Softmax → 输出
-- 能用 Triton 写出一个简单算子（向量加法或 Softmax）并与 PyTorch 结果对比
 
 ### 10.2 进阶方向
 
 | 方向 | 内容 | 推荐资料 |
 |------|------|---------|
 | CUDA 极致优化 | Tensor Core 编程、双缓冲、TMA | [高效CUDA编程速查](/AI%20Infra/高效CUDA编程速查/) |
-| GEMM 优化 | CUTLASS 模板库、Tensor Core GEMM | [CUTLASS - GitHub](https://github.com/NVIDIA/cutlass) |
+| GEMM 深度优化 | CUTLASS 模板库、Tensor Core GEMM、寄存器分块 | [CUTLASS - GitHub](https://github.com/NVIDIA/cutlass) |
 | FlashAttention 源码 | 理解 Tiling + Online Softmax 的工程实现 | [FlashAttention - GitHub](https://github.com/Dao-AILab/flash-attention) |
 | 推理引擎算子 | PagedAttention、Continuous Batching 的底层实现 | [vLLM - GitHub](https://github.com/vllm-project/vllm) |
+| AI 编译器与自动代码生成 | Triton 编译器内部原理、torch.compile 全链路、TVM 调度优化 | [Triton Tutorials](https://triton-lang.org/main/getting-started/tutorials/) |
 
 ## 参考资料
 

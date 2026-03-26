@@ -22,6 +22,7 @@ Nsight Systems 是 NVIDIA 提供的系统级性能分析工具，能够从全局
 - [8. 多机多卡与 NCCL 分析](#8-多机多卡与-nccl-分析)
 - [9. 高级用法](#9-高级用法)
 - [10. 常见问题与最佳实践](#10-常见问题与最佳实践)
+- [11. 检验标准与进阶方向](#11-检验标准与进阶方向)
 - [参考资料](#参考资料)
 
 ---
@@ -29,6 +30,8 @@ Nsight Systems 是 NVIDIA 提供的系统级性能分析工具，能够从全局
 ## 1. 工具定位与适用场景
 
 ### 1.1 Nsight Systems vs Nsight Compute
+
+> **白话理解**：nsys 像医院的**全身体检**——快速扫一遍，找出哪个器官有问题；ncu 像**专科检查**——对有问题的器官做深度分析。所以永远先做体检（nsys），再挂专科号（ncu）。
 
 | 维度 | Nsight Systems (nsys) | Nsight Compute (ncu) |
 |------|:---------------------:|:--------------------:|
@@ -323,6 +326,8 @@ GUI 打开后的主要区域：
 
 **模式一：GPU 气泡（GPU Idle）**
 
+> **白话理解**：GPU 空闲的间隙，就像工厂流水线**停工等料**——机器开着但没活干。气泡越多，GPU 的利用率越低，性能浪费越大。
+
 ```
 CUDA HW: [kernel1]░░░░░░░░░░[kernel2]░░░░░░░[kernel3]
                    ↑ 气泡：GPU 空闲
@@ -341,6 +346,8 @@ GPU:                           [kernel执行]
 
 **模式三：计算与传输重叠良好**
 
+> **白话理解**：CUDA Stream 是 GPU 上的"**任务队列**"——不同 Stream 上的任务可以同时执行，就像餐厅多开几条取餐通道，一条在出餐、另一条在备料，互不阻塞。
+
 ```
 Stream 0: [kernel1][kernel2][kernel3]
 Stream 1: [HtoD   ][       ][HtoD   ]
@@ -358,6 +365,8 @@ GPU 1: [compute][AllReduce.........][compute]
 ```
 
 ### 5.3 NVTX 标注
+
+> **白话理解**：NVTX 就是在代码里插"**路标**"，告诉 profiler 这段是前向传播、那段是反向传播。没有路标的 profiling 报告就像没有门牌号的街道——满屏都是 kernel，但看不出哪段属于哪个逻辑阶段。
 
 NVTX（NVIDIA Tools Extension）是最重要的分析辅助工具，允许你在代码中标注逻辑区域：
 
@@ -793,6 +802,34 @@ nsys profile --trace=cuda,nvtx ...                  # 只采必要 trace
 □ Kernel 是否过于碎片化（大量 <10us 的小 kernel）？
   └ 是 → 使用 torch.compile / CUDA Graph 融合
 ```
+
+## 11. 检验标准与进阶方向
+
+### 11.1 自我检验清单
+
+学完本文后，你应该能做到以下几点：
+
+- [ ] 能使用 `nsys profile` 命令采集 CUDA 程序的性能数据，并生成 `.nsys-rep` 报告文件
+- [ ] 能在 nsys GUI 中识别 GPU 空闲气泡、CPU 瓶颈、同步阻塞等典型模式
+- [ ] 能使用 NVTX 标注训练代码的前向/反向/优化器/数据加载各阶段，让报告可读性大幅提升
+- [ ] 能通过 nsys 时间线判断数据传输（HtoD/DtoH）是否与计算重叠，识别同步拷贝造成的阻塞
+- [ ] 能分析多卡 DDP 训练中 NCCL 通信的耗时占比，判断通信是否成为训练瓶颈
+- [ ] 能使用 `nsys stats` 导出 kernel 统计报告，快速定位最耗时的 Top-N kernel
+- [ ] 能根据 nsys 分析结果判断下一步应该用 ncu（Nsight Compute）深入分析哪个 kernel
+- [ ] 能通过 `--delay` + `--duration` 或 `cudaProfilerApi` 控制采集范围，避免报告文件过大
+
+### 11.2 进阶方向
+
+| 进阶方向 | 内容 | 推荐资源 |
+|---------|------|---------|
+| Nsight Compute 深入 | 学习 SM 利用率、Occupancy、内存带宽等 kernel 级指标分析 | [Nsight Compute Docs](https://docs.nvidia.com/nsight-compute/) |
+| CUDA Graph | 掌握 CUDA Graph 录制回放机制，消除 kernel launch 开销 | [CUDA Graph Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-graphs) |
+| torch.compile 性能分析 | 分析 torch.compile 编译后的融合 kernel，对比编译前后的性能差异 | [PyTorch torch.compile Tutorial](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html) |
+| 大规模分布式 Profiling | 多机多卡场景下的 NCCL 通信调优、流水线并行分析 | [PyTorch Distributed Overview](https://pytorch.org/tutorials/beginner/dist_overview.html) |
+| 自动化性能回归检测 | 将 nsys stats 集成到 CI/CD，自动检测性能回归 | 结合 `nsys export --type=sqlite` + 自定义脚本 |
+| 推理引擎 Profiling | 使用 nsys 分析 TensorRT / vLLM / TGI 等推理引擎的性能瓶颈 | [TensorRT Best Practices](https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/) |
+
+---
 
 ## 参考资料
 

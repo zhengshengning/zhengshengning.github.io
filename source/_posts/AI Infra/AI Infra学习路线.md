@@ -18,6 +18,7 @@ AI Infra（人工智能基础设施）是大模型时代壁垒最高、最核心
 - [第三层：分布式训练](#第三层分布式训练)
 - [第四层：推理与部署](#第四层推理与部署)
 - [新人破局指南](#新人破局指南)
+- [参考资料](#参考资料)
 
 ---
 
@@ -38,7 +39,7 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 ## 第一层：硬件与通信网络
 
-这是所有算力的物理基石。模型再精妙，最终也要转化为硅片上的电子跃迁。
+这是所有算力的物理基石。模型再精妙，最终也要转化为硅片上的电子跃迁。你可以把一块 GPU 想象成一座**拥有数千个简单工人的超级工厂**——每个工人（CUDA Core）只会做最基本的加减乘除，但胜在人多力量大，成千上万人同时开工，吞吐量远超只有几个高级工程师（CPU 核心）的小作坊。而通信网络则是工厂之间的高速公路，NVLink 是同一园区内的专用快速通道，InfiniBand 则是跨城市的高速铁路。
 
 ### 1.1 知识点
 
@@ -46,7 +47,7 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 - GPU 核心架构：SM（流多处理器）、Tensor Core、CUDA Core 的区别与协作
 - 主流 GPU 规格对比：A100 / H100 / H200 的算力、显存带宽、HBM 容量
-- Memory Wall：为什么显存带宽瓶颈往往比算力瓶颈更致命
+- Memory Wall：为什么显存带宽瓶颈往往比算力瓶颈更致命——好比一个超级快的厨师，刀工和火候都没问题，但食材传送带太慢，厨师大部分时间都在等菜上桌
 - 存储层次结构：寄存器 > 共享内存 > L1/L2 Cache > HBM > 主机内存
 
 **通信拓扑**
@@ -78,7 +79,7 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 ## 第二层：CUDA编程与算子优化
 
-这一层是连接硬件和软件的桥梁，负责把高层的数学计算翻译成 GPU 能最高效执行的机器指令。
+这一层是连接硬件和软件的桥梁，负责把高层的数学计算翻译成 GPU 能最高效执行的机器指令。如果说第一层搭好了工厂和流水线，那么 CUDA 编程就是**给每个工人写工序手册**——怎么分工、从哪个货架取材料、中间结果放哪里，都直接决定了工厂的产出效率。写得好，数千工人井然有序；写得差，大家排队抢同一个货架（Bank Conflict），或者来回搬运半成品却不干正事（显存带宽瓶颈）。
 
 ### 2.1 知识点
 
@@ -86,7 +87,7 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 - 编程模型：Grid / Block / Thread 层级，线程索引计算
 - 内存模型：全局内存、共享内存、寄存器、常量内存的特性与用法
-- 关键概念：Warp、Bank Conflict、Coalesced Access、Occupancy
+- 关键概念：Warp（32 个线程组成的最小调度单位，GPU 每次下达指令都是以 Warp 为单位，就像军队里以"班"为单位行动）、Bank Conflict、Coalesced Access、Occupancy
 - 核心直觉："内存访问模式决定运行速度"
 
 **常见算子实现与优化**
@@ -98,7 +99,7 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 **Attention 算子**
 
-- FlashAttention V1/V2：Memory-aware 的精确 Attention 实现，通过 tiling 减少 HBM 访问
+- FlashAttention V1/V2：Memory-aware 的精确 Attention 实现，通过 tiling 减少 HBM 访问——好比把一张大桌子上的拼图分成小块，每次只搬一小块到手边拼好再搬下一块，而不是把所有碎片一股脑倒出来占满桌面
 - FlashAttention-3：在 Hopper 架构上进一步拉高利用率
 - Flash-Decoding / FlashDecoding++：面向 Decode 阶段的 Attention 加速
 - FlashInfer：可定制 Attention 引擎，面向 Serving 的可组合格式与异构 KV 存储
@@ -145,7 +146,7 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 ## 第三层：分布式训练
 
-当模型参数量超越单卡显存极限时，分布式训练就是必经之路。这是 AI Infra 目前最活跃、最核心的区域。
+当模型参数量超越单卡显存极限时，分布式训练就是必经之路。这是 AI Infra 目前最活跃、最核心的区域。打个比方，训练一个千亿参数的大模型就像**抄写一本数万页的百科全书**——一个人抄到天荒地老也抄不完。数据并行是把同一本书复印多份、每人抄不同章节的内容然后汇总；张量并行是把每一页拆成几列、每人只抄自己那几列；流水线并行则是第一个人抄完第一章就传给第二个人继续，自己接着抄下一批。怎么拆、怎么传、怎么汇总，就是分布式训练要解决的核心问题。
 
 ### 3.1 知识点
 
@@ -169,13 +170,13 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 **显存优化**
 
-- ZeRO 系列（DeepSpeed）：
+- ZeRO 系列（DeepSpeed）：把训练状态拆开分摊到各张卡上，好比合租房里每人只存自己那份家具，需要时再互相借用，以此腾出更多空间：
   - ZeRO-1：优化器状态切分
   - ZeRO-2：优化器状态 + 梯度切分
   - ZeRO-3：优化器状态 + 梯度 + 参数切分（用通信换显存）
-- 混合精度训练：FP16 / BF16 / FP8 训练，减少显存占用与计算开销
+- 混合精度训练：FP16 / BF16 / FP8 训练，减少显存占用与计算开销。相当于平时用草稿本（低精度）算题提高速度，只在最关键的步骤用正式答题纸（高精度）保证结果准确
 - 梯度累积：在有限显存下模拟更大的有效 Batch Size
-- Activation Checkpointing（重计算）：用计算换显存，只保存部分激活值
+- Activation Checkpointing（重计算）：用计算换显存，只保存部分激活值，需要时重新算一遍。好比考试时不把每道草稿都留着占桌面，只记住关键中间结果，需要时重新推导一遍
 
 **训练框架**
 
@@ -211,14 +212,14 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 ## 第四层：推理与部署
 
-训练只是万里长征第一步。如何让模型快速、低成本地服务用户，是工业界最关心的问题。
+训练只是万里长征第一步。如何让模型快速、低成本地服务用户，是工业界最关心的问题。如果说训练是"教会模型知识"，那么推理就是"让模型上考场答题"——考场上最重要的是**答题速度**和**同时服务多少考生**，而且考试时把已算过的中间结果记在草稿纸上（KV Cache）能避免重复计算，大幅提速。
 
 ### 4.1 LLM 推理基础
 
 **知识点**
 
 - LLM 推理的两阶段：Prefill（处理输入）与 Decode（逐 token 生成）
-- KV Cache：自回归生成中的"显存刺客"，理解其生命周期和碎片问题
+- KV Cache：自回归生成中的"显存刺客"，理解其生命周期和碎片问题。KV Cache 就像考试时的草稿纸——把已经算过的中间结果记下来，后续生成每个新 token 时就不用从头算起，但草稿纸用多了也会占满整张桌子
 - 关键性能指标：TTFT（首 token 延迟）、TPOT（每 token 延迟）、吞吐量（token/s）、P50/P95 尾延迟
 
 **推荐资料**
@@ -238,8 +239,8 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 **知识点**
 
-- PagedAttention：vLLM 提出的虚拟内存分页思想管理 KV Cache，解决碎片化问题
-- Continuous Batching：动态组批，请求随到随处理，与传统 static batching 的差异
+- PagedAttention：vLLM 提出的虚拟内存分页思想管理 KV Cache，解决碎片化问题——就像操作系统把内存切成固定大小的页来管理一样，不再要求一整块连续空间，碎片问题迎刃而解
+- Continuous Batching：动态组批，请求随到随处理，与传统 static batching 的差异。传统方式像旅游大巴——人齐了才发车，先到的人干等；Continuous Batching 更像网约车拼单，随到随拼、有人下车立刻补新客
 - Prefix Cache / RadixAttention：复用已计算的 KV Cache，优化重复前缀场景
 - Chunked Prefill：将长 prompt 分块处理，减少 prefill 对 decode 的干扰
 
@@ -277,7 +278,7 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 **知识点**
 
-- W8A8（SmoothQuant）：将 activation 的 outlier 难题转移到 weights，工程友好
+- W8A8（SmoothQuant）：将 activation 的 outlier 难题转移到 weights，工程友好。量化的本质好比把高清照片压缩成缩略图——用更少的比特位表示权重，省下显存和带宽，代价是细节（精度）会有一定损失
 - Weight-only INT4（GPTQ / AWQ）：只量化权重到 3/4-bit，减少显存和带宽占用
 - KV Cache 量化（KIVI / Kitty）：对 KV Cache 进行 2-bit 量化，长上下文场景效果显著
 - FP8 量化：Hopper 架构原生支持，精度与性能的平衡点
@@ -314,7 +315,7 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 **知识点**
 
-- Speculative Sampling：经典框架——用小模型（Draft）批量"猜测"多个 token，大模型（Target）一次性验证，保证分布无偏
+- Speculative Sampling：经典框架——用小模型（Draft）批量"猜测"多个 token，大模型（Target）一次性验证，保证分布无偏。好比让实习生先快速起草一段文字，再让资深主编一次性审阅：猜对的直接用，猜错的当场改，比主编逐字逐句从头写快得多
 - Medusa：不用外部 Draft 模型，通过多个 Decoding Heads 预测多 token 再并行验证
 - EAGLE-2：动态 Draft Tree，靠校准置信度更激进地产生可接受 token
 - Block Verification：将 token 级验证升级为 block 级联合验证，进一步提速
@@ -342,7 +343,7 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 **知识点**
 
-- 核心问题：Prefill 与 Decode 混合 batching 造成资源耦合与互扰，导致尾延迟爆炸
+- 核心问题：Prefill 与 Decode 混合 batching 造成资源耦合与互扰，导致尾延迟爆炸。这就像餐厅里让同一个厨师既负责快速出小炒（Decode 低延迟）又负责慢炖大菜（Prefill 重计算），互相拖累；解耦就是把快餐区和慢炖区分开，各配专属厨师
 - DistServe（OSDI'24）：系统化论证并实现 Prefill/Decode 解耦，围绕 goodput 调度
 - Splitwise（ISCA）：将 Prefill 和 Decode 分配到不同 GPU 池，优化吞吐与成本
 - TaiChi（2025）：将聚合与解耦统一，面向不同 SLO 组合做最优 goodput
@@ -476,3 +477,59 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 | FlashAttention | 实现复杂度 | 显存 + 速度 |
 
 ---
+
+## 参考资料
+
+### 论文
+
+- **Attention Is All You Need** (Vaswani et al., 2017)：[https://arxiv.org/abs/1706.03762](https://arxiv.org/abs/1706.03762)
+- **Megatron-LM** (Shoeybi et al., 2019)：[https://arxiv.org/abs/1909.08053](https://arxiv.org/abs/1909.08053)
+- **ZeRO: Memory Optimizations Toward Training Trillion Parameter Models** (Rajbhandari et al., 2019)：[https://arxiv.org/abs/1910.02054](https://arxiv.org/abs/1910.02054)
+- **FlashAttention V1** (Dao et al., 2022)：[https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
+- **FlashAttention V2** (Dao, 2023)：[https://arxiv.org/abs/2307.08691](https://arxiv.org/abs/2307.08691)
+- **FlashAttention-3** (Shah et al., 2024)：[https://arxiv.org/abs/2407.08691](https://arxiv.org/abs/2407.08691)
+- **Flash-Decoding** (Stanford CRFM, 2023)：[https://crfm.stanford.edu/2023/10/12/flashdecoding.html](https://crfm.stanford.edu/2023/10/12/flashdecoding.html)
+- **FlashInfer** (Ye et al., 2025)：[https://arxiv.org/abs/2501.01005](https://arxiv.org/abs/2501.01005)
+- **vLLM / PagedAttention** (Kwon et al., 2023)：[https://arxiv.org/abs/2309.06180](https://arxiv.org/abs/2309.06180)
+- **SGLang** (Zheng et al., 2023)：[https://arxiv.org/abs/2312.07104](https://arxiv.org/abs/2312.07104)
+- **Orca** (Yu et al., 2022)：[https://www.usenix.org/conference/osdi22/presentation/yu](https://www.usenix.org/conference/osdi22/presentation/yu)
+- **DistServe** (Zhong et al., OSDI'24)：[https://arxiv.org/abs/2401.09670](https://arxiv.org/abs/2401.09670)
+- **Splitwise** (Patel et al., ISCA 2024)：[https://arxiv.org/abs/2311.18677](https://arxiv.org/abs/2311.18677)
+- **SmoothQuant** (Xiao et al., 2022)：[https://arxiv.org/abs/2211.10438](https://arxiv.org/abs/2211.10438)
+- **GPTQ** (Frantar et al., 2022)：[https://arxiv.org/abs/2210.17323](https://arxiv.org/abs/2210.17323)
+- **AWQ** (Lin et al., 2023)：[https://arxiv.org/abs/2306.00978](https://arxiv.org/abs/2306.00978)
+- **KIVI** (Liu et al., 2024)：[https://arxiv.org/abs/2402.02750](https://arxiv.org/abs/2402.02750)
+- **Speculative Sampling** (Leviathan et al., 2022 / Chen et al., 2023)：[https://arxiv.org/abs/2302.01318](https://arxiv.org/abs/2302.01318)
+- **Medusa** (Cai et al., 2024)：[https://arxiv.org/abs/2401.10774](https://arxiv.org/abs/2401.10774)
+- **EAGLE-2** (Li et al., 2024)：[https://arxiv.org/abs/2406.16858](https://arxiv.org/abs/2406.16858)
+- **Online normalizer calculation for softmax** (Milakov & Gimelshein, 2018)：[https://arxiv.org/abs/1805.02867](https://arxiv.org/abs/1805.02867)
+- **DeepSeek V2 技术报告**：[https://arxiv.org/abs/2405.04434](https://arxiv.org/abs/2405.04434)
+- **DeepSeekMoE**：[https://arxiv.org/abs/2401.06066](https://arxiv.org/abs/2401.06066)
+- **Towards Efficient Generative LLM Serving: A Survey** (CMU)：[https://arxiv.org/abs/2312.15234](https://arxiv.org/abs/2312.15234)
+
+### 开源项目与工具
+
+- **vLLM** GitHub：[https://github.com/vllm-project/vllm](https://github.com/vllm-project/vllm)
+- **SGLang** GitHub：[https://github.com/sgl-project/sglang](https://github.com/sgl-project/sglang)
+- **DeepSpeed** GitHub：[https://github.com/microsoft/DeepSpeed](https://github.com/microsoft/DeepSpeed)
+- **Megatron-LM** GitHub：[https://github.com/NVIDIA/Megatron-LM](https://github.com/NVIDIA/Megatron-LM)
+- **FlashAttention** GitHub：[https://github.com/Dao-AILab/flash-attention](https://github.com/Dao-AILab/flash-attention)
+- **FlashInfer** GitHub：[https://github.com/flashinfer-ai/flashinfer](https://github.com/flashinfer-ai/flashinfer)
+- **TensorRT-LLM** GitHub：[https://github.com/NVIDIA/TensorRT-LLM](https://github.com/NVIDIA/TensorRT-LLM)
+- **Triton** GitHub：[https://github.com/triton-lang/triton](https://github.com/triton-lang/triton)
+
+### 官方文档
+
+- **NVIDIA CUDA Programming Guide**：[https://docs.nvidia.com/cuda/cuda-c-programming-guide/](https://docs.nvidia.com/cuda/cuda-c-programming-guide/)
+- **NVIDIA NCCL 文档**：[https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/)
+- **Nsight Systems User Guide**：[https://docs.nvidia.com/nsight-systems/UserGuide/](https://docs.nvidia.com/nsight-systems/UserGuide/)
+- **Nsight Compute**：[https://docs.nvidia.com/nsight-compute/ProfilingGuide/](https://docs.nvidia.com/nsight-compute/ProfilingGuide/)
+- **NVIDIA Deep Learning Performance Guide**：[https://docs.nvidia.com/deeplearning/performance/](https://docs.nvidia.com/deeplearning/performance/)
+- **DeepSpeed 官方文档**：[https://www.deepspeed.ai/](https://www.deepspeed.ai/)
+- **PyTorch DDP 教程**：[https://pytorch.org/tutorials/intermediate/ddp_tutorial.html](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)
+- **PyTorch FSDP 教程**：[https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html](https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html)
+- **vLLM 官方文档**：[https://docs.vllm.ai/](https://docs.vllm.ai/)
+- **TensorRT-LLM 官方文档**：[https://nvidia.github.io/TensorRT-LLM/](https://nvidia.github.io/TensorRT-LLM/)
+- **Triton 官方教程**：[https://triton-lang.org/main/getting-started/tutorials/](https://triton-lang.org/main/getting-started/tutorials/)
+- **MLPerf Inference**：[https://mlcommons.org/benchmarks/inference-datacenter/](https://mlcommons.org/benchmarks/inference-datacenter/)
+- **GenAI-Perf**：[https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/client/src/c%2B%2B/perf_analyzer/genai-perf/](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/client/src/c%2B%2B/perf_analyzer/genai-perf/)

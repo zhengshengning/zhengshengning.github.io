@@ -22,6 +22,7 @@ tags: [CUDA, GPU, 性能优化, Tensor Core, Nsight]
 - [8. 常见误区与最佳实践](#8-常见误区与最佳实践)
 - [9. 快速检查清单](#9-快速检查清单)
 - [10. 实战优化流程](#10-实战优化流程)
+- [11. 检验标准与进阶方向](#11-检验标准与进阶方向)
 
 ## 1. 硬件性能基准测试
 
@@ -67,6 +68,8 @@ HBM/Global Memory (~400-800 cycles)
 ### 1.2 性能建模
 
 **Roofline分析**
+
+> Roofline 模型就像给 kernel 做体检——看它到底是"算不过来"（Compute-bound）还是"搬数据搬不过来"（Memory-bound）。
 
 1. **实测峰值性能**：用矩阵乘法测GEMM实际算力，用带宽测试工具测各级存储吞吐
 2. **计算算术强度**：`AI = FLOPs / 字节访问量`
@@ -137,6 +140,8 @@ kernel<<<gridDim, blockDim, sharedMemSize, stream>>>(args);
 - **64线程或更少**：访存密集型，需要更高并发度
 
 **Occupancy计算**
+
+> Occupancy 是 SM 上能同时跑多少任务的比例——像教室座位利用率，坐满了不一定学得好，但空太多肯定浪费。
 
 ```cpp
 Occupancy = active_warps / max_warps_per_SM
@@ -830,6 +835,30 @@ __shared__ float tile[256];
 - 手动调整寄存器分配
 - 使用内联PTX
 - 考虑混合精度和量化
+
+## 11. 检验标准与进阶方向
+
+### 自我检验清单
+
+学完本手册后，试试能否做到以下几点：
+
+- [ ] 能根据 Roofline 模型判断一个 kernel 是 compute-bound 还是 memory-bound，并给出对应的优化方向
+- [ ] 能识别并修复 shared memory bank conflict（padding 法或转置法）
+- [ ] 能使用 `__launch_bounds__` 调整 kernel 的 occupancy 与寄存器分配
+- [ ] 能对比 GEMM 的 naive 实现与 tiled 实现的性能差异，并解释原因
+- [ ] 能使用 Nsight Compute 定位 kernel 的性能瓶颈（occupancy、cache hit rate、bank conflict 等）
+- [ ] 能将多个逐元素操作融合为单个 kernel，减少 global memory 往返
+- [ ] 能设计 multi-stream pipeline，实现计算与数据传输的重叠
+
+### 进阶方向
+
+| 方向 | 简介 | 推荐资料 |
+|------|------|----------|
+| Tensor Core 编程 | 使用 WMMA/CUTLASS 手写高性能矩阵运算 | [CUTLASS 官方文档与示例](https://github.com/NVIDIA/cutlass) |
+| 算子融合与代码生成 | 自动或手动融合算子链，减少访存开销 | [Triton Language](https://triton-lang.org/) |
+| 多 GPU 通信优化 | NCCL、NVLink、跨节点通信的性能调优 | [NCCL 官方文档](https://docs.nvidia.com/deeplearning/nccl/) |
+| 混合精度与量化推理 | FP8/INT4 量化策略与精度-性能权衡 | [TensorRT 开发者指南](https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/) |
+| CUDA Graph 与动态并行 | 减少 launch 开销，支持动态工作负载 | [CUDA Programming Guide - Graphs](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-graphs) |
 
 ## 参考资料
 
