@@ -6,13 +6,14 @@ categories:
 tags: [AI Infra, LLM, 分布式训练, 推理优化, CUDA, 学习路线]
 ---
 
-AI Infra（人工智能基础设施）是大模型时代壁垒最高、最核心的技术高地。本文从硬件基础到推理部署，系统梳理 AI Infra 的完整学习路线，为每个模块列出需要掌握的知识点、推荐学习资料以及可量化的检验标准，帮助从业者建立体系化的知识树。
+AI Infra（人工智能基础设施）是大模型时代壁垒最高、最核心的技术高地。本文从前置基础到推理部署，系统梳理 AI Infra 的完整学习路线，为每个模块列出需要掌握的知识点、推荐学习资料以及可量化的检验标准，帮助从业者建立体系化的知识树。
 
 <!-- more -->
 
 ## 目录
 
 - [全景概览：四层架构](#全景概览四层架构)
+- [第零层：前置知识](#第零层前置知识)
 - [第一层：硬件与通信网络](#第一层硬件与通信网络)
 - [第二层：CUDA编程与算子优化](#第二层cuda编程与算子优化)
 - [第三层：分布式训练](#第三层分布式训练)
@@ -28,12 +29,72 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 | 层级 | 名称 | 核心关注点 |
 |------|------|-----------|
+| 第零层 | 前置知识 | 编程语言、数学基础、Transformer 架构、PyTorch |
 | 第一层 | 硬件与通信网络 | GPU架构、显存带宽、NVLink、InfiniBand |
 | 第二层 | CUDA编程与算子优化 | Kernel编写、FlashAttention、AI编译器 |
 | 第三层 | 分布式训练 | 数据并行、3D并行、ZeRO、混合精度 |
 | 第四层 | 推理与部署 | KV Cache、PagedAttention、量化、Speculative Decoding |
 
 所有的优化都是在 **"计算、通信、显存"** 这个不可能三角中做取舍：ZeRO 是用通信换显存；重计算（Activation Checkpointing）是用计算换显存；量化是用精度换显存和带宽。学习时始终问自己：**这个技术牺牲了什么，换取了什么？**
+
+---
+
+## 第零层：前置知识
+
+AI Infra 不是从零开始学的领域——它建立在编程能力、数学直觉和模型理解之上。如果把后面四层比作盖楼，这一层就是地基：地基不牢，楼层越高越晃。好消息是，你不需要成为每个方向的专家，只需要达到"够用"的水平就能继续往上走。
+
+### 0.1 知识点
+
+**编程语言**
+
+- **Python**：AI 生态的通用语言，需要熟练使用而非仅仅"会写"。重点掌握：面向对象、装饰器、生成器、多进程/多线程、性能 profiling
+- **C/C++**：CUDA 编程的宿主语言。不要求精通模板元编程，但需要理解指针、内存管理、编译链接过程。能读懂 C++ 项目代码、写简单的 C++ 函数并编译运行即可
+- **Linux 基础**：命令行操作、Shell 脚本、进程管理、环境变量配置。AI Infra 的开发和部署几乎全部在 Linux 上进行
+
+**数学基础**
+
+- **线性代数**：矩阵乘法、转置、分块矩阵运算、特征值分解的基本概念。理解"为什么 Transformer 的核心计算都是矩阵乘法"需要这个基础。不需要证明定理，但需要对矩阵维度变换有直觉——看到 (B, S, H) x (H, V) 能立刻知道结果是 (B, S, V)
+- **基础概率论与统计**：概率分布、期望、方差、Softmax 的概率解释、交叉熵损失的含义。量化和 Speculative Decoding 的正确性证明都依赖概率论
+- **微积分**（了解即可）：链式法则、梯度的含义。理解反向传播为什么能工作、混合精度训练中梯度为什么会溢出，需要这个基础
+
+**Transformer 架构**
+
+这是大模型时代的"通用底座"，后续每一层都在围绕它做优化——CUDA 层优化它的算子、分布式层切分它的参数、推理层加速它的生成。必须理解：
+
+- **Self-Attention 机制**：Q、K、V 的含义与计算过程（QK^T → scale → softmax → PV），理解为什么 Attention 的计算复杂度是 O(N^2)，这是后续理解 FlashAttention 优化的前提
+- **前馈网络（FFN）**：两层线性变换 + 激活函数，模型参数的大头所在
+- **位置编码**：Sinusoidal、RoPE 等，理解为什么 Transformer 需要额外的位置信息
+- **LayerNorm**：Pre-Norm vs Post-Norm 的区别，为什么大模型普遍用 Pre-Norm
+- **完整前向过程**：能从 token embedding 开始，逐步跟踪数据在一个 Transformer Block 中的流转（Attention → Add & Norm → FFN → Add & Norm），说清每一步的输入输出维度
+
+**PyTorch 框架**
+
+- **核心概念**：Tensor 操作、自动微分（autograd）、Module / Parameter 的组织方式
+- **训练循环**：DataLoader → forward → loss → backward → optimizer.step 的标准流程
+- **模型保存与加载**：state_dict、checkpoint 的使用
+- **基本调试**：用 `torch.cuda.memory_summary()` 查看显存使用、用 `torch.profiler` 做简单性能分析
+
+### 0.2 推荐资料
+
+| 类型 | 资料 | 说明 |
+|------|------|------|
+| 论文 | Attention Is All You Need | Transformer 原始论文，必读 |
+| 教程 | The Illustrated Transformer (Jay Alammar) | 图文并茂的 Transformer 入门，适合建立直觉 |
+| 解读 | 琳琅阿木：图文详解LLM inference | LLM 模型架构详解，推荐配合论文阅读 |
+| 教程 | PyTorch 官方教程（60 Minute Blitz） | PyTorch 快速入门 |
+| 书籍 | 3Blue1Brown：线性代数的本质（视频系列） | 建立线性代数几何直觉，比教科书高效 |
+| 教程 | MIT 6.S081 / Linux 命令行基础 | Linux 和系统编程基础 |
+| 工具 | Andrej Karpathy：Let's build GPT from scratch | 从零手写 GPT，把 Transformer 每个模块都过一遍 |
+
+### 0.3 检验标准
+
+这一层不需要深入钻研，但必须达到以下"够用"门槛：
+
+- **Transformer 白板默写**：不看资料，能画出一个 Transformer Decoder Block 的完整结构（Masked Self-Attention → Add & Norm → FFN → Add & Norm），标注每一步的输入输出维度（如 (B, S, D) → (B, S, D)），并解释 Attention 中 Q、K、V 矩阵是怎么从输入通过线性投影得到的
+- **维度推导**：给定一个 7B 模型的配置（hidden_dim=4096, num_heads=32, num_layers=32, vocab_size=32000），能手算出总参数量的近似值（Attention 权重 + FFN 权重 + Embedding），误差不超过 20%
+- **PyTorch 训练脚本**：能独立写出一个完整的 PyTorch 训练循环（不借助 Trainer 类），包含 DataLoader、forward、loss 计算、backward、optimizer step、学习率调度、checkpoint 保存，并在 GPU 上跑通
+- **C++ 基础读写**：能读懂一个简单的 CUDA kernel 的 host 端代码（malloc、memcpy、kernel launch、free），理解 CPU 和 GPU 之间的数据搬运流程
+- **Linux 日常**：能在服务器上独立完成：SSH 登录、tmux 管理会话、conda/pip 管理环境、查看 GPU 状态（nvidia-smi）、用 git 管理代码、写简单的 bash 脚本批量提交任务
 
 ---
 
@@ -152,11 +213,12 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 ### 3.1 知识点
 
-**模型基础**
+**模型架构演进（分布式视角）**
 
-- Transformer 架构：Attention Is All You Need，理解 Self-Attention、FFN、LayerNorm
-- Attention 变种：MHA、MQA、GQA、MLA 的区别与演进（推荐阅读 DeepSeek V2 技术报告）
-- FFN 变种：混合专家模型 MoE（DeepSeekMoE）
+第零层已经介绍了标准 Transformer 的结构，这里关注的是那些直接影响分布式切分策略和通信开销的架构变种：
+
+- Attention 变种：MHA → MQA → GQA → MLA 的演进。MQA/GQA 通过共享 KV Head 减少 KV Cache 大小，MLA（DeepSeek V2）用低秩压缩进一步降低 KV 显存——这些变种直接影响 TP 切分方式和推理显存规划
+- FFN 变种：混合专家模型 MoE（DeepSeekMoE）。MoE 的稀疏激活特性让并行策略从"切矩阵"变成"分专家"，引入 Expert Parallelism 这一新维度
 
 **数据并行**
 
@@ -190,16 +252,14 @@ AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将�
 
 | 类型 | 资料 | 说明 |
 |------|------|------|
-| 论文 | Attention Is All You Need | Transformer 基础，必读 |
-| 解读 | 琳琅阿木：图文详解LLM inference | LLM 模型架构详解 |
 | 论文 | DeepSeek V2 技术报告 | MLA 注意力机制 |
 | 论文 | DeepSeekMoE Paper | MoE 架构设计 |
 | 教程 | 混合专家模型 (MoE) 详解 | MoE 入门 |
+| 解读 | 苏剑林：从MHA、MQA、GQA到MLA | Attention 变种演进 |
 | 论文 | Megatron-LM Paper | TP 与 PP 原理的里程碑论文 |
 | 论文 | ZeRO Paper（DeepSpeed） | 显存优化的核心方法 |
 | 文档 | DeepSpeed 官方文档 | ZeRO 配置与使用 |
 | 文档 | PyTorch DDP / FSDP 教程 | 原生分布式训练入门 |
-| 解读 | 苏剑林：从MHA、MQA、GQA到MLA | Attention 变种演进 |
 
 ### 3.3 检验标准
 
@@ -358,14 +418,6 @@ Speculative Decoding 的精髓在于"用空间换时间、用并行换串行"，
 - TaiChi（2025）：将聚合与解耦统一，面向不同 SLO 组合做最优 goodput
 - Goodput：满足 SLO 的有效吞吐，区别于裸 QPS
 
-```
-传统聚合：请求 → [同一组GPU] prefill + decode 交织 → 互扰、尾延迟爆炸
-
-解耦架构：请求 → Prefill GPU池 → KV 状态迁移 → Decode GPU池
-                                    ↑
-                          调度器按 SLO 做 goodput 优化
-```
-
 **推荐资料**
 
 | 类型 | 资料 | 说明 |
@@ -417,6 +469,71 @@ Prefill/Decode 解耦是系统架构层面的优化，检验重点在于理解"�
 - **回归定位**：某次代码提交后 TPOT P95 退化了 15%，你能用 `git bisect` 缩小到具体 commit，再用 Nsight Systems 对比退化前后的 trace 差异——是某个 kernel 变慢了、新增了一次不必要的 sync、还是 batch 调度策略变了
 - **上线门禁**：能给团队制定一套简单可执行的性能门禁规则——比如"TPOT P95 退化超过 5% 则 block merge"、"显存占用增长超过 10% 需要附上分析报告"，并集成到 CI 流程中自动执行
 
+
+### 4.7 优化选型决策树
+
+推理优化不是"把所有技术都堆上去"就完事了，而是**先定位瓶颈，再对症下药**。好比去医院看病，医生不会上来就开药，而是先问"哪里不舒服"，再做检查确认病因，最后才开处方。下面这棵决策树就是推理优化的"问诊流程"——从症状出发，逐步缩小到具体方案。
+
+**第一步：确认主要症状**
+
+拿到推理性能问题后，先用压测工具（GenAI-Perf 或自定义脚本）跑出基线数据，看哪个指标最不达标，然后对号入座：
+
+```
+症状是什么？
+│
+├─ [A] TTFT 过高（用户等首 token 太久）
+├─ [B] TPOT 过高（token 一个一个蹦，体感卡顿）
+├─ [C] 显存不够（OOM 或无法提高并发）
+└─ [D] 尾延迟 P95/P99 失控（均值还行但毛刺严重）
+```
+
+**[A] TTFT 过高——首 token 迟迟不来**
+
+TTFT 主要受 Prefill 阶段影响。Prefill 需要一次性处理完整个 prompt，是典型的 compute-bound 操作。定位思路：
+
+| 子症状 | 诊断方法 | 推荐方案 |
+|--------|---------|---------|
+| prompt 很长（数千到数万 token） | 观察 prefill 耗时是否随 prompt 长度线性甚至超线性增长 | Chunked Prefill 分块处理，避免长 prefill 独占 GPU；升级到更高效的 GEMM kernel |
+| CPU 或调度成为瓶颈 | 用 Nsight Systems 抓 trace，看 GPU idle gap 是否由 host 端引起 | 排查 tokenizer、数据预处理等 CPU 开销；考虑换用调度更成熟的推理引擎 |
+| 大量请求共享相同前缀（如系统 prompt） | 统计请求的 prompt 前缀重复率 | 开启 Prefix Cache（vLLM）或 RadixAttention（SGLang），复用已计算的 KV Cache |
+
+**[B] TPOT 过高——生成过程像挤牙膏**
+
+Decode 阶段每步只生成一个 token，矩阵退化成向量运算，是典型的 memory-bound 操作。优化方向有三个：
+
+| 子症状 | 诊断方法 | 推荐方案 |
+|--------|---------|---------|
+| KV Cache 搬运成为带宽瓶颈 | Nsight Compute 查看 Attention kernel 的 memory throughput 是否接近 HBM 带宽上限 | 使用 FlashAttention / FlashInfer 减少无效显存访问；优化 KV Cache 布局 |
+| 逐 token 串行生成的本质限制 | 单请求 TPOT 已逼近理论下限，但用户仍嫌慢 | Speculative Decoding（Medusa / EAGLE-2），用"猜测+验证"打破串行瓶颈 |
+| 并发不足，GPU 算力没喂饱 | GPU 利用率低于 60%，每个 batch 只有少量请求 | 开启 Continuous Batching + 提高并发请求数，把 batch 做大以提升计算密度 |
+
+**[C] 显存不够——OOM 或并发上不去**
+
+显存是推理场景中最稀缺的资源，被两大块占据：模型权重和 KV Cache。根据谁占大头来选择方案：
+
+| 显存大户 | 诊断方法 | 推荐方案 |
+|---------|---------|---------|
+| KV Cache（长上下文或高并发场景） | 对比模型参数显存和 KV Cache 显存的比例（参考 4.1 的计算方法） | PagedAttention 解决碎片问题；KV Cache 量化（KIVI 2-bit）压缩存储 |
+| 模型权重本身 | FP16 权重已经超出单卡容量 | INT4 weight-only 量化（AWQ/GPTQ）可将权重压缩到 1/4；W8A8（SmoothQuant）压缩到 1/2 且 kernel 效率更高 |
+
+**[D] 尾延迟 P95/P99 失控——均值还行但毛刺严重**
+
+这是最棘手的问题，因为它往往不是某个单一环节慢，而是系统层面的资源争抢和调度不当：
+
+| 子症状 | 诊断方法 | 推荐方案 |
+|--------|---------|---------|
+| Prefill 和 Decode 请求互相干扰 | 在混合负载下对比纯 Decode 和混合场景的 TPOT P95，差距超过 2 倍即确认互扰 | Prefill/Decode 解耦部署（DistServe / Splitwise），让两类请求各用独立 GPU 池 |
+| SLO 要求极严格，需要全局最优调度 | 单纯解耦后仍有部分请求超时，或不同请求有差异化 SLO 需求 | TaiChi 类统一调度框架，根据 SLO 优先级动态分配 Prefill/Decode 资源 |
+
+**实际使用建议**
+
+实践中，性能问题往往不止一个症状，可能 TTFT 和显存同时不达标。建议的操作顺序是：
+
+1. **先解决 OOM**（显存问题），否则服务都起不来
+2. **再优化 TTFT**，因为首 token 延迟直接影响用户体感
+3. **然后提升 TPOT 和吞吐**，这通常需要在延迟和吞吐之间做 trade-off
+4. **最后处理尾延迟**，这需要系统架构层面的改动，投入最大
+
 ---
 
 ## 新人破局指南
@@ -427,10 +544,9 @@ Prefill/Decode 解耦是系统架构层面的优化，检验重点在于理解"�
 
 **基础阶段（0-3个月）**
 
-1. 主攻 Python / C++、Linux 系统基础
-2. 精读 Transformer 论文，用 PyTorch 跑通一个小模型训练
-3. 学习 CUDA 编程基础，能写出简单的 Reduce / GEMM kernel
-4. 尝试用 PyTorch DDP 将训练分布到两张卡上，观察显存和通信变化
+1. 完成第零层的全部检验标准：编程语言、数学基础、Transformer 架构、PyTorch 训练流程
+2. 学习 CUDA 编程基础，能写出简单的 Reduce / GEMM kernel
+3. 尝试用 PyTorch DDP 将训练分布到两张卡上，观察显存和通信变化
 
 **专项深入（3-6个月）**
 
@@ -448,31 +564,6 @@ Prefill/Decode 解耦是系统架构层面的优化，检验重点在于理解"�
 2. 建立完整的性能分析与回归体系
 3. 研究 Prefill/Decode 解耦等前沿系统架构
 4. 跟踪最新技术迭代（FP8、RDMA 网络优化、新架构适配等）
-
-### 选型决策树
-
-当你遇到推理性能问题时，按以下决策树定位方向：
-
-```
-你最痛的是哪一个？
-├─ TTFT 很大（首 token 慢）
-│  ├─ prompt 很长 → Prefill 优化 / Chunked Prefill / 更快 GEMM
-│  ├─ CPU/调度慢 → nsys 找 host bottleneck，换更成熟 runtime
-│  └─ 频繁重复前缀 → Prefix/KV 复用
-│
-├─ TPOT 很大（续杯慢）
-│  ├─ decode memory-bound → FlashAttention/FlashInfer + KV Cache 管理
-│  ├─ token-by-token 串行 → Speculative / Medusa / EAGLE-2
-│  └─ batch 太小 → Continuous Batching + 合理并发
-│
-├─ 显存爆了
-│  ├─ KV Cache 占用大 → PagedAttention + KV 量化(KIVI)
-│  └─ 权重占用大 → INT4 weight-only(AWQ/GPTQ) 或 W8A8
-│
-└─ 尾延迟 P95 爆炸
-   ├─ prefill/decode 互扰 → Prefill/Decode 解耦(DistServe/Splitwise)
-   └─ SLO 要求苛刻 → TaiChi 类统一调度方案
-```
 
 ### 核心思维模型
 
@@ -518,6 +609,12 @@ Prefill/Decode 解耦是系统架构层面的优化，检验重点在于理解"�
 - **DeepSeekMoE**：[https://arxiv.org/abs/2401.06066](https://arxiv.org/abs/2401.06066)
 - **Towards Efficient Generative LLM Serving: A Survey** (CMU)：[https://arxiv.org/abs/2312.15234](https://arxiv.org/abs/2312.15234)
 
+### 教程与视频
+
+- **The Illustrated Transformer** (Jay Alammar)：[https://jalammar.github.io/illustrated-transformer/](https://jalammar.github.io/illustrated-transformer/)
+- **3Blue1Brown：线性代数的本质**：[https://www.3blue1brown.com/topics/linear-algebra](https://www.3blue1brown.com/topics/linear-algebra)
+- **Andrej Karpathy：Let's build GPT from scratch**：[https://www.youtube.com/watch?v=kCc8FmEb1nY](https://www.youtube.com/watch?v=kCc8FmEb1nY)
+
 ### 开源项目与工具
 
 - **vLLM** GitHub：[https://github.com/vllm-project/vllm](https://github.com/vllm-project/vllm)
@@ -537,6 +634,7 @@ Prefill/Decode 解耦是系统架构层面的优化，检验重点在于理解"�
 - **Nsight Compute**：[https://docs.nvidia.com/nsight-compute/ProfilingGuide/](https://docs.nvidia.com/nsight-compute/ProfilingGuide/)
 - **NVIDIA Deep Learning Performance Guide**：[https://docs.nvidia.com/deeplearning/performance/](https://docs.nvidia.com/deeplearning/performance/)
 - **DeepSpeed 官方文档**：[https://www.deepspeed.ai/](https://www.deepspeed.ai/)
+- **PyTorch 官方教程（60 Minute Blitz）**：[https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html](https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html)
 - **PyTorch DDP 教程**：[https://pytorch.org/tutorials/intermediate/ddp_tutorial.html](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)
 - **PyTorch FSDP 教程**：[https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html](https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html)
 - **vLLM 官方文档**：[https://docs.vllm.ai/](https://docs.vllm.ai/)
