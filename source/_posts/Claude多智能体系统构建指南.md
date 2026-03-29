@@ -2,7 +2,7 @@
 title: 从零构建Claude多智能体协作系统
 date: 2026-03-11 10:00:00
 categories:
-  - [战胜玩AI, AI编程]
+  - [路飞玩AI, AI编程]
 tags: [Claude, 多智能体, Agent, opencode, 智能体协作]
 ---
 

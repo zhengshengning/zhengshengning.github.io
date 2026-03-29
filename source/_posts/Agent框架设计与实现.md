@@ -2,7 +2,7 @@
 title: Agent框架设计与实现
 date: 2026-02-07 19:01:00
 categories:
-  - [战胜玩AI, Agent开发]
+  - [路飞玩AI, Agent开发]
 tags: [AI Agent, LangChain, 智能体, 自动化]
 ---
 

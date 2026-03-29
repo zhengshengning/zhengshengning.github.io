@@ -591,7 +591,7 @@ html[data-theme="dark"]
 // ===================================
 // 顶部固定导航栏
 // ===================================
-$navbar-height = 56px
+$navbar-height = 64px
 
 body
   padding-top: $navbar-height
@@ -635,14 +635,51 @@ body
   white-space: nowrap
   transition: all 0.3s ease
   border-bottom: none !important
+  position: relative
+  padding: 4px 14px 4px 12px
+  border-radius: 8px
+  background: transparent
+  letter-spacing: 0.5px
 
+  // 终端图标容器
   i
-    font-size: 16px
+    font-size: 14px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 28px
+    height: 28px
+    background: var(--brand-color)
+    color: #fff
+    border-radius: 6px
+    transition: all 0.3s ease
+    flex-shrink: 0
+
+  // 文字后的闪烁光标
+  &::after
+    content: ''
+    display: inline-block
+    width: 2px
+    height: 18px
+    background: var(--brand-color)
+    margin-left: 2px
+    animation: cursor-blink 1s step-end infinite
+    vertical-align: middle
+    border-radius: 1px
+    opacity: 0.8
 
   &:hover
     color: var(--brand-hover-color)
     text-decoration: none
     border-bottom: none !important
+    background: rgba(5, 150, 105, 0.06)
+
+    i
+      transform: scale(1.1)
+      box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3)
+
+    &::after
+      background: var(--brand-hover-color)
 
 .top-navbar-links
   display: flex
@@ -725,6 +762,25 @@ html[data-theme="dark"]
 
   .top-navbar-brand
     text-shadow: 0 0 10px rgba(0, 255, 136, 0.2)
+
+    i
+      background: $cyber-neon-green
+      color: $cyber-bg-primary
+      box-shadow: 0 0 8px rgba(0, 255, 136, 0.25)
+
+    &::after
+      background: $cyber-neon-green
+      box-shadow: 0 0 4px rgba(0, 255, 136, 0.4)
+
+    &:hover
+      background: rgba(0, 255, 136, 0.06)
+
+      i
+        box-shadow: 0 0 12px rgba(0, 255, 136, 0.5)
+
+      &::after
+        background: $cyber-neon-cyan
+        box-shadow: 0 0 4px rgba(0, 212, 255, 0.4)
 
   .top-navbar-link
     &:hover
@@ -956,17 +1012,26 @@ html[data-theme="dark"]
       background: rgba(0, 0, 0, 0.25)
 
   .category-landing-sidebar-header
+    display: flex
+    align-items: center
+    gap: 10px
     padding: 18px 20px
     font-size: 20px
     font-weight: 700
+    color: var(--text-color)
     border-bottom: 2px solid $light-accent-green
     letter-spacing: 0.3px
+    position: sticky
+    top: 0
+    background: var(--content-bg-color)
+    z-index: 10
 
     i
       font-size: 16px
       color: $light-accent-green
 
     .category-landing-post-count
+      margin-left: auto
       min-width: 22px
       height: 22px
       line-height: 22px
@@ -984,6 +1049,9 @@ html[data-theme="dark"]
     margin-bottom: 2px
 
   .category-landing-sub-title
+    display: flex
+    align-items: center
+    gap: 6px
     padding: 10px 20px 6px
     font-size: 15px
     font-weight: 600
@@ -996,50 +1064,57 @@ html[data-theme="dark"]
       opacity: 0.6
 
     .category-landing-sub-count
+      margin-left: auto
       font-size: 11px
       font-weight: 600
       padding: 1px 7px
       border-radius: 10px
       background: rgba(8, 145, 178, 0.1)
+      color: var(--blockquote-color)
 
-  .category-landing-post-list li
+  .category-landing-post-list
+    list-style: none
     margin: 0
+    padding: 0
 
-    a
-      display: flex
-      align-items: baseline
-      gap: 8px
-      padding: 8px 16px 8px 32px
-      font-size: 14px
-      line-height: 1.5
-      color: var(--text-color)
-      text-decoration: none
-      border-bottom: none !important
-      border-left: 2px solid transparent
-      transition: all 0.2s ease
+    li
+      margin: 0
 
-      &:hover
-        background: rgba(8, 145, 178, 0.05)
+      a
+        display: flex
+        align-items: baseline
+        gap: 8px
+        padding: 8px 16px 8px 32px
+        font-size: 14px
+        line-height: 1.5
+        color: var(--text-color)
+        text-decoration: none
+        border-bottom: none !important
+        border-left: 2px solid transparent
+        transition: all 0.2s ease
+
+        &:hover
+          background: rgba(8, 145, 178, 0.05)
+          color: var(--link-color)
+          border-left-color: var(--link-color)
+          padding-left: 34px
+
+        .category-landing-date
+          font-size: 12px
+          color: var(--blockquote-color)
+          flex-shrink: 0
+          font-family: 'Fira Code', monospace
+          opacity: 0.65
+
+      &.current-post a
         color: var(--link-color)
+        font-weight: 600
+        background: rgba(8, 145, 178, 0.08)
         border-left-color: var(--link-color)
-        padding-left: 34px
 
-      .category-landing-date
-        font-size: 12px
-        color: var(--blockquote-color)
-        flex-shrink: 0
-        font-family: 'Fira Code', monospace
-        opacity: 0.65
-
-    &.current-post a
-      color: var(--link-color)
-      font-weight: 600
-      background: rgba(8, 145, 178, 0.08)
-      border-left-color: var(--link-color)
-
-      .category-landing-date
-        color: var(--link-color)
-        opacity: 0.85
+        .category-landing-date
+          color: var(--link-color)
+          opacity: 0.85
 
 // 文章详情页右侧 TOC 侧边栏优化
 .main:has(.main-inner.post) .sidebar
@@ -1101,182 +1176,6 @@ html[data-theme="dark"]
   .main-inner.post
     display: block
     padding: 0 !important
-
-// ===================================
-// 分类着陆页 - 隐藏主题左侧栏，全宽展示
-// ===================================
-.main:has(.category-landing-page)
-  .column
-    display: none
-
-  .category-landing-page
-    width: 100%
-    max-width: 100%
-    margin: 0
-    padding: 0
-
-// ===================================
-// 分类着陆页 - 左侧文章列表 + 右侧介绍
-// ===================================
-.category-landing
-  display: flex
-  gap: 0
-  min-height: calc(100vh - 140px)
-
-.category-landing-sidebar
-  width: 300px
-  flex-shrink: 0
-  background: var(--content-bg-color)
-  border-right: 1px solid $light-border
-  padding: 0
-  overflow-y: auto
-  max-height: calc(100vh - 56px)
-  position: sticky
-  top: 56px
-
-.category-landing-sidebar-header
-  display: flex
-  align-items: center
-  gap: 10px
-  padding: 20px
-  font-size: 18px
-  font-weight: 700
-  color: var(--text-color)
-  border-bottom: 2px solid $light-accent-green
-  position: sticky
-  top: 0
-  background: var(--content-bg-color)
-  z-index: 10
-
-  i
-    color: $light-accent-green
-    font-size: 16px
-
-  .category-landing-post-count
-    margin-left: auto
-    font-size: 12px
-    font-weight: 600
-    color: #fff
-    background: $light-accent-green
-    min-width: 24px
-    height: 24px
-    line-height: 24px
-    text-align: center
-    border-radius: 12px
-    padding: 0 8px
-
-.category-landing-nav
-  padding: 12px 0
-
-.category-landing-sub
-  margin-bottom: 4px
-
-.category-landing-sub-title
-  display: flex
-  align-items: center
-  gap: 6px
-  padding: 8px 20px
-  font-size: 15px
-  font-weight: 600
-  color: var(--blockquote-color)
-  text-transform: uppercase
-  letter-spacing: 0.5px
-
-  i
-    font-size: 12px
-    opacity: 0.6
-
-  .category-landing-sub-count
-    margin-left: auto
-    font-size: 11px
-    font-weight: 600
-    background: rgba(8, 145, 178, 0.1)
-    color: var(--blockquote-color)
-    padding: 1px 7px
-    border-radius: 10px
-
-.category-landing-post-list
-  list-style: none
-  margin: 0
-  padding: 0
-
-  li
-    margin: 0
-
-    a
-      display: flex
-      align-items: baseline
-      gap: 8px
-      padding: 7px 20px 7px 36px
-      font-size: 14px
-      color: var(--text-color)
-      text-decoration: none
-      border-bottom: none !important
-      transition: all 0.2s ease
-      line-height: 1.5
-
-      &:hover
-        background: rgba(8, 145, 178, 0.06)
-        color: var(--link-color)
-        padding-left: 40px
-
-      .category-landing-date
-        font-size: 12px
-        color: var(--blockquote-color)
-        flex-shrink: 0
-        font-family: 'Fira Code', monospace
-        opacity: 0.7
-
-.category-landing-content
-  flex: 1
-  min-width: 0
-  padding: 30px 40px
-
-  .post-block
-    background: none
-    box-shadow: none
-    margin: 0
-    padding: 0
-
-  .post-body
-    padding: 0
-    font-size: 16px
-    line-height: 1.8
-
-    h3
-      font-size: 20px
-      margin-top: 2em
-      color: var(--text-color)
-
-    ul
-      padding-left: 0
-      list-style: none
-
-      li
-        padding: 6px 0
-        font-size: 15px
-        line-height: 1.7
-
-        strong
-          color: var(--link-color)
-
-        &:before
-          content: none
-
-// 分类着陆页 - 移动端
-@media (max-width: 900px)
-  .category-landing
-    flex-direction: column
-
-  .category-landing-sidebar
-    width: 100%
-    max-height: none
-    position: static
-    border-right: none
-    border-bottom: 1px solid $light-border
-
-  .category-landing-content
-    padding: 20px
 
 // 移除进场动画
 .post,
@@ -1421,8 +1320,7 @@ html[data-theme="dark"]
       background: rgba(0, 212, 255, 0.12)
       color: $cyber-neon-cyan
 
-  // 分类着陆页 + 文章页分类侧边栏
-  .category-landing-sidebar,
+  // 文章页分类侧边栏
   .post-cat-sidebar
     background: $cyber-bg-tertiary
     border-right-color: $cyber-border
@@ -1473,10 +1371,6 @@ html[data-theme="dark"]
     .post-toc .nav .active-current > a
       background: rgba(0, 212, 255, 0.12)
       color: $cyber-neon-cyan
-
-  @media (max-width: 900px)
-    .category-landing-sidebar
-      border-bottom-color: $cyber-border
 
   // （导航菜单已移至顶部导航栏）
 

@@ -2,7 +2,7 @@
 title: OpenCode入门使用指南
 date: 2026-02-09 16:15:00
 categories:
-  - [战胜玩AI, AI编程]
+  - [路飞玩AI, AI编程]
 tags: [AI编程, OpenCode, 终端工具]
 ---
 

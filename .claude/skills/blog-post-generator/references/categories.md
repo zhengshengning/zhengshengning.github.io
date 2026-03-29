@@ -9,9 +9,9 @@
 | AI Infra | CUDA编程与算子优化 | CUDA编程、算子开发、Kernel优化、FlashAttention、Triton | CUDA编程入门指南、高效CUDA编程速查、Thread Block Cluster 架构特性 |
 | AI Infra | 分布式训练 | DDP、FSDP、3D并行、ZeRO、DeepSpeed、Megatron-LM | 分布式训练入门 |
 | AI Infra | 推理与部署 | LLM推理、vLLM、SGLang、TensorRT-LLM、量化、KV Cache | 大模型推理与部署入门 |
-| AI Infra | 性能分析与Benchmark | Nsight Systems、Nsight Compute、Profiling、Roofline、Benchmark | Nsight Systems性能分析实战指南、Nsight Compute性能分析实战指南 |
-| 战胜玩AI | AI编程 | AI辅助编程、Claude Code、Copilot、AI IDE、Agent Skills | ClaudeCode使用指南、OpenCode入门使用指南、如何创建自定义Agent Skills、Claude多智能体系统构建指南 |
-| 战胜玩AI | Agent开发 | AI Agent框架、多智能体系统、Agent SDK | Agent框架设计与实现 |
+| AI Infra | 性能分析 | Nsight Systems、Nsight Compute、Profiling、Roofline、Benchmark | Nsight Systems性能分析实战指南、Nsight Compute性能分析实战指南 |
+| 路飞玩AI | AI编程 | AI辅助编程、Claude Code、Copilot、AI IDE、Agent Skills | ClaudeCode使用指南、OpenCode入门使用指南、如何创建自定义Agent Skills、Claude多智能体系统构建指南 |
+| 路飞玩AI | Agent开发 | AI Agent框架、多智能体系统、Agent SDK | Agent框架设计与实现 |
 | 编程技能包 | Python | Python开发、包管理、CLI工具、uv、pip、PyPI | 使用uv构建Python命令行工具、构建并发布Python包到PyPI完整指南 |
 | 编程技能包 | C++基础 | C++语法、STL、面向对象、现代C++ | C++入门教程 |
 | 编程技能包 | Web开发 | Next.js、React、前端开发、Web框架 | Nextjs网页开发入门指南 |

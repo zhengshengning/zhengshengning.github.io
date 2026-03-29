@@ -3,13 +3,13 @@
   <div class="top-navbar-inner">
     <a href="/" class="top-navbar-brand">
       <i class="fa-solid fa-terminal"></i>
-      战胜的技术博客
+      草帽路飞的技术博客
     </a>
     <div class="top-navbar-links" id="navbarLinks">
       <a href="/" class="top-navbar-link"><i class="fa fa-home"></i> 首页</a>
-      <a href="/ai-infra/" class="top-navbar-link"><i class="fa fa-server"></i> AI Infra</a>
-      <a href="/play-ai/" class="top-navbar-link"><i class="fa fa-robot"></i> 战胜玩AI</a>
-      <a href="/coding-skills/" class="top-navbar-link"><i class="fa fa-code"></i> 编程技能包</a>
+      <a href="{{ get_category_first_post_url('AI Infra') }}" class="top-navbar-link"><i class="fa fa-server"></i> AI Infra</a>
+      <a href="{{ get_category_first_post_url('路飞玩AI') }}" class="top-navbar-link"><i class="fa fa-robot"></i> 路飞玩AI</a>
+      <a href="{{ get_category_first_post_url('编程技能包') }}" class="top-navbar-link"><i class="fa fa-code"></i> 编程技能包</a>
       <a href="/about/" class="top-navbar-link"><i class="fa fa-user"></i> 关于</a>
       <a href="https://github.com/zhengshengning" class="top-navbar-link" target="_blank" rel="noopener"><i class="fab fa-github"></i> GitHub</a>
     </div>

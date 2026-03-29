@@ -2,7 +2,7 @@
 title: ClaudeCode使用指南
 date: 2026-02-09 16:20:00
 categories:
-  - [战胜玩AI, AI编程]
+  - [路飞玩AI, AI编程]
 tags: [AI编程, ClaudeCode, VS Code, 代码助手]
 ---
 

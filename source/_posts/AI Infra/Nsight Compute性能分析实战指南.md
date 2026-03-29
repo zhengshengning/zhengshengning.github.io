@@ -2,7 +2,7 @@
 title: Nsight Compute性能分析实战指南
 date: 2026-03-26 21:30:00
 categories:
-  - [AI Infra, 性能分析与Benchmark]
+  - [AI Infra, 性能分析]
 tags: [Nsight Compute, 性能分析, CUDA, Kernel优化, Roofline]
 ---
 
