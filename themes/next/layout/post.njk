@@ -19,11 +19,16 @@
     </div>
     <nav class="category-landing-nav">
       {% for child in catSidebar.children %}
-      <div class="category-landing-sub">
-        <div class="category-landing-sub-title">
+      {% set hasCurrent = false %}
+      {% for post in child.posts %}
+        {% if post._id === page._id %}{% set hasCurrent = true %}{% endif %}
+      {% endfor %}
+      <details class="category-landing-sub"{% if hasCurrent %} open{% endif %}>
+        <summary class="category-landing-sub-title">
           <i class="fa fa-folder"></i> {{ child.name }}
           <span class="category-landing-sub-count">{{ child.posts.length }}</span>
-        </div>
+          <i class="fa fa-chevron-down category-landing-chevron"></i>
+        </summary>
         <ul class="category-landing-post-list">
           {% for post in child.posts %}
           <li{% if post._id === page._id %} class="current-post"{% endif %}>
@@ -33,7 +38,7 @@
           </li>
           {% endfor %}
         </ul>
-      </div>
+      </details>
       {% endfor %}
     </nav>
   </aside>

@@ -10,7 +10,7 @@ const topLevelOrder = ['AI Infra', '路飞玩AI', '编程技能包'];
 
 // 二级分类的展示顺序（按一级分类分组，顺序与 categories.md 一致）
 const subCategoryOrder = {
-  'AI Infra': ['学习路线', '硬件与通信网络', 'CUDA编程与算子优化', '分布式训练', '推理与部署', '性能分析'],
+  'AI Infra': ['学习路线', '前置知识', 'CUDA编程与算子优化', '分布式训练', '推理与部署', '性能分析'],
   '路飞玩AI': ['AI编程', 'Agent开发'],
   '编程技能包': ['Python', 'C++基础', 'Web开发']
 };

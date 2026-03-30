@@ -12,28 +12,26 @@ AI Infra（人工智能基础设施）是大模型时代壁垒最高、最核心
 
 ## 目录
 
-- [全景概览：四层架构](#全景概览四层架构)
+- [全景概览：三层架构](#全景概览三层架构)
 - [第零层：前置知识](#第零层前置知识)
-- [第一层：硬件与通信网络](#第一层硬件与通信网络)
-- [第二层：CUDA编程与算子优化](#第二层cuda编程与算子优化)
-- [第三层：分布式训练](#第三层分布式训练)
-- [第四层：推理与部署](#第四层推理与部署)
+- [第一层：CUDA编程与算子优化](#第一层cuda编程与算子优化)
+- [第二层：分布式训练](#第二层分布式训练)
+- [第三层：推理与部署](#第三层推理与部署)
 - [新人破局指南](#新人破局指南)
 - [参考资料](#参考资料)
 
 ---
 
-## 全景概览：四层架构
+## 全景概览：三层架构
 
-AI Infra 的本质是**"用系统工程释放硬件算力"**。我们可以将其自底向上分为四个核心层级：
+AI Infra 的本质是 **"用系统工程释放硬件算力"** 。我们可以将其自底向上分为三个核心层级，加上一个前置知识层：
 
 | 层级 | 名称 | 核心关注点 |
 |------|------|-----------|
-| 第零层 | 前置知识 | 编程语言、数学基础、Transformer 架构、PyTorch |
-| 第一层 | 硬件与通信网络 | GPU架构、显存带宽、NVLink、InfiniBand |
-| 第二层 | CUDA编程与算子优化 | Kernel编写、FlashAttention、AI编译器 |
-| 第三层 | 分布式训练 | 数据并行、3D并行、ZeRO、混合精度 |
-| 第四层 | 推理与部署 | KV Cache、PagedAttention、量化、Speculative Decoding |
+| 第零层 | 前置知识 | 编程语言、数学基础、Transformer 架构、PyTorch、通信拓扑 |
+| 第一层 | CUDA编程与算子优化 | GPU架构、存储层次、Kernel编写、FlashAttention、AI编译器 |
+| 第二层 | 分布式训练 | 数据并行、3D并行、ZeRO、混合精度 |
+| 第三层 | 推理与部署 | KV Cache、PagedAttention、量化、Speculative Decoding |
 
 所有的优化都是在 **"计算、通信、显存"** 这个不可能三角中做取舍：ZeRO 是用通信换显存；重计算（Activation Checkpointing）是用计算换显存；量化是用精度换显存和带宽。学习时始终问自己：**这个技术牺牲了什么，换取了什么？**
 
@@ -47,9 +45,9 @@ AI Infra 不是从零开始学的领域——它建立在编程能力、数学�
 
 **编程语言**
 
-- **Python**：AI 生态的通用语言，需要熟练使用而非仅仅"会写"。重点掌握：面向对象、装饰器、生成器、多进程/多线程、性能 profiling
-- **C/C++**：CUDA 编程的宿主语言。不要求精通模板元编程，但需要理解指针、内存管理、编译链接过程。能读懂 C++ 项目代码、写简单的 C++ 函数并编译运行即可
-- **Linux 基础**：命令行操作、Shell 脚本、进程管理、环境变量配置。AI Infra 的开发和部署几乎全部在 Linux 上进行
+- **Python** ：AI 生态的通用语言，需要熟练使用而非仅仅"会写"。重点掌握：面向对象、装饰器、生成器、多进程/多线程、性能 profiling
+- **C/C++** ：CUDA 编程的宿主语言。不要求精通模板元编程，但需要理解指针、内存管理、编译链接过程。能读懂 C++ 项目代码、写简单的 C++ 函数并编译运行即可
+- **Linux 基础** ：命令行操作、Shell 脚本、进程管理、环境变量配置。AI Infra 的开发和部署几乎全部在 Linux 上进行
 
 **数学基础**
 
@@ -74,6 +72,15 @@ AI Infra 不是从零开始学的领域——它建立在编程能力、数学�
 - **模型保存与加载**：state_dict、checkpoint 的使用
 - **基本调试**：用 `torch.cuda.memory_summary()` 查看显存使用、用 `torch.profiler` 做简单性能分析
 
+**通信拓扑**
+
+分布式训练和多卡推理都离不开高效的卡间、机间通信。这部分知识是后续理解分布式并行策略的前提——如果不知道 NVLink 和 PCIe 的带宽差了一个数量级，就无法理解"为什么张量并行不能跨机"。
+
+- **单机内部通信**：NVLink / NVSwitch 的带宽与拓扑。NVLink 是同一机箱内 GPU 之间的专用高速通道，可以把它想象成工厂园区内的专用传送带
+- **多机间通信**：InfiniBand（IB）网络、RoCE 协议。IB 则是跨城市的高速铁路，带宽比 NVLink 低但能连接远距离节点
+- **集合通信原语**：AllReduce、AllGather、ReduceScatter 的含义与开销——这是分布式训练中最频繁的操作，理解它们的通信量公式是分析并行策略开销的基础
+- **NCCL**：NVIDIA 集合通信库的基本用法与调优
+
 ### 0.2 推荐资料
 
 | 类型 | 资料 | 说明 |
@@ -85,6 +92,8 @@ AI Infra 不是从零开始学的领域——它建立在编程能力、数学�
 | 书籍 | 3Blue1Brown：线性代数的本质（视频系列） | 建立线性代数几何直觉，比教科书高效 |
 | 教程 | MIT 6.S081 / Linux 命令行基础 | Linux 和系统编程基础 |
 | 工具 | Andrej Karpathy：Let's build GPT from scratch | 从零手写 GPT，把 Transformer 每个模块都过一遍 |
+| 官方文档 | NVIDIA NCCL 文档 | 集合通信原语与多卡编程 |
+| 教程 | NVIDIA Deep Learning Performance Guide | 硬件性能瓶颈分析方法论 |
 
 ### 0.3 检验标准
 
@@ -95,55 +104,25 @@ AI Infra 不是从零开始学的领域——它建立在编程能力、数学�
 - **PyTorch 训练脚本**：能独立写出一个完整的 PyTorch 训练循环（不借助 Trainer 类），包含 DataLoader、forward、loss 计算、backward、optimizer step、学习率调度、checkpoint 保存，并在 GPU 上跑通
 - **C++ 基础读写**：能读懂一个简单的 CUDA kernel 的 host 端代码（malloc、memcpy、kernel launch、free），理解 CPU 和 GPU 之间的数据搬运流程
 - **Linux 日常**：能在服务器上独立完成：SSH 登录、tmux 管理会话、conda/pip 管理环境、查看 GPU 状态（nvidia-smi）、用 git 管理代码、写简单的 bash 脚本批量提交任务
+- **拓扑感知**：在一台 8 卡机器上执行 `nvidia-smi topo -m`，能看懂输出矩阵里的 NV12、SYS、NODE 等标记，判断哪些卡之间走 NVLink、哪些走 PCIe
+- **集合通信直觉**：能画出 AllReduce、AllGather、ReduceScatter 三种操作的数据流示意图，说清每种操作的通信量公式（如 Ring AllReduce 的通信量 ≈ 2(N-1)/N × 数据量），理解为什么 NVLink 和 IB 的带宽差距直接决定了哪些并行策略能跨机
 
 ---
 
-## 第一层：硬件与通信网络
+## 第一层：CUDA编程与算子优化
 
-这是所有算力的物理基石。模型再精妙，最终也要转化为硅片上的电子跃迁。你可以把一块 GPU 想象成一座**拥有数千个简单工人的超级工厂**——每个工人（CUDA Core）只会做最基本的加减乘除，但胜在人多力量大，成千上万人同时开工，吞吐量远超只有几个高级工程师（CPU 核心）的小作坊。而通信网络则是工厂之间的高速公路，NVLink 是同一园区内的专用快速通道，InfiniBand 则是跨城市的高速铁路。
+这一层是连接硬件和软件的桥梁，负责把高层的数学计算翻译成 GPU 能最高效执行的机器指令。在动手写 kernel 之前，必须先理解 GPU 的硬件架构——这就像给工人写工序手册之前，得先搞清楚工厂有多少工人、车间怎么布局、货架在哪里。
 
 ### 1.1 知识点
 
-**计算节点**
+**GPU 硬件架构**
 
-- GPU 核心架构：SM（流多处理器）、Tensor Core、CUDA Core 的区别与协作
-- 主流 GPU 规格对比：A100 / H100 / H200 的算力、显存带宽、HBM 容量
-- Memory Wall：为什么显存带宽瓶颈往往比算力瓶颈更致命——好比一个超级快的厨师，刀工和火候都没问题，但食材传送带太慢，厨师大部分时间都在等菜上桌
-- 存储层次结构：寄存器 > 共享内存 > L1/L2 Cache > HBM > 主机内存
+理解 GPU 硬件是写好 CUDA kernel 的前提。你可以把一块 GPU 想象成一座**拥有数千个简单工人的超级工厂**——每个工人（CUDA Core）只会做最基本的加减乘除，但胜在人多力量大，成千上万人同时开工，吞吐量远超只有几个高级工程师（CPU 核心）的小作坊。
 
-**通信拓扑**
-
-- 单机内部通信：NVLink / NVSwitch 的带宽与拓扑
-- 多机间通信：InfiniBand（IB）网络、RoCE 协议
-- 集合通信原语：AllReduce、AllGather、ReduceScatter 的含义与开销
-- NCCL：NVIDIA 集合通信库的基本用法与调优
-
-### 1.2 推荐资料
-
-| 类型 | 资料 | 说明 |
-|------|------|------|
-| 官方文档 | NVIDIA GPU 架构白皮书（Ampere / Hopper） | 理解 SM、Tensor Core、HBM 设计 |
-| 官方文档 | NVIDIA NCCL 文档 | 集合通信原语与多卡编程 |
-| 教程 | NVIDIA Deep Learning Performance Guide | 硬件性能瓶颈分析方法论 |
-| 工具 | Nsight Systems User Guide | CPU-GPU 交互分析，判断 host 是否拖后腿 |
-| 工具 | Nsight Compute Profiling Guide | Kernel 级下钻，定位 SM / Memory / Tensor Core 瓶颈 |
-
-### 1.3 检验标准
-
-以下问题如果你能脱口而出，说明这一层已经过关：
-
-- **存储层次**：拿到一块 H100，不查资料能说出 HBM 容量（80GB）、HBM 带宽（~3.35TB/s）、L2 大小（50MB）、共享内存上限（228KB/SM）的量级，并解释为什么"显存带宽"往往比"算力"先成为瓶颈
-- **拓扑感知**：在一台 8 卡机器上执行 `nvidia-smi topo -m`，能看懂输出矩阵里的 NV12、SYS、NODE 等标记，判断哪些卡之间走 NVLink、哪些走 PCIe，并据此决定 TP 应该把哪几张卡分到同一组
-- **带宽估算**：给定一个 AllReduce 操作的数据量（比如 2GB 梯度），能估算在 NVLink（900GB/s per GPU）vs PCIe Gen5（64GB/s）下的理论耗时差异
-- **Profiling 实战**：用 Nsight Systems 抓一次训练 iteration 的 trace，能指出 GPU idle gap 是来自 CPU 数据预处理、通信等待、还是 kernel launch overhead；用 Nsight Compute 打开一个 kernel 报告，能读懂 SOL（Speed of Light）面板判断该 kernel 是 memory bound 还是 compute bound
-
----
-
-## 第二层：CUDA编程与算子优化
-
-这一层是连接硬件和软件的桥梁，负责把高层的数学计算翻译成 GPU 能最高效执行的机器指令。如果说第一层搭好了工厂和流水线，那么 CUDA 编程就是**给每个工人写工序手册**——怎么分工、从哪个货架取材料、中间结果放哪里，都直接决定了工厂的产出效率。写得好，数千工人井然有序；写得差，大家排队抢同一个货架（Bank Conflict），或者来回搬运半成品却不干正事（显存带宽瓶颈）。
-
-### 2.1 知识点
+- **GPU 核心架构**：SM（流多处理器）、Tensor Core、CUDA Core 的区别与协作
+- **主流 GPU 规格对比**：A100 / H100 / H200 的算力、显存带宽、HBM 容量
+- **Memory Wall**：为什么显存带宽瓶颈往往比算力瓶颈更致命——好比一个超级快的厨师，刀工和火候都没问题，但食材传送带太慢，厨师大部分时间都在等菜上桌
+- **存储层次结构**：寄存器 > 共享内存 > L1/L2 Cache > HBM > 主机内存。写 kernel 的核心就是在这个层次结构中最大化数据复用，减少对慢速存储的访问
 
 **CUDA 编程基础**
 
@@ -173,10 +152,11 @@ AI Infra 不是从零开始学的领域——它建立在编程能力、数学�
 - TVM / XLA：计算图优化与代码生成
 - `torch.compile`：PyTorch 2.x 的编译模式，理解 Graph Break 与性能收益
 
-### 2.2 推荐资料
+### 1.2 推荐资料
 
 | 类型 | 资料 | 说明 |
 |------|------|------|
+| 官方文档 | NVIDIA GPU 架构白皮书（Ampere / Hopper） | 理解 SM、Tensor Core、HBM 设计 |
 | 入门教程 | 小小将：CUDA编程入门极简教程 | CUDA 零基础入门 |
 | 官方文档 | NVIDIA CUDA Programming Guide | CUDA 编程权威参考 |
 | Reduce | PeakCrosser：CUDA Reduce 算子优化 | Reduce 实现与优化的详尽总结 |
@@ -194,24 +174,30 @@ AI Infra 不是从零开始学的领域——它建立在编程能力、数学�
 | 解读 | 方佳瑞：深入浅出理解PagedAttention CUDA实现 | vLLM PagedAttention kernel 图文解读 |
 | 编译器 | Triton 官方教程 | GPU 编程新范式 |
 | 编译器 | PyTorch profiling torch.compile | 抓 Graph Break、编译收益与损耗 |
+| 工具 | Nsight Systems User Guide | CPU-GPU 交互分析，判断 host 是否拖后腿 |
+| 工具 | Nsight Compute Profiling Guide | Kernel 级下钻，定位 SM / Memory / Tensor Core 瓶颈 |
 
-### 2.3 检验标准
+### 1.3 检验标准
 
 动手是检验这一层的唯一标准，纸上谈兵不算数：
+
+- **硬件参数直觉**：拿到一块 H100，不查资料能说出 HBM 容量（80GB）、HBM 带宽（~3.35TB/s）、L2 大小（50MB）、共享内存上限（228KB/SM）的量级，并解释为什么"显存带宽"往往比"算力"先成为瓶颈
+- **带宽估算**：给定一个 AllReduce 操作的数据量（比如 2GB 梯度），能估算在 NVLink（900GB/s per GPU）vs PCIe Gen5（64GB/s）下的理论耗时差异
 
 - **Reduce 三连**：从最朴素的全局内存原子加开始，写一个 Reduce Sum kernel；然后用共享内存 + 树形归约消除原子操作；最后用 Warp Shuffle 干掉共享内存，三个版本跑 Nsight Compute 对比 throughput，能说清每一步优化到底省在哪里
 - **Bank Conflict 直觉**：手动构造一个 32x32 矩阵转置 kernel，先写一个有 32-way bank conflict 的版本，再加一列 padding 消除冲突，用 Nsight Compute 的 Shared Memory 面板验证 conflict 数从几十降到 0
 - **GEMM 分块**：实现一个基于 Shared Memory Tiling 的 GEMM kernel，在 1024x1024 矩阵上与 cuBLAS 对比，达到其 50% 以上的性能即为合格——这个过程中你会真正理解"为什么访存模式决定一切"
 - **FlashAttention 白板推导**：不看论文，能在白板上画出 FlashAttention 的 tiling 过程——外层循环遍历 KV 的 block，内层循环遍历 Q 的 block，每个 tile 在 SRAM 中完成 QK^T → scale → mask → softmax → PV，用 online softmax 避免两次遍历，关键是说清楚为什么 HBM 读写从 O(N^2) 降到了 O(N)
 - **Triton 上手**：用 Triton 实现一个 fused Softmax kernel（参考官方教程），与 PyTorch 原生实现对比正确性和性能，体会 Triton 的 block-level 编程模型与 CUDA 的 thread-level 编程模型有何不同
+- **Profiling 实战**：用 Nsight Systems 抓一次训练 iteration 的 trace，能指出 GPU idle gap 是来自 CPU 数据预处理、通信等待、还是 kernel launch overhead；用 Nsight Compute 打开一个 kernel 报告，能读懂 SOL（Speed of Light）面板判断该 kernel 是 memory bound 还是 compute bound
 
 ---
 
-## 第三层：分布式训练
+## 第二层：分布式训练
 
 当模型参数量超越单卡显存极限时，分布式训练就是必经之路。这是 AI Infra 目前最活跃、最核心的区域。打个比方，训练一个千亿参数的大模型就像**抄写一本数万页的百科全书**——一个人抄到天荒地老也抄不完。数据并行是把同一本书复印多份、每人抄不同章节的内容然后汇总；张量并行是把每一页拆成几列、每人只抄自己那几列；流水线并行则是第一个人抄完第一章就传给第二个人继续，自己接着抄下一批。怎么拆、怎么传、怎么汇总，就是分布式训练要解决的核心问题。
 
-### 3.1 知识点
+### 2.1 知识点
 
 **模型架构演进（分布式视角）**
 
@@ -248,7 +234,7 @@ AI Infra 不是从零开始学的领域——它建立在编程能力、数学�
 - DeepSpeed：ZeRO 系列的核心实现，丰富的训练优化工具集
 - PyTorch FSDP：原生分布式训练方案
 
-### 3.2 推荐资料
+### 2.2 推荐资料
 
 | 类型 | 资料 | 说明 |
 |------|------|------|
@@ -261,7 +247,7 @@ AI Infra 不是从零开始学的领域——它建立在编程能力、数学�
 | 文档 | DeepSpeed 官方文档 | ZeRO 配置与使用 |
 | 文档 | PyTorch DDP / FSDP 教程 | 原生分布式训练入门 |
 
-### 3.3 检验标准
+### 2.3 检验标准
 
 这一层的检验核心是**算得清账、跑得通代码**：
 
@@ -273,11 +259,11 @@ AI Infra 不是从零开始学的领域——它建立在编程能力、数学�
 
 ---
 
-## 第四层：推理与部署
+## 第三层：推理与部署
 
 训练只是万里长征第一步。如何让模型快速、低成本地服务用户，是工业界最关心的问题。如果说训练是"教会模型知识"，那么推理就是"让模型上考场答题"——考场上最重要的是**答题速度**和**同时服务多少考生**，而且考试时把已算过的中间结果记在草稿纸上（KV Cache）能避免重复计算，大幅提速。
 
-### 4.1 LLM 推理基础
+### 3.1 LLM 推理基础
 
 **知识点**
 
@@ -300,7 +286,7 @@ AI Infra 不是从零开始学的领域——它建立在编程能力、数学�
 - **KV Cache 算账**：给定 LLaMA-2-7B（32 层、32 头、head_dim=128），上下文长度 4096，batch_size=16，FP16 存储，能手算 KV Cache 总量 = 2 × 32 × 32 × 128 × 4096 × 16 × 2B ≈ 32GB，进而判断 80GB 显卡还剩多少空间给模型参数和临时 buffer
 - **链路拆解**：把一次推理请求从头到尾拆成 tokenize → prefill（GEMM 密集）→ decode loop（逐 token 生成，memory bound）→ sampling（Top-p/Top-k）→ detokenize，能指出在高并发场景下哪个环节最容易成为瓶颈（通常是 decode 阶段的 KV Cache 带宽）
 
-### 4.2 推理引擎
+### 3.2 推理引擎
 
 **知识点**
 
@@ -341,7 +327,7 @@ AI Infra 不是从零开始学的领域——它建立在编程能力、数学�
 - **KV Cache 管理全链路**：从 KV Cache 的分配、使用、碎片化，到 PagedAttention 的虚拟页/物理页映射，再到 Prefix Cache 如何通过 hash 匹配复用已有的 KV 块，能画出完整的数据流
 - **选型决策**：老板问"我们该用哪个推理框架"，你能给出结构化的回答——追求吞吐和社区生态选 vLLM；多轮对话 / Agent / 结构化输出选 SGLang（RadixAttention + cFSM）；追求极限延迟且愿意投入适配工作选 TensorRT-LLM
 
-### 4.3 量化
+### 3.3 量化
 
 **知识点**
 
@@ -379,7 +365,7 @@ AI Infra 不是从零开始学的领域——它建立在编程能力、数学�
 - **反直觉理解**：别人说"量化位数越低越快"，你能解释为什么某些场景下 INT4 反而比 INT8 慢——INT4 kernel 需要额外的 unpack/dequant 计算，在小 batch size 下这个开销可能超过带宽节省；或者 INT4 的 Tensor Core 利用率不如 INT8 的 native 支持
 - **故障排查**：量化后模型输出质量明显下降，你能列出排查清单——某些层的 activation outlier 特别大（需要 per-channel 或 SmoothQuant 处理）、量化校准数据不具代表性、某些特殊结构（如 MoE 的 gate）不适合低 bit 量化
 
-### 4.4 Speculative Decoding
+### 3.4 Speculative Decoding
 
 **知识点**
 
@@ -408,7 +394,7 @@ Speculative Decoding 的精髓在于"用空间换时间、用并行换串行"，
 - **不赚的边界**：能列出至少 3 种 speculative decoding 效果不佳的情况——高温度采样时 Draft 命中率骤降、batch size 已经很大时额外的 Draft forward pass 抢占计算资源、Draft model 与 Target model 能力差距过大导致 acceptance rate < 50%
 - **工程耦合风险**：能指出 speculative decoding 与其他优化技术的冲突点——比如与量化叠加时 Draft model 的精度下降可能进一步降低接受率；与 Continuous Batching 叠加时不同请求的 speculative 长度不同，调度复杂度上升
 
-### 4.5 系统架构：Prefill/Decode 解耦
+### 3.5 系统架构：Prefill/Decode 解耦
 
 **知识点**
 
@@ -437,7 +423,7 @@ Prefill/Decode 解耦是系统架构层面的优化，检验重点在于理解"�
 - **资源配比推导**：给定一个工作负载特征（平均 prompt 长度 2000 token、平均输出 500 token），能估算 prefill 和 decode 的计算量比例，进而推导出 Prefill GPU 池和 Decode GPU 池的合理配比（比如 1:3 或 1:4）
 - **风险清单**：能列出解耦架构引入的新问题——KV Cache 从 Prefill 节点迁移到 Decode 节点的网络带宽压力（一个 7B 模型 2048 长度的 KV 约 4GB，IB 200Gb/s 也需要 ~160ms）、调度器的队列管理复杂度、Prefill/Decode 负载不均时某一池空转浪费资源
 
-### 4.6 性能分析与 Benchmark
+### 3.6 性能分析与 Benchmark
 
 **知识点**
 
@@ -470,7 +456,7 @@ Prefill/Decode 解耦是系统架构层面的优化，检验重点在于理解"�
 - **上线门禁**：能给团队制定一套简单可执行的性能门禁规则——比如"TPOT P95 退化超过 5% 则 block merge"、"显存占用增长超过 10% 需要附上分析报告"，并集成到 CI 流程中自动执行
 
 
-### 4.7 优化选型决策树
+### 3.7 优化选型决策树
 
 推理优化不是"把所有技术都堆上去"就完事了，而是**先定位瓶颈，再对症下药**。好比去医院看病，医生不会上来就开药，而是先问"哪里不舒服"，再做检查确认病因，最后才开处方。下面这棵决策树就是推理优化的"问诊流程"——从症状出发，逐步缩小到具体方案。
 
@@ -513,7 +499,7 @@ Decode 阶段每步只生成一个 token，矩阵退化成向量运算，是典�
 
 | 显存大户 | 诊断方法 | 推荐方案 |
 |---------|---------|---------|
-| KV Cache（长上下文或高并发场景） | 对比模型参数显存和 KV Cache 显存的比例（参考 4.1 的计算方法） | PagedAttention 解决碎片问题；KV Cache 量化（KIVI 2-bit）压缩存储 |
+| KV Cache（长上下文或高并发场景） | 对比模型参数显存和 KV Cache 显存的比例（参考 3.1 的计算方法） | PagedAttention 解决碎片问题；KV Cache 量化（KIVI 2-bit）压缩存储 |
 | 模型权重本身 | FP16 权重已经超出单卡容量 | INT4 weight-only 量化（AWQ/GPTQ）可将权重压缩到 1/4；W8A8（SmoothQuant）压缩到 1/2 且 kernel 效率更高 |
 
 **[D] 尾延迟 P95/P99 失控——均值还行但毛刺严重**
@@ -544,7 +530,7 @@ Decode 阶段每步只生成一个 token，矩阵退化成向量运算，是典�
 
 **基础阶段（0-3个月）**
 
-1. 完成第零层的全部检验标准：编程语言、数学基础、Transformer 架构、PyTorch 训练流程
+1. 完成第零层的全部检验标准：编程语言、数学基础、Transformer 架构、PyTorch 训练流程、通信拓扑基础
 2. 学习 CUDA 编程基础，能写出简单的 Reduce / GEMM kernel
 3. 尝试用 PyTorch DDP 将训练分布到两张卡上，观察显存和通信变化
 

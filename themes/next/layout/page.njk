@@ -15,9 +15,43 @@
   {%- endif %}
 {% endblock %}
 
-{% block class %}page posts-expand{% endblock %}
+{% block class %}page posts-expand{% if page.type === 'category-landing' %} category-landing-layout{% endif %}{% endblock %}
 
 {% block content %}
+
+  {# 分类介绍页：左侧文章列表栏（与文章详情页共用） #}
+  {% if page.type === 'category-landing' %}
+    {% set catData = get_category_landing(page.category_name) %}
+    {% if catData %}
+    <aside class="post-cat-sidebar">
+      <div class="category-landing-sidebar-header">
+        <i class="fa {{ catData.icon }}"></i>
+        <span>{{ catData.name }}</span>
+        <span class="category-landing-post-count">{{ catData.allPosts.length }}</span>
+      </div>
+      <nav class="category-landing-nav">
+        {% for child in catData.children %}
+        <details class="category-landing-sub">
+          <summary class="category-landing-sub-title">
+            <i class="fa fa-folder"></i> {{ child.name }}
+            <span class="category-landing-sub-count">{{ child.posts.length }}</span>
+            <i class="fa fa-chevron-down category-landing-chevron"></i>
+          </summary>
+          <ul class="category-landing-post-list">
+            {% for post in child.posts %}
+            <li>
+              <a href="{{ url_for(post.path) }}">
+                <span>{{ post.title }}</span>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </details>
+        {% endfor %}
+      </nav>
+    </aside>
+    {% endif %}
+  {% endif %}
 
     {##################}
     {### PAGE BLOCK ###}
@@ -36,6 +70,48 @@
           {%- include '_partials/page/categories.njk' -%}
         {% elif page.type === 'schedule' %}
           {%- include '_partials/page/schedule.njk' -%}
+        {% elif page.type === 'category-landing' %}
+          {% if catData %}
+          <div class="category-landing-page">
+            <div class="category-landing-hero">
+              <div class="category-landing-hero-icon">
+                <i class="fa {{ catData.icon }}"></i>
+              </div>
+              <h1 class="category-landing-title">{{ catData.name }}</h1>
+              <p class="category-landing-desc">{{ catData.description }}</p>
+              <div class="category-landing-stats">
+                <span class="category-landing-stat">
+                  <i class="fa fa-folder-open"></i> {{ catData.children.length }} 个子分类
+                </span>
+                <span class="category-landing-stat">
+                  <i class="fa fa-file-text"></i> {{ catData.allPosts.length }} 篇文章
+                </span>
+              </div>
+            </div>
+
+            <div class="category-landing-sections">
+              {% for child in catData.children %}
+              <div class="category-landing-section">
+                <div class="category-landing-section-header">
+                  <i class="fa fa-folder"></i>
+                  <span>{{ child.name }}</span>
+                  <span class="category-landing-section-count">{{ child.posts.length }} 篇</span>
+                </div>
+                <ul class="category-landing-section-list">
+                  {% for post in child.posts %}
+                  <li>
+                    <a href="{{ url_for(post.path) }}">
+                      <span class="category-landing-article-date">{{ date(post.date, 'YYYY-MM-DD') }}</span>
+                      <span class="category-landing-article-title">{{ post.title }}</span>
+                    </a>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
         {% else %}
           {{ page.content }}
         {%- endif %}
