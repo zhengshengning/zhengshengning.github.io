@@ -1,0 +1,576 @@
+---
+title: 2.7 从Transformer到LLM自回归生成深入理解
+date: 2026-03-30 15:00:00
+categories:
+  - [AI Infra, 前置知识]
+tags: [自回归生成, KV Cache, PagedAttention, 推理优化, LLM]
+---
+
+理解 Transformer 的内部结构只是第一步，真正让大语言模型"说话"的是自回归生成过程。本文深入剖析 LLM 推理的完整链路——从条件概率到 Token 采样，从 Prefill/Decode 两阶段特性到 KV Cache 管理，再到 PagedAttention、Speculative Decoding 等前沿优化技术，帮助 AI Infra 工程师建立推理优化的全局视野。
+
+<!-- more -->
+
+## 目录
+
+- [1. 语言模型的本质：预测下一个词](#1-语言模型的本质预测下一个词)
+- [2. 自回归生成的工作机制](#2-自回归生成的工作机制)
+- [3. Token 采样策略](#3-token-采样策略)
+- [4. Prefill 阶段：一次吃下整个 Prompt](#4-prefill-阶段一次吃下整个-prompt)
+- [5. Decode 阶段：逐字蹦出答案](#5-decode-阶段逐字蹦出答案)
+- [6. KV Cache 深度解析](#6-kv-cache-深度解析)
+- [7. KV Cache 优化技术全景](#7-kv-cache-优化技术全景)
+- [8. 系统级推理优化](#8-系统级推理优化)
+- [9. 推理性能指标体系](#9-推理性能指标体系)
+- [总结](#总结)
+- [检验标准与进阶方向](#检验标准与进阶方向)
+- [参考资料](#参考资料)
+
+---
+
+## 1. 语言模型的本质：预测下一个词
+
+### 1.1 条件概率视角
+
+从数学上看，一个语言模型本质上是在建模一个条件概率分布。给定前面已经出现的所有词（token），模型输出下一个词的概率分布：
+
+$$
+P(x_t \mid x_1, x_2, \ldots, x_{t-1})
+$$
+
+整句话的联合概率就是各位置条件概率的连乘：
+
+$$
+P(x_1, x_2, \ldots, x_T) = \prod_{t=1}^{T} P(x_t \mid x_1, \ldots, x_{t-1})
+$$
+
+想象你在玩一个填字游戏。每一步你都只能看到前面已经填好的字，然后从所有候选字中选一个最合理的填进去。语言模型做的就是同一件事——只不过它面对的"候选字表"是整个词表（通常 32000-128000 个 token），它给每个候选都打一个概率分。
+
+### 1.2 从 Transformer 输出到概率分布
+
+具体来说，当一个 token 序列通过 Transformer 的所有 Decoder Block 后，最后一层输出的是每个位置的隐藏状态向量，形状为 `(N, d_model)`。要把这个向量变成"下一个词的概率"，还需要两步操作：
+
+**LM Head（语言模型头）**：一个线性层，将 `d_model` 维的隐藏状态映射到 `vocab_size` 维的向量，称为 **logits**：
+
+```python
+# hidden_state: (N, d_model), 如 (N, 4096)
+# lm_head.weight: (vocab_size, d_model), 如 (32000, 4096)
+logits = hidden_state @ lm_head.weight.T  # (N, vocab_size), 如 (N, 32000)
+```
+
+**Softmax**：将 logits 归一化为概率分布：
+
+```python
+probs = softmax(logits[-1])  # 取最后一个位置，得到 (vocab_size,) 的概率分布
+```
+
+这里只取最后一个位置是因为自回归模型关心的是"下一个词"——而序列中最后一个 token 位置的输出就包含了对下一个 token 的预测。
+
+### 1.3 自回归 vs 非自回归
+
+自回归生成（Autoregressive Generation）是逐个 token 生成的方式——每一步基于所有已有 token 预测下一个，预测结果追加到序列末尾，再进行下一步预测。这就像写作：你写完一个字才能决定下一个字是什么。
+
+与之对应的是**非自回归生成**（Non-Autoregressive Generation，NAR），一次性并行生成所有 token。非自回归方法速度更快（所有位置可以并行计算），但由于各位置之间缺乏依赖，生成质量往往不如自回归方式。好比让一群人同时独立写一个句子的不同部分，很难保证整体连贯。
+
+目前主流的 LLM（GPT 系列、LLaMA、Mistral、Qwen 等）全部采用自回归生成。非自回归主要用在机器翻译等质量要求可以适度放松的场景。
+
+---
+
+## 2. 自回归生成的工作机制
+
+### 2.1 生成循环
+
+自回归生成的核心是一个循环：每一步用已有的 token 序列做一次完整的 Transformer 前向传播，取最后一个位置的输出预测下一个 token，然后把新 token 追加到序列中，重复此过程直到满足停止条件。
+
+```python
+def autoregressive_generate(model, prompt_tokens, max_new_tokens, temperature=1.0):
+    """自回归生成的核心循环（简化版，无 KV Cache）"""
+    generated = list(prompt_tokens)
+
+    for _ in range(max_new_tokens):
+        # 将当前完整序列送入模型
+        input_ids = torch.tensor([generated])  # (1, current_len)
+        logits = model(input_ids)              # (1, current_len, vocab_size)
+
+        # 取最后一个位置的 logits
+        next_logits = logits[0, -1, :]         # (vocab_size,)
+
+        # 温度缩放 + 采样
+        probs = softmax(next_logits / temperature)
+        next_token = torch.multinomial(probs, num_samples=1).item()
+
+        # 追加到序列
+        generated.append(next_token)
+
+        # 停止条件
+        if next_token == eos_token_id:
+            break
+
+    return generated
+```
+
+注意上面的代码有一个严重的效率问题：每一步都把完整序列送入模型重新计算。当序列越来越长时，重复计算量急剧增加。这正是 KV Cache 要解决的问题，我们在第 6 节详细讨论。
+
+### 2.2 停止条件
+
+自回归生成需要明确的停止条件，否则模型会一直生成下去。常见的停止方式包括：
+
+- **EOS Token**：模型生成了特殊的结束标记 `<eos>`（或 `<|endoftext|>` 等），表示自然结束
+- **最大长度**：生成的 token 数达到了预设上限 `max_new_tokens`
+- **停止字符串**：生成了特定的字符串模式（如对话场景中的 `\n\nHuman:`）
+
+---
+
+## 3. Token 采样策略
+
+模型输出的是一个概率分布，从中选取下一个 token 的方式有多种。不同策略直接影响生成文本的质量和多样性。
+
+### 3.1 Greedy Decoding（贪心解码）
+
+每一步都选概率最大的 token：
+
+```python
+next_token = torch.argmax(probs)
+```
+
+优点是确定性强、速度快；缺点是容易陷入重复循环（同一个短语反复出现），生成内容单调。适合需要确定性输出的场景（如代码补全、格式化输出）。
+
+### 3.2 Temperature 缩放
+
+在 softmax 之前对 logits 除以一个温度参数 T：
+
+```python
+probs = softmax(logits / T)
+```
+
+温度的作用像一个"旋钮"，控制概率分布的"尖锐程度"：
+
+| 温度值 | 效果 | 类比 |
+|--------|------|------|
+| T < 1（如 0.3） | 分布变尖锐，高概率 token 更突出 | 谨慎保守的作者，倾向选最安全的词 |
+| T = 1 | 原始分布，不做调整 | 正常发挥 |
+| T > 1（如 1.5） | 分布变平坦，低概率 token 被拉高 | 天马行空的创作者，更愿意冒险选"意外"的词 |
+| T → 0 | 退化为 greedy decoding | 只选最确定的那个 |
+| T → ∞ | 退化为均匀分布 | 完全随机 |
+
+### 3.3 Top-K 采样
+
+只保留概率最高的 K 个 token，将其余 token 的概率置零后重新归一化：
+
+```python
+topk_probs, topk_indices = torch.topk(probs, k=50)
+topk_probs = topk_probs / topk_probs.sum()  # 重新归一化
+next_token = topk_indices[torch.multinomial(topk_probs, 1)]
+```
+
+Top-K 的问题在于 K 是固定的。有时候概率分布很集中（只有 2-3 个合理选项），K=50 就引入了太多噪声；有时候分布很分散（很多 token 都合理），K=50 又太限制了。
+
+### 3.4 Top-P 采样（Nucleus Sampling）
+
+一种自适应的方案：按概率从大到小排列 token，累加概率直到超过阈值 P（如 0.9），只在这个"核"内采样：
+
+```python
+sorted_probs, sorted_indices = torch.sort(probs, descending=True)
+cumsum_probs = torch.cumsum(sorted_probs, dim=0)
+# 找到累积概率刚好超过 p 的位置
+cutoff = (cumsum_probs > p).nonzero(as_tuple=True)[0][0]
+# 只保留 cutoff 之前的 token
+nucleus_probs = sorted_probs[:cutoff + 1]
+nucleus_probs = nucleus_probs / nucleus_probs.sum()
+next_token = sorted_indices[torch.multinomial(nucleus_probs, 1)]
+```
+
+Top-P 的优势在于自适应性：分布集中时自动缩小候选集，分布分散时自动扩大候选集。这就像点菜——如果菜单上有一道特别想吃的（概率集中），你直接点就好；如果好几道都不错（概率分散），你可以从更大的范围里挑。
+
+实际使用中，Temperature + Top-P 的组合最为常见，比如 `temperature=0.7, top_p=0.9`。
+
+---
+
+## 4. Prefill 阶段：一次吃下整个 Prompt
+
+### 4.1 Prefill 的计算过程
+
+当用户发送一个请求给 LLM，推理过程首先进入 **Prefill（预填充）阶段**。这个阶段的任务是处理用户输入的整个 prompt，计算出所有 prompt token 的 Key 和 Value 并缓存起来，同时输出第一个生成 token。
+
+假设 prompt 有 1000 个 token。Prefill 阶段将这 1000 个 token 一次性送入 Transformer，所有 token 并行经过每一层的 Self-Attention 和 FFN 计算：
+
+```
+Prompt: [t_1, t_2, ..., t_1000]  （1000 个 token）
+→ 一次前向传播
+→ 每一层计算 Q, K, V（都是 1000 个 token 的）
+→ 缓存所有层的 K, V
+→ 输出位置 1000 的 logits → 采样得到第一个生成 token
+```
+
+### 4.2 为什么 Prefill 是 Compute Bound
+
+Prefill 阶段的核心操作是大矩阵乘法。以 Attention 中的 `Q @ K^T` 为例：
+
+```
+Q: (1000, 128)  K^T: (128, 1000)  → 结果: (1000, 1000)
+```
+
+这是一个真正的"大"矩阵乘法，GPU 的计算核心（Tensor Core）可以满载运行。矩阵乘法的计算量大，GPU 在计算上花的时间远超从显存搬运数据的时间，因此性能瓶颈在算力（compute），而非带宽（memory bandwidth）。
+
+用 Roofline 模型的术语说，Prefill 的**算术强度（Arithmetic Intensity）** 很高——每从显存搬一个字节的数据，能做很多次运算。这恰好是 GPU 擅长的领域。
+
+### 4.3 TTFT：用户感知的第一个指标
+
+Prefill 阶段的耗时决定了 **TTFT（Time To First Token，首 Token 延迟）**——从用户发出请求到看到第一个输出字符的时间。
+
+对于长 prompt（如上传一篇论文让模型总结），TTFT 可能达到数秒甚至十几秒。优化 TTFT 的思路包括：
+
+- **Chunked Prefill**：将长 prompt 分成多个 chunk 分批处理，而不是一次性吃下。这样可以在处理 prompt 的同时穿插其他请求的 Decode 步骤，提升整体系统吞吐。但注意，Chunked Prefill 不会让单个请求的 TTFT 更快——它更多是系统级的调度优化
+- **Prefix Cache / Prompt Cache**：如果多个请求共享相同的 system prompt（如"你是一个有帮助的助手"），可以预计算并缓存这部分的 KV，后续请求直接复用，跳过这段 prompt 的 Prefill 计算
+
+---
+
+## 5. Decode 阶段：逐字蹦出答案
+
+### 5.1 Decode 的计算过程
+
+Prefill 完成后，模型进入 **Decode（解码）阶段**，开始逐个生成输出 token。每一步只处理 1 个新 token：
+
+```
+Step 1: 新 token 的 Q (1, 128) × 缓存的 1001 个 K → Attention → 生成 token_1001
+Step 2: 新 token 的 Q (1, 128) × 缓存的 1002 个 K → Attention → 生成 token_1002
+...
+```
+
+每一步只需要计算新 token 的 Q、K、V（1 个 token 的线性投影），然后用新 Q 和所有历史 K 做 Attention，新的 K、V 追加到缓存中。
+
+### 5.2 为什么 Decode 是 Memory Bound
+
+Decode 阶段最核心的变化是：矩阵乘法退化为**矩阵-向量乘法**。
+
+```
+Prefill: Q (1000, 128) × K^T (128, 1000) = 矩阵 × 矩阵 → GPU 满载
+Decode:  Q (1, 128)    × K^T (128, 1001) = 向量 × 矩阵 → GPU 空转
+```
+
+矩阵-向量乘法的计算量很小，但需要从显存中搬运的数据量并没有按比例减少——整个 K 矩阵 `(1001, 128)` 和权重矩阵仍然需要从 HBM 搬到计算核心。GPU 的计算核心在等数据到来的过程中大部分时间处于空闲状态。
+
+打个比方，Prefill 阶段像一条高速运转的流水线，原材料（数据）源源不断地到来，工人（计算核心）忙个不停；Decode 阶段像只有一件零件需要加工，工人只干了一下就得等下一件零件从仓库搬过来，大部分时间在等待。
+
+这就是为什么 Decode 的瓶颈在**显存带宽（Memory Bandwidth）** 而非算力——我们称之为 **Memory Bound**。
+
+### 5.3 TPOT：决定用户体验的流畅度
+
+Decode 阶段每一步的耗时决定了 **TPOT（Time Per Output Token，每 Token 延迟）**——用户看到输出文字"蹦出来"的速度。
+
+人类的阅读速度大约是每秒 5-10 个词（约 7-15 个 token），因此 TPOT 在 50-100ms 以内就能给用户"实时输出"的流畅感。如果 TPOT 超过 200ms，用户会明显感到卡顿。
+
+### 5.4 Continuous Batching
+
+传统的 static batching 要求同一 batch 内所有请求同时开始、同时结束。长请求没结束前，短请求完成后的 GPU 资源就浪费了。
+
+**Continuous Batching（连续批处理）** 的思想是：不再以请求为单位进行 batching，而是以 iteration（单步 Decode）为单位。每一步 Decode 结束后，完成的请求立即释放资源，新请求可以立即加入。
+
+这就像银行叫号系统：传统方式是等一批人全办完才叫下一批，连续批处理是一个窗口空了就立刻叫下一个号。
+
+Continuous Batching 由 Orca 系统首先提出，后来被 vLLM、SGLang、TensorRT-LLM 等推理引擎广泛采用，极大地提升了 GPU 的利用率和系统吞吐。
+
+---
+
+## 6. KV Cache 深度解析
+
+### 6.1 为什么需要 KV Cache
+
+回顾自回归生成的过程：每一步 Decode，新 token 的 Q 需要和所有历史 token 的 K 做内积来计算 Attention 权重。如果不做任何缓存，每一步都需要重新对所有历史 token 做 QKV 线性投影——但这些投影在之前的步骤中已经算过了。
+
+打个比方，你在银行办理业务，每换一个窗口都要重新排队、重新提交所有材料。KV Cache 的做法是：你第一次提交的材料都存了档，之后换窗口只需报个编号就能调档，不必重新准备。
+
+把已经计算好的 K 和 V 缓存在 GPU 显存中，每步 Decode 只需计算新 token 自己的 K、V 并追加到缓存，就把 QKV 投影的重复计算从 O(N) 降到了 O(1)。
+
+### 6.2 有无 KV Cache 的计算量对比
+
+用一个简单的数学对比来说明 KV Cache 的价值。假设模型有 L 层，每层的 QKV 投影计算量为 `3 * d_model^2`（三个矩阵乘法），Attention 计算量为 `O(N * d_model)`（N 是当前序列长度，因为 Decode 时只有 1 个 Q token）。
+
+**无 KV Cache——每步对所有 N 个 token 重新计算 QKV**：
+
+| 步骤 | QKV 投影计算量 | Attention 计算量 |
+|------|---------------|-----------------|
+| Step 1 | 1 * 3d^2 | 1 * d |
+| Step 2 | 2 * 3d^2 | 2 * d |
+| Step n | n * 3d^2 | n * d |
+| 总计（N步） | 3d^2 * N(N+1)/2 = O(N^2 * d^2) | O(N^2 * d) |
+
+**有 KV Cache——每步只计算 1 个新 token 的 QKV**：
+
+| 步骤 | QKV 投影计算量 | Attention 计算量 |
+|------|---------------|-----------------|
+| Step n | 1 * 3d^2 | n * d（仍需和所有缓存 K 做内积） |
+| 总计（N步） | N * 3d^2 = O(N * d^2) | O(N^2 * d) |
+
+KV Cache 将 QKV 投影的总计算量从 O(N^2 * d^2) 降到了 O(N * d^2)，节省了 N 倍。Attention 计算量没变（依然是 O(N^2 * d)），但这部分是矩阵-向量乘，代价相对较小。
+
+### 6.3 KV Cache 的数据结构
+
+KV Cache 本质上是一组张量，为模型的每一层存储所有已处理 token 的 Key 和 Value。数据结构如下：
+
+```python
+# 对每一层 layer_i，维护两个张量：
+kv_cache = {
+    layer_0: {
+        'key':   tensor of shape (batch_size, num_kv_heads, current_seq_len, head_dim),
+        'value': tensor of shape (batch_size, num_kv_heads, current_seq_len, head_dim),
+    },
+    layer_1: { ... },
+    ...
+    layer_31: { ... },
+}
+```
+
+每一步 Decode 时，新 token 的 K 和 V 追加到 `current_seq_len` 维度上：
+
+```python
+# 计算新 token 的 K, V
+new_k = linear_k(new_hidden_state)  # (batch, num_kv_heads, 1, head_dim)
+new_v = linear_v(new_hidden_state)  # (batch, num_kv_heads, 1, head_dim)
+
+# 追加到缓存
+kv_cache[layer_i]['key'] = torch.cat([kv_cache[layer_i]['key'], new_k], dim=2)
+kv_cache[layer_i]['value'] = torch.cat([kv_cache[layer_i]['value'], new_v], dim=2)
+
+# Attention 使用完整缓存
+attn_output = attention(new_q, kv_cache[layer_i]['key'], kv_cache[layer_i]['value'])
+```
+
+### 6.4 KV Cache 显存计算
+
+KV Cache 的显存占用可以用一个通用公式计算：
+
+```
+KV Cache 显存 = 2 × num_layers × num_kv_heads × head_dim × seq_len × batch_size × bytes_per_element
+```
+
+其中：
+- `2`：K 和 V 各一份
+- `num_kv_heads`：KV 的头数（MHA 等于 num_heads，GQA 等于 num_kv_groups）
+- `bytes_per_element`：FP16 为 2 字节，FP8 为 1 字节
+
+以几种典型配置为例：
+
+| 模型 | 层数 | KV 头数 | head_dim | 每 token KV Cache (FP16) | 4K 序列长度 | 128K 序列长度 |
+|------|------|--------|----------|------------------------|------------|--------------|
+| LLaMA-2-7B (MHA) | 32 | 32 | 128 | 512 KB | 2 GB | 64 GB |
+| LLaMA-2-7B (GQA-8) | 32 | 8 | 128 | 128 KB | 0.5 GB | 16 GB |
+| LLaMA-3-8B (GQA-8) | 32 | 8 | 128 | 128 KB | 0.5 GB | 16 GB |
+| LLaMA-2-70B (GQA-8) | 80 | 8 | 128 | 320 KB | 1.25 GB | 40 GB |
+
+从表格中可以直观地看到：
+
+1. **GQA 大幅减少 KV Cache**：从 MHA 的 32 个 KV 头减少到 8 个，KV Cache 缩小 4 倍
+2. **长上下文是显存杀手**：128K 序列长度下，单请求的 KV Cache 就可能吃掉一整张 GPU 的显存
+3. **Batch 放大效应**：如果同时服务 16 个请求，上表数字再乘以 16
+
+### 6.5 显存碎片化问题
+
+KV Cache 有一个棘手的工程问题：**动态增长导致的显存碎片化**。
+
+不同请求的序列长度不同，KV Cache 大小不一。随着请求不断到来和完成，显存中会出现大量"空洞"——总空闲显存足够，但没有一块连续区域能放下新请求的 KV Cache。这就像停车场里车位很多，但都是零散的单个车位，无法停进一辆需要两个连续车位的大车。
+
+传统做法是为每个请求预分配最大序列长度的 KV Cache 空间，但这会造成极大的浪费——大多数请求远远用不满最大长度。这正是 PagedAttention 要解决的核心问题。
+
+---
+
+## 7. KV Cache 优化技术全景
+
+### 7.1 PagedAttention：借鉴操作系统的虚拟内存
+
+PagedAttention 是 vLLM 推理引擎的核心创新，其思想直接来源于操作系统的**虚拟内存分页机制**。
+
+操作系统面对的问题和 KV Cache 管理几乎一模一样：不同进程需要不同大小的内存，随着进程的创建和销毁，物理内存中出现碎片。操作系统的解决方案是：不再给每个进程分配连续的物理内存，而是把物理内存划分为固定大小的"页"（page），通过页表将虚拟地址映射到不连续的物理页。
+
+PagedAttention 做的是同一件事：
+
+1. **分页**：将 GPU 显存划分为固定大小的 Block（如每个 Block 存储 16 个 token 的 KV）
+2. **按需分配**：请求开始时只分配少量 Block，随着生成过程推进逐步追加新 Block
+3. **不要求连续**：同一个请求的 KV Cache 可以分散在不连续的显存 Block 中，通过一个 Block Table（类似页表）记录映射关系
+4. **内存回收**：请求完成后立即释放 Block，供其他请求使用
+
+```
+传统方式（预分配连续显存）：
+请求 A: [████████░░░░░░░░]  ← 预分配 max_len，大量浪费
+请求 B: [██████████░░░░░░]
+
+PagedAttention（分页管理）：
+Block 池: [A1][B1][A2][B2][A3][空][B3][空][空]...
+Block Table A: [1, 3, 5]   ← 请求 A 的 KV 分散在 Block 1, 3, 5
+Block Table B: [2, 4, 7]   ← 请求 B 的 KV 分散在 Block 2, 4, 7
+```
+
+PagedAttention 的效果非常显著：实验表明它可以将 KV Cache 的显存利用率从约 20-40% 提升到接近 100%，在相同显存下支持 2-4 倍的并发请求数。
+
+### 7.2 Prefix Cache / Prompt Cache
+
+很多场景下，多个请求共享相同的前缀——比如相同的 system prompt（"你是一个有帮助的 AI 助手，请......"）。为每个请求都重新计算这段前缀的 KV 是浪费的。
+
+Prefix Cache 的做法是：将公共前缀的 KV Cache 计算一次并缓存，后续有相同前缀的请求直接复用这份缓存，只需要对各自不同的后缀部分做 Prefill。
+
+SGLang 的 **RadixAttention** 更进一步，用一棵 Radix Tree（基数树）来管理所有请求的前缀共享关系，实现了更精细的缓存复用。
+
+### 7.3 KV Cache 量化
+
+既然 KV Cache 是显存大户，一个直接的优化思路是用更低精度存储：
+
+| 精度 | 每个元素字节数 | 相对于 FP16 的压缩比 | 精度损失 |
+|------|-------------|---------------------|---------|
+| FP16 | 2 | 1x（基线） | 无 |
+| FP8 (E4M3) | 1 | 2x | 极小 |
+| INT8 | 1 | 2x | 小 |
+| INT4 | 0.5 | 4x | 中等 |
+
+KV Cache 量化的挑战在于：Attention 计算对 Key 的数值精度比较敏感（因为 Q 和 K 的内积直接决定了注意力权重的分配），而对 Value 的精度相对宽容一些。因此一些方案会对 K 和 V 使用不同的量化策略。
+
+### 7.4 GQA / MQA 减少 KV 头数
+
+从模型架构层面减少 KV Cache 的大小：
+
+- **MHA（Multi-Head Attention）**：每个注意力头都有独立的 K 和 V，KV 头数等于总头数
+- **MQA（Multi-Query Attention）**：所有注意力头共享一组 K 和 V，KV 头数为 1
+- **GQA（Grouped-Query Attention）**：每 G 个头共享一组 K 和 V，KV 头数为 总头数/G
+
+以 32 头模型为例：MHA 有 32 组 KV，GQA-8 有 4 组 KV（减少 8 倍），MQA 有 1 组 KV（减少 32 倍）。KV Cache 的大小与 KV 头数成正比，因此 GQA/MQA 对推理的显存节省效果非常显著。
+
+### 7.5 Sliding Window Attention
+
+Mistral 模型引入了**滑动窗口注意力**：每个 token 只关注最近 W 个 token（如 W=4096），而非全部历史。这意味着 KV Cache 只需要保留最近 W 个 token 的 K、V，超出窗口的可以丢弃。
+
+KV Cache 从 O(N) 变为 O(W)，对超长序列的显存节省巨大。但代价是模型无法直接访问窗口之外的远距离信息（需要依靠多层堆叠间接传递）。
+
+### 7.6 Token Eviction / Token Dropping
+
+更激进的策略：在 KV Cache 达到容量上限时，主动丢弃一些"不重要"的 token 的 KV。
+
+判断 token 重要性的方法包括：
+- **基于 Attention 分数**：累积 Attention 权重较低的 token 可能不太重要（H2O: Heavy-Hitter Oracle）
+- **基于位置**：保留开头的 token（通常是 system prompt，有"attention sink"现象）和最近的 token，丢弃中间的
+- **基于语义**：保留关键的实体、数字等 token
+
+---
+
+## 8. 系统级推理优化
+
+### 8.1 Prefill/Decode 解耦
+
+前面分析过，Prefill 是 Compute Bound，Decode 是 Memory Bound——两者对硬件的需求截然不同。把它们放在同一组 GPU 上运行，意味着硬件配置只能"折中"，两边都不是最优。
+
+**Prefill/Decode 解耦**的思想（DistServe、Splitwise 等提出）是：将 Prefill 和 Decode 分别部署在不同的 GPU 池上：
+
+- **Prefill 池**：配置高算力 GPU，专门处理输入 prompt 的计算
+- **Decode 池**：配置高带宽 GPU（或更多更便宜的 GPU），专门处理逐 token 生成
+
+Prefill 完成后，将 KV Cache 传输到 Decode 池继续生成。这样两个池各自针对性优化，整体效率更高。
+
+### 8.2 Speculative Decoding（投机解码）
+
+自回归生成的根本瓶颈是串行——每步必须等前一步完成才能开始。投机解码试图打破这个限制：
+
+1. 用一个**小模型**（Draft Model，如 7B 对应的 1B 蒸馏版本）快速生成 K 个候选 token（如 K=5）
+2. 将这 K 个候选 token 一次性送入**大模型**（Target Model）做并行验证
+3. 大模型检查每个位置小模型的预测是否与自己一致：
+   - 一致的 token 直接接受
+   - 不一致的地方由大模型重新采样，后续候选全部丢弃
+
+如果小模型的猜测准确率较高（比如 70-80% 的 token 能被接受），一次验证就能确认多个 token，等效于一步生成了多个 token，将 Decode 吞吐提升数倍。
+
+关键约束是：投机解码必须保证生成结果与大模型独立生成完全一致（从概率分布意义上），不会牺牲质量。
+
+### 8.3 Tensor Parallelism 在推理中的应用
+
+推理时的张量并行与训练时的切分方式相同（沿 Attention 头和 FFN 矩阵切分），但目标不同：
+
+- 训练时：切分是为了让大模型装进多张卡（显存限制）
+- 推理时：切分是为了降低单步延迟（多卡并行计算，减少 TPOT）
+
+但张量并行也带来了通信开销（每一步 Decode 都需要 AllReduce），因此通常限制在同一节点内的 GPU 之间（NVLink 高速互连），跨节点更适合用流水线并行。
+
+---
+
+## 9. 推理性能指标体系
+
+理解推理性能需要一套完整的指标体系，不同角色关心不同指标：
+
+### 9.1 延迟指标（用户视角）
+
+| 指标 | 全称 | 含义 | 典型目标 |
+|------|------|------|---------|
+| TTFT | Time To First Token | 从请求发出到收到第一个输出 token | < 500ms |
+| TPOT | Time Per Output Token | 每个输出 token 的生成间隔 | < 100ms |
+| E2E Latency | End-to-End Latency | 从请求发出到完整响应返回 | 取决于生成长度 |
+
+关系：`E2E Latency = TTFT + TPOT * (output_length - 1)`
+
+### 9.2 吞吐指标（系统视角）
+
+| 指标 | 含义 | 优化方向 |
+|------|------|---------|
+| Tokens/s | 系统每秒处理的总 token 数 | 增大 batch_size、提升 GPU 利用率 |
+| Requests/s | 系统每秒完成的请求数 | Continuous Batching、减少排队等待 |
+| GPU Utilization | GPU 计算核心的利用率 | 增大 batch_size（Decode 阶段往往很低） |
+
+### 9.3 效率指标（成本视角）
+
+| 指标 | 含义 | 计算方式 |
+|------|------|---------|
+| $/1K tokens | 每千 token 的推理成本 | GPU 成本 / 总处理 token 数 |
+| Tokens/$/hour | 每美元每小时处理的 token 数 | 吞吐量 / GPU 小时成本 |
+
+延迟和吞吐往往存在权衡（trade-off）：增大 batch_size 能提升吞吐（更多请求并行处理），但会增加单请求的 TPOT（每步需要处理更多 token 的 KV Cache）。推理系统的调优本质上是在延迟 SLA 约束下最大化吞吐。
+
+---
+
+## 总结
+
+本文从语言模型的数学本质出发，完整剖析了 LLM 自回归生成的全链路：
+
+1. **语言模型本质**：建模条件概率分布 P(x_t | x_1,...,x_{t-1})
+2. **自回归循环**：逐步预测 + 采样 + 追加，直到停止条件
+3. **采样策略**：Temperature 控制随机性，Top-K/Top-P 控制候选范围
+4. **Prefill 阶段**：并行处理 prompt，Compute Bound，决定 TTFT
+5. **Decode 阶段**：逐 token 生成，Memory Bound，决定 TPOT
+6. **KV Cache**：避免重复计算 K/V，以空间换时间
+7. **KV Cache 优化**：PagedAttention（分页管理）、Prefix Cache（前缀复用）、量化（低精度存储）、GQA（减少头数）
+8. **系统级优化**：Continuous Batching、Prefill/Decode 解耦、Speculative Decoding
+
+对于 AI Infra 工程师来说，理解这些推理机制是设计和优化推理系统的基础。每一项优化技术都源于对推理过程某个环节的深入分析——Prefill 的 Compute Bound 催生了 Chunked Prefill，Decode 的 Memory Bound 催生了 Speculative Decoding，KV Cache 的显存压力催生了 PagedAttention 和量化技术。
+
+---
+
+## 检验标准与进阶方向
+
+### 自我检验清单
+
+- 能解释自回归生成的数学本质，写出联合概率的链式分解公式
+- 能说清 Prefill 和 Decode 两阶段的计算特性差异，以及为什么一个是 Compute Bound 另一个是 Memory Bound
+- 能用通用公式计算给定模型配置下的 KV Cache 显存占用
+- 能估算 LLaMA-2-7B 在 4096 序列长度、batch_size=16 下的 KV Cache 显存（约 32 GB）
+- 能解释 PagedAttention 的核心思想，以及它如何解决显存碎片化问题
+- 能区分 Temperature、Top-K、Top-P 三种采样策略的作用和适用场景
+- 能解释 Speculative Decoding 如何在不牺牲质量的前提下加速生成
+- 能说出 TTFT、TPOT、Throughput 三个指标的含义和它们之间的关系
+
+### 进阶方向
+
+| 方向 | 内容 | 推荐资料 |
+|------|------|---------|
+| PagedAttention 实现 | 深入理解 vLLM 的分页式 KV Cache 管理和 Block 调度算法 | [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180) |
+| Speculative Decoding | 投机解码的理论框架、Draft Model 设计和验证算法 | [Fast Inference from Transformers via Speculative Decoding](https://arxiv.org/abs/2211.17192) |
+| Continuous Batching | Orca 的迭代级调度和动态 batching 机制 | [Orca: A Distributed Serving System for Transformer-Based Generative Models](https://www.usenix.org/conference/osdi22/presentation/yu) |
+| Prefill/Decode 解耦 | DistServe 的分离式推理架构设计 | [DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving](https://arxiv.org/abs/2401.09670) |
+| 推理引擎实战 | 使用 vLLM 或 SGLang 部署和优化 LLM 推理 | [vLLM - GitHub](https://github.com/vllm-project/vllm)、[SGLang - GitHub](https://github.com/sgl-project/sglang) |
+
+---
+
+## 参考资料
+
+- [Attention Is All You Need](https://arxiv.org/abs/1706.03762) -- Transformer 原始论文
+- [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180) -- vLLM 和 PagedAttention
+- [Fast Inference from Transformers via Speculative Decoding](https://arxiv.org/abs/2211.17192) -- 投机解码
+- [Orca: A Distributed Serving System for Transformer-Based Generative Models](https://www.usenix.org/conference/osdi22/presentation/yu) -- Continuous Batching
+- [DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving](https://arxiv.org/abs/2401.09670) -- Prefill/Decode 解耦
+- [GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints](https://arxiv.org/abs/2305.13245) -- Grouped-Query Attention
+- [The Nucleus Sampling Paper: The Curious Case of Neural Text Degeneration](https://arxiv.org/abs/1904.09751) -- Top-P 采样
+- [H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models](https://arxiv.org/abs/2306.14048) -- KV Cache Token Eviction
+- [vLLM - GitHub](https://github.com/vllm-project/vllm) -- 高性能 LLM 推理引擎
+- [SGLang - GitHub](https://github.com/sgl-project/sglang) -- 结构化生成和 RadixAttention

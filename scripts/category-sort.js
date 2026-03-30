@@ -101,7 +101,7 @@ hexo.extend.helper.register('get_category_first_post_url', function(categoryName
   sortSubCategories(children, parent.name);
 
   for (const child of children) {
-    const posts = child.posts.toArray().sort((a, b) => b.date - a.date);
+    const posts = child.posts.toArray().sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
     if (posts.length > 0) {
       return this.url_for(posts[0].path);
     }
@@ -142,7 +142,7 @@ hexo.extend.helper.register('get_post_category_sidebar', function(post) {
   const childrenData = children.map(c => ({
     name: c.name,
     path: c.path,
-    posts: c.posts.toArray().sort((a, b) => b.date - a.date)
+    posts: c.posts.toArray().sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'))
   }));
 
   // 取第一个子分类的第一篇文章作为分类入口
@@ -192,9 +192,9 @@ hexo.extend.helper.register('get_category_landing', function(categoryName) {
     }
   });
 
-  // 按时间倒序
+  // 按标题名称排序
   const allPosts = Array.from(postMap.values());
-  allPosts.sort((a, b) => b.post.date - a.post.date);
+  allPosts.sort((a, b) => a.post.title.localeCompare(b.post.title, 'zh-CN'));
 
   return {
     name: parent.name,
@@ -203,7 +203,7 @@ hexo.extend.helper.register('get_category_landing', function(categoryName) {
     children: children.map(c => ({
       name: c.name,
       path: c.path,
-      posts: c.posts.toArray().sort((a, b) => b.date - a.date)
+      posts: c.posts.toArray().sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'))
     })),
     allPosts: allPosts
   };

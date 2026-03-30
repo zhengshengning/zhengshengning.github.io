@@ -1,0 +1,746 @@
+---
+title: 2.4 Transformer位置编码深入理解
+date: 2026-03-30 13:30:00
+categories:
+  - [AI Infra, 前置知识]
+tags: [位置编码, RoPE, Sinusoidal, ALiBi, 长上下文]
+---
+
+位置编码是 Transformer 架构中一个看似不起眼却至关重要的组件。没有它，Transformer 无法区分"猫吃鱼"和"鱼吃猫"的区别。本文从"为什么需要位置信息"这个根本问题出发，系统讲解 Sinusoidal 编码、可学习编码、RoPE、ALiBi 等主流方案的原理与实现，并深入探讨长上下文扩展中的位置编码外推技术，最终关联到 AI Infra 工程实践中的 CUDA kernel 融合与 KV Cache 管理。
+
+<!-- more -->
+
+## 目录
+
+- [1. 为什么 Transformer 需要位置信息](#1-为什么-transformer-需要位置信息)
+- [2. 绝对位置编码 vs 相对位置编码](#2-绝对位置编码-vs-相对位置编码)
+- [3. Sinusoidal 位置编码](#3-sinusoidal-位置编码)
+- [4. 可学习位置编码](#4-可学习位置编码)
+- [5. RoPE：旋转位置编码](#5-rope旋转位置编码)
+- [6. ALiBi：带线性偏置的注意力](#6-alibi带线性偏置的注意力)
+- [7. 长上下文扩展技术](#7-长上下文扩展技术)
+- [8. AI Infra 工程实践](#8-ai-infra-工程实践)
+- [检验标准与进阶方向](#检验标准与进阶方向)
+- [参考资料](#参考资料)
+
+---
+
+## 1. 为什么 Transformer 需要位置信息
+
+### 1.1 语序对语义的决定性影响
+
+自然语言是一种高度依赖顺序的符号系统。同样的几个词，仅仅调换顺序就可能产生截然不同的含义。
+
+来看几组例子：
+
+- "他借给我一本书" vs "我借给他一本书" -- 借出者和借入者互换了
+- "只有你理解我" vs "只有我理解你" -- 主客关系完全相反
+- "他不知道她来了" vs "她不知道他来了" -- 知情方与不知情方颠倒
+
+甚至在更细微的层面，词序的变化也会影响修饰关系和语气强弱：
+
+- "非常好的结果" vs "好的非常结果" -- 后者不合语法
+- "我今天特别开心" vs "今天我特别开心" -- 微妙的语气差异（前者强调"我"，后者强调"今天"）
+
+这些例子说明一个基本事实：**词序是语义的一部分**，任何忽略词序的语言模型都无法正确理解自然语言。
+
+### 1.2 Attention 的排列等变性：数学视角
+
+现在我们来严格说明为什么原始的 Self-Attention 无法感知位置信息。
+
+回顾 Self-Attention 的核心计算。给定输入矩阵 $X \in \mathbb{R}^{N \times d}$（N 个 token，每个 d 维），计算过程是：
+
+$$
+Q = XW_Q, \quad K = XW_K, \quad V = XW_V
+$$
+
+$$
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right) V
+$$
+
+现在考虑对输入做一个任意的排列操作。设 $\Pi$ 是一个 $N \times N$ 的排列矩阵（每行每列恰好有一个 1，其余为 0），$\Pi X$ 表示把 X 的行打乱重排。排列后的 Q、K、V 为：
+
+$$
+Q' = \Pi X W_Q = \Pi Q, \quad K' = \Pi K, \quad V' = \Pi V
+$$
+
+那么排列后的 Attention 输出为：
+
+$$
+\text{softmax}\left(\frac{Q' K'^T}{\sqrt{d_k}}\right) V' = \text{softmax}\left(\frac{\Pi Q K^T \Pi^T}{\sqrt{d_k}}\right) \Pi V
+$$
+
+由于 softmax 是逐行操作的，而 $\Pi$ 只是重新排列了行，因此：
+
+$$
+\text{softmax}\left(\frac{\Pi Q K^T \Pi^T}{\sqrt{d_k}}\right) = \Pi \cdot \text{softmax}\left(\frac{Q K^T}{\sqrt{d_k}}\right) \cdot \Pi^T
+$$
+
+最终结果：
+
+$$
+\Pi \cdot \text{softmax}\left(\frac{Q K^T}{\sqrt{d_k}}\right) \cdot \Pi^T \cdot \Pi V = \Pi \cdot \text{softmax}\left(\frac{Q K^T}{\sqrt{d_k}}\right) V
+$$
+
+这就是**排列等变性**（permutation equivariance）的含义：输入打乱后，输出只是做了同样的打乱，但每个 token 聚合到的信息内容完全不变。换句话说，原始 Attention 把输入当作一个**集合**而非**序列**处理 -- 位置 0 的 token 和位置 99 的 token 在它眼中没有任何区别。
+
+这就是为什么我们必须额外引入位置编码：**Attention 本身是"位置盲"的，需要外部注入位置信号才能区分不同词序。**
+
+---
+
+## 2. 绝对位置编码 vs 相对位置编码
+
+在介绍具体方案之前，有必要先区分两大设计思路。
+
+### 2.1 绝对位置编码
+
+绝对位置编码为序列中的每个位置分配一个固定的编码向量 $p_i$，然后将其加到（或拼接到）对应 token 的词嵌入上：
+
+$$
+x_i' = x_i + p_i
+$$
+
+这种方案的思路很直接：第 0 个位置有一个"身份证号"$p_0$，第 1 个位置有另一个"身份证号"$p_1$，以此类推。模型通过学习这些身份证号之间的关系来间接感知相对位置。
+
+代表方案：Sinusoidal 编码（固定的）、BERT/GPT-2 的可学习编码（学出来的）。
+
+### 2.2 相对位置编码
+
+相对位置编码不给每个位置一个固定标签，而是在计算 Attention 分数时直接注入"两个 token 之间距离多远"的信息。
+
+打个比方：绝对位置编码像给每个人发一个门牌号（"我住 301，你住 305"），然后靠门牌号之间的差值来推断距离；相对位置编码则直接在两个人交谈时告诉他们"你们之间隔了 4 个房间"。
+
+代表方案：RoPE（旋转位置编码）、ALiBi（线性偏置）。
+
+### 2.3 两种思路的对比
+
+| 维度 | 绝对位置编码 | 相对位置编码 |
+|------|-------------|-------------|
+| 信息注入点 | 输入层（加到 embedding 上） | Attention 计算过程中 |
+| 位置信息的持久性 | 随着网络深度增加可能逐渐稀释 | 每层 Attention 都重新注入 |
+| 外推能力 | 通常较弱 | 通常较强 |
+| 长度泛化 | 难以处理训练时未见的长度 | 相对容易扩展到更长序列 |
+
+当前大模型几乎全部采用相对位置编码方案（以 RoPE 为主），原因将在后文详细分析。
+
+---
+
+## 3. Sinusoidal 位置编码
+
+### 3.1 数学公式
+
+"Attention Is All You Need" 论文提出了一种不需要任何可学习参数的位置编码方案。对于位置 $pos$ 和维度索引 $i$，编码值定义为：
+
+$$
+PE(pos, 2i) = \sin\left(\frac{pos}{10000^{2i/d}}\right)
+$$
+
+$$
+PE(pos, 2i+1) = \cos\left(\frac{pos}{10000^{2i/d}}\right)
+$$
+
+其中 $pos$ 是 token 在序列中的位置（从 0 开始），$i$ 是维度对的索引（$0 \leq i < d/2$），$d$ 是模型的隐藏维度。
+
+每一对相邻维度 $(2i, 2i+1)$ 共享同一个频率 $\omega_i = 1 / 10000^{2i/d}$，分别用正弦和余弦函数编码。随着 $i$ 从 0 增大到 $d/2 - 1$，频率从 1（$i=0$ 时分母为 $10000^0 = 1$）指数衰减到 $1/10000$（$i = d/2 - 1$ 时）。
+
+### 3.2 多频率信号的直觉：收音机调谐的比喻
+
+这个公式初看很抽象，但其背后的直觉非常自然。
+
+想象一下你面前有一排收音机旋钮，从左到右排列。最左边的旋钮调到极高频率 -- 指针转得飞快，每移动一个位置就几乎转一整圈。最右边的旋钮调到极低频率 -- 指针转得极慢，走过一百个位置才转动一小角度。中间的旋钮频率依次递减。
+
+现在给你一个位置编号（比如 pos=42），你让每个旋钮根据这个编号转到对应的角度。由于每个旋钮的频率不同，最终所有旋钮指针组成的角度图案对于 pos=42 来说是独一无二的。换一个位置编号（比如 pos=43），所有指针都会有不同程度的偏转，形成另一个独一无二的图案。
+
+这正是 Sinusoidal 编码的工作方式：
+
+- **高频维度**（小 $i$）变化快速，能精确区分相邻位置（pos=42 和 pos=43 在这些维度上差异明显）
+- **低频维度**（大 $i$）变化缓慢，能区分相距遥远的位置（pos=0 和 pos=1000 在这些维度上差异明显，而 pos=42 和 pos=43 在这些维度上几乎一样）
+
+所有频率联合起来，为每个位置提供了一个独特的"频谱指纹"。
+
+### 3.3 Python 实现：生成并可视化 Sinusoidal 位置编码
+
+以下代码生成 Sinusoidal 位置编码矩阵并将其可视化为热力图：
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+def sinusoidal_position_encoding(max_len, d_model):
+    """
+    生成 Sinusoidal 位置编码矩阵。
+
+    参数:
+        max_len: 最大序列长度
+        d_model: 模型隐藏维度
+
+    返回:
+        PE: 形状为 (max_len, d_model) 的位置编码矩阵
+    """
+    PE = np.zeros((max_len, d_model))
+    position = np.arange(max_len)[:, np.newaxis]          # (max_len, 1)
+    dim_pair_index = np.arange(0, d_model, 2)[np.newaxis, :]  # (1, d_model/2)
+
+    # 计算频率：omega_i = 1 / 10000^(2i/d_model)
+    # 等价于 exp(-2i/d_model * ln(10000))
+    div_term = np.exp(dim_pair_index * -(np.log(10000.0) / d_model))
+
+    # 偶数维度用 sin，奇数维度用 cos
+    PE[:, 0::2] = np.sin(position * div_term)
+    PE[:, 1::2] = np.cos(position * div_term)
+
+    return PE
+
+# 生成位置编码
+max_len = 128
+d_model = 64
+PE = sinusoidal_position_encoding(max_len, d_model)
+
+# 可视化
+fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+
+# 热力图：展示完整编码矩阵
+im = axes[0].imshow(PE, aspect='auto', cmap='RdBu_r', interpolation='nearest')
+axes[0].set_xlabel('Dimension Index')
+axes[0].set_ylabel('Position')
+axes[0].set_title('Sinusoidal Position Encoding Matrix')
+plt.colorbar(im, ax=axes[0])
+
+# 曲线图：展示几个选定维度的编码值随位置的变化
+dims_to_plot = [0, 1, 10, 11, 30, 31]
+for dim in dims_to_plot:
+    label = f'dim {dim} ({"sin" if dim % 2 == 0 else "cos"}, freq_idx={dim // 2})'
+    axes[1].plot(PE[:, dim], label=label, alpha=0.8)
+axes[1].set_xlabel('Position')
+axes[1].set_ylabel('Encoding Value')
+axes[1].set_title('Encoding Values at Selected Dimensions')
+axes[1].legend(fontsize=8)
+axes[1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('sinusoidal_pe.png', dpi=150)
+plt.show()
+```
+
+运行这段代码你会看到：热力图中，左侧列（高频维度）呈现密集的条纹，右侧列（低频维度）呈现宽阔的色带，直观反映了不同频率的特征。曲线图中，低索引维度震荡剧烈，高索引维度变化平缓。
+
+### 3.4 相对位置可通过线性变换得到
+
+Sinusoidal 编码有一个精巧的数学性质：**任意两个位置之间的偏移量，可以通过一个固定的线性变换来表示。** 这意味着模型有能力学习到相对位置信息。
+
+具体来说，对于任意固定偏移量 $k$，存在一个只依赖 $k$ 的矩阵 $M_k$，使得：
+
+$$
+PE(pos + k) = M_k \cdot PE(pos)
+$$
+
+这背后的数学原理是三角函数的和角公式。对于单个频率 $\omega_i$，考虑维度对 $(2i, 2i+1)$：
+
+$$
+\begin{bmatrix} \sin(\omega_i (pos + k)) \\ \cos(\omega_i (pos + k)) \end{bmatrix} = \begin{bmatrix} \cos(\omega_i k) & \sin(\omega_i k) \\ -\sin(\omega_i k) & \cos(\omega_i k) \end{bmatrix} \begin{bmatrix} \sin(\omega_i \cdot pos) \\ \cos(\omega_i \cdot pos) \end{bmatrix}
+$$
+
+右边的旋转矩阵只依赖偏移量 $k$ 和频率 $\omega_i$，与绝对位置 $pos$ 无关。对所有维度对组合起来，就得到了一个分块对角矩阵 $M_k$。
+
+这意味着，虽然 Sinusoidal 编码是一种"绝对位置编码"，但它内含的三角函数结构使得模型有可能通过学习线性变换来提取相对位置信息。不过这种能力是间接的 -- 模型需要自己从数据中学会利用这一数学性质，而非显式地被注入相对位置信号。
+
+### 3.5 局限性
+
+尽管设计精巧，Sinusoidal 编码在大模型时代逐渐被取代，主要原因包括：
+
+1. **信息稀释**：位置编码在输入层以加法的形式注入到词嵌入中。经过数十层网络的非线性变换后，这个加性信号可能被逐渐"淹没"，导致深层网络难以有效利用位置信息。
+
+2. **外推困难**：虽然理论上可以为任意长度的位置生成编码，但模型在训练时只见过有限长度的序列。对于超出训练长度的位置，虽然编码值本身是有定义的，但模型从未在这些位置上训练过，Attention 模式的泛化效果往往很差。
+
+3. **相对位置的间接性**：如 3.4 节所述，模型需要自行学会通过线性变换来提取相对位置，这增加了学习负担，不如直接在 Attention 计算中显式注入相对位置来得高效。
+
+---
+
+## 4. 可学习位置编码
+
+### 4.1 基本思路
+
+既然固定的三角函数编码有局限性，一个自然的想法是：**让模型自己学习每个位置的编码向量。** 这就是可学习位置编码（Learned Positional Embedding）的方案。
+
+具体做法是维护一个形状为 $(L_{max}, d)$ 的可学习嵌入表，其中 $L_{max}$ 是支持的最大序列长度，$d$ 是模型维度。位置 $pos$ 的编码就是从这个嵌入表中查找第 $pos$ 行的向量，然后加到对应 token 的词嵌入上：
+
+$$
+x_i' = x_i + E_{pos}[i]
+$$
+
+这与词嵌入的机制完全一致 -- 词嵌入是用 token ID 查表，位置嵌入是用位置 ID 查表。
+
+### 4.2 代表模型
+
+**BERT**：使用可学习位置编码，最大序列长度 512。位置嵌入矩阵的参数量为 512 x 768 = 393,216，相比 BERT-base 1.1 亿的总参数量微乎其微。
+
+**GPT-2**：同样使用可学习位置编码，最大序列长度 1024。位置嵌入矩阵为 1024 x 768（GPT-2 Small）或 1024 x 1600（GPT-2 XL）。
+
+### 4.3 优势与不足
+
+**优势**：
+- 实现极其简单，就是一次嵌入表查找加法
+- 模型可以自由学习任意位置模式，不受预设函数形式的约束
+- 在训练长度范围内，表现通常不逊于甚至略优于 Sinusoidal 编码
+
+**不足**：
+- **硬性长度限制**：最大序列长度在模型定义时就确定了。如果要支持更长的序列，需要重新训练或做复杂的插值处理
+- **无法外推**：对于超出嵌入表范围的位置，根本没有对应的编码向量
+- **与绝对位置编码共享的缺陷**：信息在深层同样可能被稀释，相对位置同样需要间接学习
+
+正是这些局限性，推动了研究者去寻找能在 Attention 计算中直接编码相对位置的方案 -- RoPE 就是其中最成功的答案。
+
+---
+
+## 5. RoPE：旋转位置编码
+
+RoPE（Rotary Position Embedding）是苏剑林在 2021 年提出的位置编码方案，目前被 LLaMA、Mistral、Qwen、DeepSeek 等几乎所有主流大模型采用。它的核心思想可以用一句话概括：**通过旋转 Q 和 K 向量来编码位置，使得 Attention 分数天然包含相对位置信息。**
+
+### 5.1 从二维旋转说起：指南针的比喻
+
+在进入数学推导之前，先建立一个几何直觉。
+
+想象你手中有一个指南针，指针指向某个方向，用一个二维向量 $(x, y)$ 来表示。现在你把指南针旋转一个角度 $\theta$，指针就指向了新的方向 $(x', y')$。旋转操作不改变指针的长度（模长不变），只改变方向。
+
+二维旋转的数学表达是：
+
+$$
+\begin{bmatrix} x' \\ y' \end{bmatrix} = \begin{bmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{bmatrix} \begin{bmatrix} x \\ y \end{bmatrix}
+$$
+
+RoPE 的核心创意在于：**用 token 的位置来决定旋转角度。** 位置 0 的 token 不旋转，位置 1 的 token 旋转 $\theta$ 度，位置 2 的 token 旋转 $2\theta$ 度，以此类推。位置 $m$ 的 token 旋转 $m\theta$ 度。
+
+现在考虑两个 token：位置 $m$ 的 Q 向量被旋转了 $m\theta$ 度，位置 $n$ 的 K 向量被旋转了 $n\theta$ 度。当我们计算它们的内积（Attention 分数）时，由于旋转是刚性变换，两个向量的内积只取决于它们之间的角度差 $(m - n)\theta$，而非各自的绝对旋转角度。
+
+这就是 RoPE 能编码相对位置的几何本质：**两个向量各自旋转后的内积，只取决于旋转角度之差。**
+
+### 5.2 二维情形的数学推导
+
+现在严格推导。考虑二维情形，设 Q 和 K 分别是位置 $m$ 和 $n$ 的查询和键向量。RoPE 对它们施加位置相关的旋转：
+
+$$
+\tilde{q} = R(m\theta) \cdot q = \begin{bmatrix} \cos(m\theta) & -\sin(m\theta) \\ \sin(m\theta) & \cos(m\theta) \end{bmatrix} \begin{bmatrix} q_0 \\ q_1 \end{bmatrix}
+$$
+
+$$
+\tilde{k} = R(n\theta) \cdot k = \begin{bmatrix} \cos(n\theta) & -\sin(n\theta) \\ \sin(n\theta) & \cos(n\theta) \end{bmatrix} \begin{bmatrix} k_0 \\ k_1 \end{bmatrix}
+$$
+
+计算旋转后 Q 和 K 的内积：
+
+$$
+\tilde{q}^T \tilde{k} = q^T R(m\theta)^T R(n\theta) k
+$$
+
+由于旋转矩阵的性质 $R(\alpha)^T = R(-\alpha)$，因此：
+
+$$
+R(m\theta)^T R(n\theta) = R(-m\theta) R(n\theta) = R((n-m)\theta)
+$$
+
+最终：
+
+$$
+\tilde{q}^T \tilde{k} = q^T R((n-m)\theta) k
+$$
+
+结果只依赖 $(n - m)$，即两个 token 的**相对位置差**，与绝对位置 $m$、$n$ 的具体值无关。这正是我们想要的性质。
+
+### 5.3 推广到高维
+
+实际模型的头维度 $d_k$ 远大于 2（通常为 64 或 128）。RoPE 的推广方式非常自然：**把 $d_k$ 维向量拆分成 $d_k / 2$ 个二维子空间，在每个子空间内独立做旋转，但使用不同的频率。**
+
+对于第 $i$ 个二维子空间（$0 \leq i < d_k / 2$），旋转角度为 $m \cdot \theta_i$，其中频率参数为：
+
+$$
+\theta_i = \frac{1}{10000^{2i / d_k}}
+$$
+
+注意这个频率参数与 Sinusoidal 编码中的完全一致。
+
+将所有子空间的旋转矩阵拼在一起，形成一个分块对角矩阵：
+
+$$
+R_m = \begin{bmatrix} R(m\theta_0) & & & \\ & R(m\theta_1) & & \\ & & \ddots & \\ & & & R(m\theta_{d_k/2 - 1}) \end{bmatrix}
+$$
+
+其中每个 $R(m\theta_i)$ 是一个 $2 \times 2$ 的旋转矩阵。
+
+RoPE 的完整操作就是：
+
+$$
+\tilde{q}_m = R_m \cdot q_m, \quad \tilde{k}_n = R_n \cdot k_n
+$$
+
+### 5.4 为什么内积只依赖相对位置差：高维情形的证明
+
+在高维情形下，证明同样简洁。旋转后 Q 和 K 的内积为：
+
+$$
+\tilde{q}_m^T \tilde{k}_n = q_m^T R_m^T R_n k_n
+$$
+
+由于 $R_m$ 是分块对角矩阵，$R_m^T$ 也是分块对角矩阵（每个块取转置），因此：
+
+$$
+R_m^T R_n = \begin{bmatrix} R(m\theta_0)^T R(n\theta_0) & & \\ & \ddots & \\ & & R(m\theta_{d_k/2-1})^T R(n\theta_{d_k/2-1}) \end{bmatrix}
+$$
+
+每个对角块为：
+
+$$
+R(m\theta_i)^T R(n\theta_i) = R(-m\theta_i) R(n\theta_i) = R((n-m)\theta_i)
+$$
+
+所以：
+
+$$
+R_m^T R_n = R_{n-m}
+$$
+
+最终结果：
+
+$$
+\tilde{q}_m^T \tilde{k}_n = q_m^T R_{n-m} k_n = f(q_m, k_n, n - m)
+$$
+
+内积只依赖向量本身和相对位置差 $n - m$，与绝对位置无关。证毕。
+
+### 5.5 高效实现：避免显式构造旋转矩阵
+
+在实际工程中，我们不会真的构造一个 $d_k \times d_k$ 的分块对角矩阵再做矩阵乘法。二维旋转可以用逐元素乘法和加法高效实现：
+
+$$
+\tilde{q}_{2i} = q_{2i} \cos(m\theta_i) - q_{2i+1} \sin(m\theta_i)
+$$
+
+$$
+\tilde{q}_{2i+1} = q_{2i} \sin(m\theta_i) + q_{2i+1} \cos(m\theta_i)
+$$
+
+以下是 RoPE 核心操作的 Python 实现：
+
+```python
+import numpy as np
+
+def precompute_freqs(dim, max_seq_len, base=10000.0):
+    """
+    预计算 RoPE 所需的频率参数和三角函数值。
+
+    参数:
+        dim: 每个注意力头的维度 (d_k)
+        max_seq_len: 最大序列长度
+        base: 频率基数，默认 10000
+
+    返回:
+        cos_cached: (max_seq_len, dim/2) 的余弦值
+        sin_cached: (max_seq_len, dim/2) 的正弦值
+    """
+    # 频率参数: theta_i = 1 / base^(2i / dim), i = 0, 1, ..., dim/2 - 1
+    freq_indices = np.arange(0, dim, 2, dtype=np.float32)  # [0, 2, 4, ..., dim-2]
+    freqs = 1.0 / (base ** (freq_indices / dim))            # (dim/2,)
+
+    # 位置序列
+    positions = np.arange(max_seq_len, dtype=np.float32)     # [0, 1, 2, ..., max_seq_len-1]
+
+    # 外积得到每个 (position, freq_pair) 的角度
+    angles = np.outer(positions, freqs)  # (max_seq_len, dim/2)
+
+    cos_cached = np.cos(angles)
+    sin_cached = np.sin(angles)
+
+    return cos_cached, sin_cached
+
+def apply_rope(q, cos, sin):
+    """
+    对查询或键向量施加 RoPE 旋转。
+
+    参数:
+        q: (seq_len, dim) 的向量，dim 必须是偶数
+        cos: (seq_len, dim/2) 的预计算余弦值
+        sin: (seq_len, dim/2) 的预计算正弦值
+
+    返回:
+        q_rotated: 旋转后的向量，形状与输入相同
+    """
+    dim = q.shape[-1]
+    assert dim % 2 == 0, "维度必须是偶数"
+
+    # 将向量拆分为偶数和奇数维度
+    q_even = q[:, 0::2]   # (seq_len, dim/2) -- 取 q_0, q_2, q_4, ...
+    q_odd  = q[:, 1::2]   # (seq_len, dim/2) -- 取 q_1, q_3, q_5, ...
+
+    # 对每个二维子空间施加旋转
+    q_even_rotated = q_even * cos - q_odd * sin
+    q_odd_rotated  = q_even * sin + q_odd * cos
+
+    # 重新交错合并
+    q_rotated = np.zeros_like(q)
+    q_rotated[:, 0::2] = q_even_rotated
+    q_rotated[:, 1::2] = q_odd_rotated
+
+    return q_rotated
+
+# 使用示例
+dim = 128        # 头维度
+seq_len = 64     # 序列长度
+
+# 预计算三角函数值（只需在初始化时做一次）
+cos_cached, sin_cached = precompute_freqs(dim, seq_len)
+
+# 模拟 Q 和 K 向量
+q = np.random.randn(seq_len, dim).astype(np.float32)
+k = np.random.randn(seq_len, dim).astype(np.float32)
+
+# 施加 RoPE
+q_rotated = apply_rope(q, cos_cached, sin_cached)
+k_rotated = apply_rope(k, cos_cached, sin_cached)
+
+# 验证：旋转后的内积只依赖相对位置
+# 取位置 10 的 Q 和位置 15 的 K
+dot1 = np.dot(q_rotated[10], k_rotated[15])
+
+# 取位置 20 的 Q 和位置 25 的 K（相对位置差同样是 5）
+# 注意：这里 Q 和 K 的原始值不同，所以内积值不同
+# 但如果给定相同的 q, k 向量，放在不同绝对位置上，
+# 只要相对位置差相同，内积就相同
+print(f"dot(q_rotated[10], k_rotated[15]) = {dot1:.4f}")
+```
+
+### 5.6 RoPE 与 Sinusoidal 的联系和区别
+
+RoPE 和 Sinusoidal 编码之间存在深刻的联系，但工作方式截然不同。
+
+**联系**：
+- 两者使用**完全相同的频率参数** $\theta_i = 1 / 10000^{2i/d}$
+- 两者都利用了三角函数的周期性和和角公式
+- Sinusoidal 编码中相对位置的线性变换性质（3.4 节）本质上就是一个旋转操作，RoPE 可以看作是将这一性质显式化
+
+**区别**：
+
+| 维度 | Sinusoidal | RoPE |
+|------|-----------|------|
+| 注入方式 | 加到词嵌入上 | 旋转 Q 和 K 向量 |
+| 注入位置 | 输入层（只注入一次） | 每层 Attention（每层都注入） |
+| 编码类型 | 绝对位置编码 | 相对位置编码 |
+| 对 V 的影响 | 间接影响（V 的输入包含了位置信息） | 不影响（只旋转 Q 和 K） |
+| 深层保持性 | 位置信号可能在深层网络中衰减 | 每层重新注入，不会衰减 |
+| 外推能力 | 较弱 | 较强（配合插值方法） |
+
+一个关键差异值得强调：RoPE **不对 V 向量做任何变换**。这意味着位置信息只影响"谁该关注谁"（Attention 权重的计算），而不影响"关注后传递什么信息"（V 向量的内容）。这种设计更加干净 -- 位置影响的是信息流动的路由，而非信息本身。
+
+---
+
+## 6. ALiBi：带线性偏置的注意力
+
+ALiBi（Attention with Linear Biases）是 Press et al. 在 2022 年提出的另一种位置编码方案，思路与 RoPE 截然不同。
+
+### 6.1 核心思想
+
+ALiBi 完全不修改 Q 和 K 向量，而是在计算出 Attention 分数后，直接给分数加上一个与距离成正比的负偏置：
+
+$$
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + m \cdot \text{Bias}\right) V
+$$
+
+其中 Bias 矩阵的元素为：
+
+$$
+\text{Bias}[i][j] = -|i - j|
+$$
+
+$m$ 是一个头相关的标量斜率，不同头使用不同的 $m$ 值（通常按几何级数设置，如 $1/2, 1/4, 1/8, \ldots$）。
+
+白话解释：ALiBi 给 Attention 分数施加了一个"距离惩罚" -- 两个 token 距离越远，Attention 分数被减去的值越大，从而倾向于关注近处的 token。不同的头有不同的衰减速率：有些头几乎只关注紧邻的 token（大斜率），有些头仍然能关注远处的 token（小斜率）。
+
+### 6.2 优势与局限
+
+**优势**：
+- 实现极其简单，只需要在 Attention 分数上做一次加法
+- 不引入可学习参数
+- 外推能力强：论文证明在 1024 长度上训练的模型可以在推理时外推到 2048 甚至更长
+- 计算几乎零开销
+
+**局限**：
+- 位置信息的表达能力较为有限（只有线性距离衰减这一种模式）
+- 在非常长的上下文中，线性惩罚可能过度压制远距离 token 的注意力
+- 在实际的大模型竞赛中，ALiBi 的采用率远低于 RoPE
+
+ALiBi 目前主要被 BLOOM 等少数模型采用。在大模型的位置编码方案中，RoPE 以其优秀的表达能力和外推扩展性成为了事实上的标准。
+
+---
+
+## 7. 长上下文扩展技术
+
+大模型在训练时通常使用固定长度的上下文窗口（如 4096 或 8192 个 token），但用户往往需要处理更长的输入 -- 一本小说、一段长代码、一整场会议记录。这就引出了一个核心工程挑战：**如何让模型在推理时处理超出训练长度的序列？**
+
+### 7.1 位置编码外推的挑战
+
+以 RoPE 为例，如果模型在训练时最大序列长度为 4096，那么 RoPE 的旋转角度 $m \cdot \theta_i$ 中的 $m$ 最大为 4095。当推理时遇到位置 $m = 8000$ 时，某些高频维度的旋转角度会远超训练时见过的范围，导致 Attention 模式发生剧烈变化。
+
+具体来说，高频维度（小 $i$，大 $\theta_i$）在训练时已经"转了很多圈"，再多转一些不会有太大影响；但低频维度（大 $i$，小 $\theta_i$）在训练时可能只转了不到一圈，突然要求它转两圈就会进入"未知领域"。这种频率维度之间的不均匀外推是问题的根源。
+
+### 7.2 位置插值（Position Interpolation）
+
+最朴素的解决方案是**位置插值**：将位置索引按比例缩小，使得新的最大位置对应原来训练的最大位置。
+
+如果要将上下文长度从 $L_{train}$ 扩展到 $L_{target}$，缩放因子为 $s = L_{target} / L_{train}$，则位置 $m$ 的 RoPE 角度变为：
+
+$$
+m' \cdot \theta_i = \frac{m}{s} \cdot \theta_i
+$$
+
+直觉上说，原来位置 0 到 4095 的编码被"压缩"到了 0 到 $4095/s$ 的范围内，空出的编码空间用来容纳更长的序列。
+
+**问题**：这种均匀缩放对所有频率维度一视同仁，但实际上高频维度不需要缩放（它们的外推性已经很好），低频维度才需要大幅缩放。均匀插值会损害高频维度对近距离位置的区分能力。
+
+### 7.3 NTK-aware Scaling
+
+NTK-aware Scaling（Neural Tangent Kernel-aware Scaling）的核心洞察是：**不应该对所有频率维度做均匀的缩放，而应该让不同频率的维度有不同的缩放策略。**
+
+具体做法是修改 RoPE 的 base 参数（原始值为 10000），将其放大为：
+
+$$
+\text{base}' = \text{base} \cdot s^{d/(d-2)}
+$$
+
+其中 $s$ 是扩展因子。这一修改的效果是：
+
+- **高频维度**（小 $i$）：频率几乎不变，保持对相邻位置的区分能力
+- **低频维度**（大 $i$）：频率被显著降低，波长被拉长，从而能覆盖更大的位置范围
+
+这个名字中的"NTK"来源于其理论动机：在 Neural Tangent Kernel 框架下，傅里叶特征的频率分布对模型的泛化能力有关键影响，NTK-aware Scaling 正是从这个角度出发来设计频率调整策略。
+
+### 7.4 YaRN 的改进
+
+YaRN（Yet another RoPE extensioN）在 NTK-aware Scaling 的基础上做了两项关键改进：
+
+**第一项改进：分段策略。** YaRN 根据频率的高低将维度分为三组，对每组采用不同的处理：
+
+- **高频维度**（波长短于原始训练长度 / 某个阈值）：不做任何缩放，完全保留原始 RoPE 的行为
+- **低频维度**（波长长于训练长度 x 某个阈值）：做完整的线性插值缩放
+- **中间频段**：在"不缩放"和"完整缩放"之间做平滑过渡
+
+这种分段策略比 NTK-aware 的连续调整更精细，能在保留近距离分辨率的同时更好地扩展远距离能力。
+
+**第二项改进：注意力分布的温度修正。** 扩展上下文长度后，Attention 分数的分布会发生变化（因为求和的 token 数量增多了），YaRN 引入一个与扩展比例相关的温度系数来校正这种分布偏移。
+
+### 7.5 动态 NTK
+
+上述方法在推理前需要预先确定目标长度并设置缩放参数。但在实际部署中，输入长度是动态变化的 -- 有些请求很短，有些很长。为短请求也施加长度扩展的缩放是不必要的，甚至会损害性能。
+
+**动态 NTK** 的思想是：**根据当前实际序列长度动态调整 base 参数。**
+
+具体来说，在推理过程中，当前序列长度 $L_{current}$ 会随着 token 的生成不断增长。如果 $L_{current} \leq L_{train}$，使用原始的 base 参数（不做缩放）；如果 $L_{current} > L_{train}$，则根据 $L_{current} / L_{train}$ 的比值动态计算新的 base 值。
+
+这种方法的优势在于：
+- 短序列不受影响，保持原始精度
+- 长序列自动获得合适的缩放
+- 无需预先知道最大长度
+
+---
+
+## 8. AI Infra 工程实践
+
+位置编码的选择和实现对 AI Infra 工程有直接影响。本节讨论几个关键的工程关联。
+
+### 8.1 RoPE 在 CUDA kernel 中的融合
+
+RoPE 的核心操作是对 Q 和 K 向量做逐元素的乘加运算（5.5 节）。从计算量角度看，这个操作非常轻量（$O(N \cdot d)$），远小于 Attention 中的矩阵乘法（$O(N^2 \cdot d)$）。但如果把它作为一个独立的 CUDA kernel 来执行，kernel launch 的开销和额外的显存读写就会成为瓶颈。
+
+因此，在高性能推理引擎中，RoPE 通常被**融合（fuse）**到 Attention kernel 的前端：
+
+1. **与 QKV 投影融合**：在完成 QKV 的线性投影后，直接在同一个 kernel 中对 Q 和 K 施加旋转，避免将中间结果写回 HBM 再读取
+2. **与 FlashAttention 融合**：在 FlashAttention 的分块（tiling）循环中，当每个 block 的 Q、K 数据加载到 SRAM 后，原地施加 RoPE 旋转，然后立即做 Attention 计算
+
+融合后的好处：
+- 减少一次 kernel launch（节省约 5-10 微秒的启动开销，在 Decode 阶段每步只处理 1 个 token 时这个开销占比不小）
+- 减少一次 HBM 读写往返（对于 Memory Bound 的 Decode 阶段尤其重要）
+
+此外，RoPE 的三角函数值（$\cos(m\theta_i)$ 和 $\sin(m\theta_i)$）通常会预计算并缓存为一个查找表，存储在 GPU 的常量内存或共享内存中，避免在每次推理时重复计算三角函数。
+
+### 8.2 长上下文对 KV Cache 的影响
+
+位置编码的外推能力直接决定了模型能支持多长的上下文，而上下文长度的增加对 KV Cache 管理产生了巨大压力。
+
+以 LLaMA-2-7B 为例（参考原始 Transformer 入门一文的计算）：
+
+| 上下文长度 | 单请求 KV Cache（FP16） | batch=16 总计 |
+|-----------|------------------------|--------------|
+| 4K | 2 GB | 32 GB |
+| 32K | 16 GB | 256 GB |
+| 128K | 64 GB | 1024 GB |
+
+可以看到，当上下文长度从 4K 扩展到 128K 时，KV Cache 的显存需求增长了 32 倍。这意味着：
+
+- **单请求即可能耗尽显存**：128K 上下文的单请求 KV Cache（64 GB）就已经接近一张 A100 的全部容量
+- **并发能力急剧下降**：即使有足够的显存，能同时处理的请求数也会大幅减少
+- **PagedAttention 的重要性凸显**：在长上下文场景中，KV Cache 的动态增长和碎片化问题更加严重，需要更精细的内存管理
+
+因此，位置编码的长上下文扩展技术（7.2-7.5 节）不仅仅是模型能力的问题，更是系统层面的核心挑战。工程上需要同时解决：
+
+1. **位置编码层面**：选择合适的外推/插值方案（如 YaRN、动态 NTK），确保模型在长序列上的注意力质量
+2. **KV Cache 管理层面**：采用分页管理、KV Cache 量化（如 FP8/INT4）、KV Cache 淘汰策略等技术控制显存开销
+3. **计算层面**：FlashAttention 的 $O(N)$ 显存特性在长上下文场景中至关重要（否则 $O(N^2)$ 的注意力矩阵将消耗天量显存）
+
+### 8.3 不同位置编码方案的工程对比
+
+| 方案 | 推理额外计算 | 额外参数 | 实现复杂度 | 长上下文友好度 |
+|------|------------|---------|-----------|--------------|
+| Sinusoidal | 预计算查表 + 向量加法 | 无 | 低 | 差 |
+| Learned PE | 嵌入查表 + 向量加法 | $L_{max} \times d$ | 极低 | 差（硬性上限） |
+| RoPE | 逐元素旋转（可融合） | 无 | 中等 | 好（配合插值） |
+| ALiBi | Attention 分数加偏置 | 无 | 低 | 好（天然外推） |
+
+从工程实践角度，RoPE 成为事实标准的原因不仅在于其理论优雅，更在于其工程友好性：不引入额外参数（对模型并行无影响）、可以无缝融合到现有 Attention kernel 中、有成熟的长上下文扩展方案生态。
+
+---
+
+## 检验标准与进阶方向
+
+### 自我检验清单
+
+完成本文学习后，检验自己是否真正理解了位置编码：
+
+- 能解释为什么原始 Self-Attention 无法区分词序，并能简述排列等变性的数学含义
+- 能区分绝对位置编码和相对位置编码的设计思路差异，说出各自的代表方案
+- 能默写 Sinusoidal 编码的公式，并解释不同频率维度各自的作用
+- 能用三角函数和角公式说明为什么 Sinusoidal 编码中的相对位置可以通过线性变换得到
+- 能说清 RoPE 的核心操作（二维旋转），并推导为什么旋转后的内积只依赖相对位置差
+- 能写出 RoPE 的逐元素实现代码，解释 cos/sin 预计算的作用
+- 能说清 RoPE、Sinusoidal、Learned PE、ALiBi 四种方案的核心区别
+- 能解释 NTK-aware Scaling 为什么比均匀位置插值更好（高频保留，低频拉伸）
+- 能估算长上下文扩展对 KV Cache 显存的影响，并说出至少两种应对策略
+- 能解释为什么 RoPE 通常会被融合到 Attention kernel 中执行
+
+### 进阶方向
+
+| 方向 | 内容 | 推荐资料 |
+|------|------|---------|
+| RoPE 原始论文 | 完整的数学推导和实验验证 | [RoFormer Paper](https://arxiv.org/abs/2104.09864) |
+| ALiBi 原始论文 | 线性偏置方案的设计动机和外推实验 | [ALiBi Paper](https://arxiv.org/abs/2108.12409) |
+| YaRN | 分段策略和温度修正的详细设计 | [YaRN Paper](https://arxiv.org/abs/2309.00071) |
+| 长上下文扩展综述 | 从 PI 到 NTK 到 YaRN 的演进脉络 | [Long Context Survey](https://arxiv.org/abs/2311.12351) |
+| FlashAttention | 理解 Attention kernel 融合（包括 RoPE 融合） | [FlashAttention-2 Paper](https://arxiv.org/abs/2307.08691) |
+| vLLM / SGLang | KV Cache 管理在长上下文场景的实现 | [vLLM Paper](https://arxiv.org/abs/2309.06180) |
+
+---
+
+## 参考资料
+
+### 论文
+
+- **Attention Is All You Need** (Vaswani et al., 2017)：[https://arxiv.org/abs/1706.03762](https://arxiv.org/abs/1706.03762) -- Transformer 原始论文，Sinusoidal 编码的出处
+- **RoFormer: Enhanced Transformer with Rotary Position Embedding** (Su et al., 2021)：[https://arxiv.org/abs/2104.09864](https://arxiv.org/abs/2104.09864) -- RoPE 旋转位置编码
+- **Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation** (Press et al., 2022)：[https://arxiv.org/abs/2108.12409](https://arxiv.org/abs/2108.12409) -- ALiBi
+- **Extending Context Window of Large Language Models via Positional Interpolation** (Chen et al., 2023)：[https://arxiv.org/abs/2306.15595](https://arxiv.org/abs/2306.15595) -- 位置插值（PI）
+- **YaRN: Efficient Context Window Extension of Large Language Models** (Peng et al., 2023)：[https://arxiv.org/abs/2309.00071](https://arxiv.org/abs/2309.00071) -- YaRN 长上下文扩展
+- **BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding** (Devlin et al., 2019)：[https://arxiv.org/abs/1810.04805](https://arxiv.org/abs/1810.04805) -- 可学习位置编码
+- **Language Models are Unsupervised Multitask Learners** (Radford et al., 2019)：[https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf) -- GPT-2
+
+### 博客与教程
+
+- **苏剑林: 让研究人员绝望的 Rotary Position Embedding**：[https://kexue.fm/archives/8265](https://kexue.fm/archives/8265) -- RoPE 作者的中文博客，从零推导
+- **苏剑林: Transformer 升级之路**：[https://kexue.fm/archives/8130](https://kexue.fm/archives/8130) -- 位置编码系列文章
+- **Eleuther AI: Rotary Embeddings**：[https://blog.eleuther.ai/rotary-embeddings/](https://blog.eleuther.ai/rotary-embeddings/) -- RoPE 的英文详解
+- **The Illustrated Transformer** (Jay Alammar)：[https://jalammar.github.io/illustrated-transformer/](https://jalammar.github.io/illustrated-transformer/) -- 图文并茂的 Transformer 入门（含位置编码的可视化）

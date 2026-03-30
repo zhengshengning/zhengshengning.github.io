@@ -1,5 +1,5 @@
 ---
-title: 集群通信网络与NCCL
+title: 1.2 集群通信网络与NCCL
 date: 2026-03-30 10:30:00
 categories:
   - [AI Infra, 前置知识]

@@ -1,15 +1,5 @@
 {% macro render(posts) %}
-{%- set current_year = '1970' %}
-{%- for post in posts.toArray() %}
-
-  {%- set year = date(post.date, 'YYYY') %}
-
-  {%- if year !== current_year %}
-    {%- set current_year = year %}
-    <div class="collection-year">
-      <span class="collection-header">{{ current_year }}{% if is_archive() %}<span class="collection-year-count">{{ post_count(year) }}</span>{% endif %}</span>
-    </div>
-  {%- endif %}
+{%- for post in posts.toArray() | sort(false, false, 'title') %}
 
   <article itemscope itemtype="http://schema.org/Article">
     <header class="post-header">

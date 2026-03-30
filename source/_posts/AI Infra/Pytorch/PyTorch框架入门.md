@@ -1,5 +1,5 @@
 ---
-title: PyTorch框架入门
+title: 3.0 PyTorch框架入门
 date: 2026-03-30 12:00:00
 categories:
   - [AI Infra, 前置知识]

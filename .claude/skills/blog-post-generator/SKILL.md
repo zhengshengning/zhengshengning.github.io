@@ -50,6 +50,7 @@ description: >
 ---
 title: 文章标题
 date: YYYY-MM-DD HH:mm:ss
+mathjax: true        # 仅当文章包含数学公式时添加
 categories:
   - [一级分类, 二级分类]
 tags: [标签1, 标签2, 标签3]
@@ -58,6 +59,7 @@ tags: [标签1, 标签2, 标签3]
 
 规则：
 - `date` 使用当前时间，格式 `YYYY-MM-DD HH:mm:ss`
+- `mathjax`：扫描文章正文是否包含数学公式（`$$...$$` 行间公式或 `$...$` 行内公式），如果包含则在 frontmatter 中添加 `mathjax: true`，否则不添加此字段
 - `categories` 必须使用数组嵌套语法 `- [Parent, Child]`，从分类映射表中选取
 - `tags` 使用行内数组语法 `[Tag1, Tag2, ...]`，3-5 个标签
 
@@ -73,6 +75,7 @@ tags: [标签1, 标签2, 标签3]
 ---
 title: 文章标题
 date: 2026-03-25 14:00:00
+mathjax: true
 categories:
   - [AI Infra, CUDA编程]
 tags: [CUDA, GPU, 并行计算]
