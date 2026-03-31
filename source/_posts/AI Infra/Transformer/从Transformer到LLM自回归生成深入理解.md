@@ -4,6 +4,7 @@ date: 2026-03-30 15:00:00
 categories:
   - [AI Infra, 前置知识]
 tags: [自回归生成, KV Cache, PagedAttention, 推理优化, LLM]
+mathjax: true
 ---
 
 理解 Transformer 的内部结构只是第一步，真正让大语言模型"说话"的是自回归生成过程。本文深入剖析 LLM 推理的完整链路——从条件概率到 Token 采样，从 Prefill/Decode 两阶段特性到 KV Cache 管理，再到 PagedAttention、Speculative Decoding 等前沿优化技术，帮助 AI Infra 工程师建立推理优化的全局视野。
@@ -47,9 +48,9 @@ $$
 
 ### 1.2 从 Transformer 输出到概率分布
 
-具体来说，当一个 token 序列通过 Transformer 的所有 Decoder Block 后，最后一层输出的是每个位置的隐藏状态向量，形状为 `(N, d_model)`。要把这个向量变成"下一个词的概率"，还需要两步操作：
+具体来说，当一个 token 序列通过 Transformer 的所有 Decoder Block 后，最后一层输出的是每个位置的隐藏状态向量，形状为 $(N, d_{model})$。要把这个向量变成"下一个词的概率"，还需要两步操作：
 
-**LM Head（语言模型头）**：一个线性层，将 `d_model` 维的隐藏状态映射到 `vocab_size` 维的向量，称为 **logits**：
+**LM Head（语言模型头）**：一个线性层，将 $d_{model}$ 维的隐藏状态映射到 $vocab\_size$ 维的向量，称为 **logits**：
 
 ```python
 # hidden_state: (N, d_model), 如 (N, 4096)
@@ -136,7 +137,7 @@ next_token = torch.argmax(probs)
 
 ### 3.2 Temperature 缩放
 
-在 softmax 之前对 logits 除以一个温度参数 T：
+在 softmax 之前对 logits 除以一个温度参数 $T$：
 
 ```python
 probs = softmax(logits / T)
@@ -146,15 +147,15 @@ probs = softmax(logits / T)
 
 | 温度值 | 效果 | 类比 |
 |--------|------|------|
-| T < 1（如 0.3） | 分布变尖锐，高概率 token 更突出 | 谨慎保守的作者，倾向选最安全的词 |
-| T = 1 | 原始分布，不做调整 | 正常发挥 |
-| T > 1（如 1.5） | 分布变平坦，低概率 token 被拉高 | 天马行空的创作者，更愿意冒险选"意外"的词 |
-| T → 0 | 退化为 greedy decoding | 只选最确定的那个 |
-| T → ∞ | 退化为均匀分布 | 完全随机 |
+| $T < 1$（如 0.3） | 分布变尖锐，高概率 token 更突出 | 谨慎保守的作者，倾向选最安全的词 |
+| $T = 1$ | 原始分布，不做调整 | 正常发挥 |
+| $T > 1$（如 1.5） | 分布变平坦，低概率 token 被拉高 | 天马行空的创作者，更愿意冒险选"意外"的词 |
+| $T \to 0$ | 退化为 greedy decoding | 只选最确定的那个 |
+| $T \to \infty$ | 退化为均匀分布 | 完全随机 |
 
 ### 3.3 Top-K 采样
 
-只保留概率最高的 K 个 token，将其余 token 的概率置零后重新归一化：
+只保留概率最高的 $K$ 个 token，将其余 token 的概率置零后重新归一化：
 
 ```python
 topk_probs, topk_indices = torch.topk(probs, k=50)
@@ -162,11 +163,11 @@ topk_probs = topk_probs / topk_probs.sum()  # 重新归一化
 next_token = topk_indices[torch.multinomial(topk_probs, 1)]
 ```
 
-Top-K 的问题在于 K 是固定的。有时候概率分布很集中（只有 2-3 个合理选项），K=50 就引入了太多噪声；有时候分布很分散（很多 token 都合理），K=50 又太限制了。
+Top-K 的问题在于 $K$ 是固定的。有时候概率分布很集中（只有 2-3 个合理选项），$K=50$ 就引入了太多噪声；有时候分布很分散（很多 token 都合理），$K=50$ 又太限制了。
 
 ### 3.4 Top-P 采样（Nucleus Sampling）
 
-一种自适应的方案：按概率从大到小排列 token，累加概率直到超过阈值 P（如 0.9），只在这个"核"内采样：
+一种自适应的方案：按概率从大到小排列 token，累加概率直到超过阈值 $P$（如 0.9），只在这个"核"内采样：
 
 ```python
 sorted_probs, sorted_indices = torch.sort(probs, descending=True)
@@ -279,29 +280,29 @@ Continuous Batching 由 Orca 系统首先提出，后来被 vLLM、SGLang、Tens
 
 打个比方，你在银行办理业务，每换一个窗口都要重新排队、重新提交所有材料。KV Cache 的做法是：你第一次提交的材料都存了档，之后换窗口只需报个编号就能调档，不必重新准备。
 
-把已经计算好的 K 和 V 缓存在 GPU 显存中，每步 Decode 只需计算新 token 自己的 K、V 并追加到缓存，就把 QKV 投影的重复计算从 O(N) 降到了 O(1)。
+把已经计算好的 K 和 V 缓存在 GPU 显存中，每步 Decode 只需计算新 token 自己的 K、V 并追加到缓存，就把 QKV 投影的重复计算从 $O(N)$ 降到了 $O(1)$。
 
 ### 6.2 有无 KV Cache 的计算量对比
 
-用一个简单的数学对比来说明 KV Cache 的价值。假设模型有 L 层，每层的 QKV 投影计算量为 `3 * d_model^2`（三个矩阵乘法），Attention 计算量为 `O(N * d_model)`（N 是当前序列长度，因为 Decode 时只有 1 个 Q token）。
+用一个简单的数学对比来说明 KV Cache 的价值。假设模型有 $L$ 层，每层的 QKV 投影计算量为 $3 \times d_{model}^2$（三个矩阵乘法），Attention 计算量为 $O(N \cdot d_{model})$（$N$ 是当前序列长度，因为 Decode 时只有 1 个 Q token）。
 
-**无 KV Cache——每步对所有 N 个 token 重新计算 QKV**：
+**无 KV Cache——每步对所有 $N$ 个 token 重新计算 QKV**：
 
 | 步骤 | QKV 投影计算量 | Attention 计算量 |
 |------|---------------|-----------------|
-| Step 1 | 1 * 3d^2 | 1 * d |
-| Step 2 | 2 * 3d^2 | 2 * d |
-| Step n | n * 3d^2 | n * d |
-| 总计（N步） | 3d^2 * N(N+1)/2 = O(N^2 * d^2) | O(N^2 * d) |
+| Step 1 | $1 \cdot 3d^2$ | $1 \cdot d$ |
+| Step 2 | $2 \cdot 3d^2$ | $2 \cdot d$ |
+| Step n | $n \cdot 3d^2$ | $n \cdot d$ |
+| 总计（$N$ 步） | $3d^2 \cdot N(N+1)/2 = O(N^2 d^2)$ | $O(N^2 d)$ |
 
 **有 KV Cache——每步只计算 1 个新 token 的 QKV**：
 
 | 步骤 | QKV 投影计算量 | Attention 计算量 |
 |------|---------------|-----------------|
-| Step n | 1 * 3d^2 | n * d（仍需和所有缓存 K 做内积） |
-| 总计（N步） | N * 3d^2 = O(N * d^2) | O(N^2 * d) |
+| Step n | $1 \cdot 3d^2$ | $n \cdot d$（仍需和所有缓存 K 做内积） |
+| 总计（$N$ 步） | $N \cdot 3d^2 = O(Nd^2)$ | $O(N^2 d)$ |
 
-KV Cache 将 QKV 投影的总计算量从 O(N^2 * d^2) 降到了 O(N * d^2)，节省了 N 倍。Attention 计算量没变（依然是 O(N^2 * d)），但这部分是矩阵-向量乘，代价相对较小。
+KV Cache 将 QKV 投影的总计算量从 $O(N^2 d^2)$ 降到了 $O(N d^2)$，节省了 $N$ 倍。Attention 计算量没变（依然是 $O(N^2 d)$），但这部分是矩阵-向量乘，代价相对较小。
 
 ### 6.3 KV Cache 的数据结构
 
@@ -339,18 +340,22 @@ attn_output = attention(new_q, kv_cache[layer_i]['key'], kv_cache[layer_i]['valu
 
 KV Cache 的显存占用可以用一个通用公式计算：
 
-```
-KV Cache 显存 = 2 × num_layers × num_kv_heads × head_dim × seq_len × batch_size × bytes_per_element
-```
+$$
+\text{KV Cache 显存} = 2 \times L \times n_{kv} \times d_h \times N \times B \times b_e
+$$
 
 其中：
-- `2`：K 和 V 各一份
-- `num_kv_heads`：KV 的头数（MHA 等于 num_heads，GQA 等于 num_kv_groups）
-- `bytes_per_element`：FP16 为 2 字节，FP8 为 1 字节
+- $2$：K 和 V 各一份
+- $L$：层数（num_layers）
+- $n_{kv}$：KV 的头数（MHA 等于 num_heads，GQA 等于 num_kv_groups）
+- $d_h$：每个头的维度（head_dim）
+- $N$：序列长度（seq_len）
+- $B$：批大小（batch_size）
+- $b_e$：每个元素的字节数，FP16 为 2 字节，FP8 为 1 字节
 
 以几种典型配置为例：
 
-| 模型 | 层数 | KV 头数 | head_dim | 每 token KV Cache (FP16) | 4K 序列长度 | 128K 序列长度 |
+| 模型 | 层数 | KV 头数 | $d_h$ | 每 token KV Cache (FP16) | 4K 序列长度 | 128K 序列长度 |
 |------|------|--------|----------|------------------------|------------|--------------|
 | LLaMA-2-7B (MHA) | 32 | 32 | 128 | 512 KB | 2 GB | 64 GB |
 | LLaMA-2-7B (GQA-8) | 32 | 8 | 128 | 128 KB | 0.5 GB | 16 GB |
@@ -428,15 +433,15 @@ KV Cache 量化的挑战在于：Attention 计算对 Key 的数值精度比较�
 
 - **MHA（Multi-Head Attention）**：每个注意力头都有独立的 K 和 V，KV 头数等于总头数
 - **MQA（Multi-Query Attention）**：所有注意力头共享一组 K 和 V，KV 头数为 1
-- **GQA（Grouped-Query Attention）**：每 G 个头共享一组 K 和 V，KV 头数为 总头数/G
+- **GQA（Grouped-Query Attention）**：每 $G$ 个头共享一组 K 和 V，KV 头数为 总头数/$G$
 
 以 32 头模型为例：MHA 有 32 组 KV，GQA-8 有 4 组 KV（减少 8 倍），MQA 有 1 组 KV（减少 32 倍）。KV Cache 的大小与 KV 头数成正比，因此 GQA/MQA 对推理的显存节省效果非常显著。
 
 ### 7.5 Sliding Window Attention
 
-Mistral 模型引入了**滑动窗口注意力**：每个 token 只关注最近 W 个 token（如 W=4096），而非全部历史。这意味着 KV Cache 只需要保留最近 W 个 token 的 K、V，超出窗口的可以丢弃。
+Mistral 模型引入了**滑动窗口注意力**：每个 token 只关注最近 $W$ 个 token（如 $W=4096$），而非全部历史。这意味着 KV Cache 只需要保留最近 $W$ 个 token 的 K、V，超出窗口的可以丢弃。
 
-KV Cache 从 O(N) 变为 O(W)，对超长序列的显存节省巨大。但代价是模型无法直接访问窗口之外的远距离信息（需要依靠多层堆叠间接传递）。
+KV Cache 从 $O(N)$ 变为 $O(W)$，对超长序列的显存节省巨大。但代价是模型无法直接访问窗口之外的远距离信息（需要依靠多层堆叠间接传递）。
 
 ### 7.6 Token Eviction / Token Dropping
 
@@ -466,8 +471,8 @@ Prefill 完成后，将 KV Cache 传输到 Decode 池继续生成。这样两个
 
 自回归生成的根本瓶颈是串行——每步必须等前一步完成才能开始。投机解码试图打破这个限制：
 
-1. 用一个**小模型**（Draft Model，如 7B 对应的 1B 蒸馏版本）快速生成 K 个候选 token（如 K=5）
-2. 将这 K 个候选 token 一次性送入**大模型**（Target Model）做并行验证
+1. 用一个**小模型**（Draft Model，如 7B 对应的 1B 蒸馏版本）快速生成 $K$ 个候选 token（如 $K=5$）
+2. 将这 $K$ 个候选 token 一次性送入**大模型**（Target Model）做并行验证
 3. 大模型检查每个位置小模型的预测是否与自己一致：
    - 一致的 token 直接接受
    - 不一致的地方由大模型重新采样，后续候选全部丢弃
@@ -524,7 +529,7 @@ Prefill 完成后，将 KV Cache 传输到 Decode 池继续生成。这样两个
 
 本文从语言模型的数学本质出发，完整剖析了 LLM 自回归生成的全链路：
 
-1. **语言模型本质**：建模条件概率分布 P(x_t | x_1,...,x_{t-1})
+1. **语言模型本质**：建模条件概率分布 $P(x_t \mid x_1,\ldots,x_{t-1})$
 2. **自回归循环**：逐步预测 + 采样 + 追加，直到停止条件
 3. **采样策略**：Temperature 控制随机性，Top-K/Top-P 控制候选范围
 4. **Prefill 阶段**：并行处理 prompt，Compute Bound，决定 TTFT
@@ -570,7 +575,7 @@ Prefill 完成后，将 KV Cache 传输到 Decode 池继续生成。这样两个
 - [Orca: A Distributed Serving System for Transformer-Based Generative Models](https://www.usenix.org/conference/osdi22/presentation/yu) -- Continuous Batching
 - [DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving](https://arxiv.org/abs/2401.09670) -- Prefill/Decode 解耦
 - [GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints](https://arxiv.org/abs/2305.13245) -- Grouped-Query Attention
-- [The Nucleus Sampling Paper: The Curious Case of Neural Text Degeneration](https://arxiv.org/abs/1904.09751) -- Top-P 采样
+- [The Curious Case of Neural Text Degeneration](https://arxiv.org/abs/1904.09751) -- Top-P（Nucleus）采样
 - [H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models](https://arxiv.org/abs/2306.14048) -- KV Cache Token Eviction
 - [vLLM - GitHub](https://github.com/vllm-project/vllm) -- 高性能 LLM 推理引擎
 - [SGLang - GitHub](https://github.com/sgl-project/sglang) -- 结构化生成和 RadixAttention

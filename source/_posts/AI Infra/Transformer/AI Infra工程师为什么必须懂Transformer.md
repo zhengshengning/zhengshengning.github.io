@@ -4,6 +4,7 @@ date: 2026-03-30 12:00:00
 categories:
   - [AI Infra, 前置知识]
 tags: [Transformer, AI Infra, LLM, 模型架构, 学习路线]
+mathjax: true
 ---
 
 Transformer 是当今所有大语言模型的共同骨架，而 AI Infra 工程师的全部工作——从底层算子到分布式训练再到推理服务——都围绕这个骨架展开。本文将系统阐述 AI Infra 的定义与技术栈定位、Transformer 如何成为"通用底座"、以及两者之间的精确映射关系，帮助读者建立"我到底在优化什么"的全局认知。
@@ -68,7 +69,7 @@ AI Infra 工程师的具体工作因团队而异，但核心任务可以归纳�
 
 **CUDA 算子开发与优化**
 
-这一类工作最"底层"，直接和 GPU 硬件打交道。典型任务包括：为 Attention 计算编写高效的 CUDA kernel（如实现或改进 FlashAttention）、优化矩阵乘法（GEMM）以充分利用 Tensor Core、将多个小算子融合为一个大 kernel 减少显存读写。做这些工作的前提是你知道要优化的"对象"是什么——比如 FlashAttention 优化的是 Self-Attention 中 QK^T 和 Softmax 的计算与显存访问模式，如果你不知道 Self-Attention 的计算流程，就无法理解 FlashAttention 在做什么。
+这一类工作最"底层"，直接和 GPU 硬件打交道。典型任务包括：为 Attention 计算编写高效的 CUDA kernel（如实现或改进 FlashAttention）、优化矩阵乘法（GEMM）以充分利用 Tensor Core、将多个小算子融合为一个大 kernel 减少显存读写。做这些工作的前提是你知道要优化的"对象"是什么——比如 FlashAttention 优化的是 Self-Attention 中 $QK^T$ 和 Softmax 的计算与显存访问模式，如果你不知道 Self-Attention 的计算流程，就无法理解 FlashAttention 在做什么。
 
 **分布式训练**
 
@@ -108,11 +109,11 @@ Self-Attention 的做法是：让序列中的每个 token 直接和所有其他 
 
 这带来了两个根本性的优势：
 
-**天然的并行性**。所有 token 对之间的注意力权重可以同时计算——本质上就是一次矩阵乘法 QK^T。矩阵乘法是 GPU 最擅长的操作，数千个 CUDA Core 和 Tensor Core 可以同时参与计算。这让训练速度相比 RNN 有了质的飞跃。
+**天然的并行性**。所有 token 对之间的注意力权重可以同时计算——本质上就是一次矩阵乘法 $QK^T$。矩阵乘法是 GPU 最擅长的操作，数千个 CUDA Core 和 Tensor Core 可以同时参与计算。这让训练速度相比 RNN 有了质的飞跃。
 
 **全局信息访问**。每个 token 可以直接"看到"序列中所有其他 token 的信息，不存在长距离传递的衰减。注意力机制让模型自主学习该关注哪些位置，而不是被迫按照固定的顺序传递信息。
 
-当然，这种"全员互联"的设计也有代价——计算复杂度为 O(N^2)，其中 N 是序列长度。但在实际的训练场景中，并行带来的加速远远超过了 O(N^2) 带来的额外计算量，尤其是在 GPU 的强大矩阵运算能力支撑下。而 O(N^2) 带来的显存和计算问题，恰恰成为了 AI Infra 优化的核心战场（FlashAttention、KV Cache 管理等）。
+当然，这种"全员互联"的设计也有代价——计算复杂度为 $O(N^2)$，其中 $N$ 是序列长度。但在实际的训练场景中，并行带来的加速远远超过了 $O(N^2)$ 带来的额外计算量，尤其是在 GPU 的强大矩阵运算能力支撑下。而 $O(N^2)$ 带来的显存和计算问题，恰恰成为了 AI Infra 优化的核心战场（FlashAttention、KV Cache 管理等）。
 
 ### 2.3 从原始 Transformer 到 LLM 家族
 
@@ -138,7 +139,7 @@ Self-Attention 的做法是：让序列中的每个 token 直接和所有其他 
 
 | AI Infra 层级 | 优化技术 | 对应的 Transformer 模块 |
 |--------------|---------|----------------------|
-| CUDA 算子优化 | FlashAttention / 高效 GEMM | Self-Attention（QK^T 和 PV 矩阵乘法） |
+| CUDA 算子优化 | FlashAttention / 高效 GEMM | Self-Attention（$QK^T$ 和 $PV$ 矩阵乘法） |
 | CUDA 算子优化 | Fused Softmax / Online Softmax | Self-Attention（Softmax 归一化） |
 | CUDA 算子优化 | LayerNorm kernel 融合 | 每个 Decoder Block 的归一化层 |
 | CUDA 算子优化 | RoPE 融合到 Attention kernel | 位置编码（旋转 Q 和 K 向量） |
@@ -155,9 +156,9 @@ Self-Attention 的做法是：让序列中的每个 token 直接和所有其他 
 
 ### 3.1 CUDA 算子优化层
 
-**FlashAttention 与 Self-Attention 的 QK^T / PV 计算**
+**FlashAttention 与 Self-Attention 的 $QK^T$ / $PV$ 计算**
 
-Self-Attention 需要计算一个 N x N 的注意力矩阵（N 为序列长度），标准实现会把这个完整的矩阵写入 GPU 的高带宽显存（HBM），显存占用为 O(N^2)。当序列长度从 2K 增长到 128K 时，显存需求增长 4096 倍。FlashAttention 的核心贡献是将这个巨大的矩阵分块（tiling），每个小块在 GPU 的片上缓存（SRAM）中完成 QK^T、Softmax、PV 的全部计算，避免将完整的 N x N 矩阵写入 HBM。这项优化直接作用于 Self-Attention 的两次核心矩阵乘法，因此要理解 FlashAttention 就必须先理解 Attention 的计算流程。
+Self-Attention 需要计算一个 $N \times N$ 的注意力矩阵（$N$ 为序列长度），标准实现会把这个完整的矩阵写入 GPU 的高带宽显存（HBM），显存占用为 $O(N^2)$。当序列长度从 2K 增长到 128K 时，显存需求增长 4096 倍。FlashAttention 的核心贡献是将这个巨大的矩阵分块（tiling），每个小块在 GPU 的片上缓存（SRAM）中完成 $QK^T$、Softmax、$PV$ 的全部计算，避免将完整的 $N \times N$ 矩阵写入 HBM。这项优化直接作用于 Self-Attention 的两次核心矩阵乘法，因此要理解 FlashAttention 就必须先理解 Attention 的计算流程。
 
 **Fused Softmax 与 Attention 的归一化步骤**
 
@@ -169,21 +170,21 @@ Softmax 操作需要对注意力分数矩阵的每一行先求最大值、再求
 
 **RoPE 融合到 Attention kernel**
 
-旋转位置编码（RoPE）的计算本质是对 Q 和 K 向量的每对相邻维度做旋转变换，计算量不大但调用频繁。将它融合到 Attention kernel 中可以避免为这个小操作单独启动一个 GPU kernel 的开销。这项优化的前提是理解 RoPE 在 Attention 计算流程中的位置——它作用于 Q 和 K 的线性投影之后、QK^T 矩阵乘法之前。
+旋转位置编码（RoPE）的计算本质是对 Q 和 K 向量的每对相邻维度做旋转变换，计算量不大但调用频繁。将它融合到 Attention kernel 中可以避免为这个小操作单独启动一个 GPU kernel 的开销。这项优化的前提是理解 RoPE 在 Attention 计算流程中的位置——它作用于 Q 和 K 的线性投影之后、$QK^T$ 矩阵乘法之前。
 
 ### 3.2 分布式训练层
 
 **张量并行（TP）与 Attention 多头 / FFN 矩阵**
 
-张量并行的核心思想是将一个大矩阵乘法切分到多张 GPU 上并行计算。Transformer 中有两个天然的切分点。第一个是 Multi-Head Attention：比如 32 个 Attention 头可以均匀分配到 4 张 GPU 上，每张卡处理 8 个头，这种切分不需要卡间通信直到最后一步的输出投影。第二个是 FFN：Megatron-LM 将 FFN 的升维矩阵 W_up 按列切分、降维矩阵 W_down 按行切分，使得中间的激活值不需要跨卡通信。这两种切分策略都直接依赖于你对 Attention 多头结构和 FFN 升维-降维结构的理解。
+张量并行的核心思想是将一个大矩阵乘法切分到多张 GPU 上并行计算。Transformer 中有两个天然的切分点。第一个是 Multi-Head Attention：比如 32 个 Attention 头可以均匀分配到 4 张 GPU 上，每张卡处理 8 个头，这种切分不需要卡间通信直到最后一步的输出投影。第二个是 FFN：Megatron-LM 将 FFN 的升维矩阵 $W_{up}$ 按列切分、降维矩阵 $W_{down}$ 按行切分，使得中间的激活值不需要跨卡通信。这两种切分策略都直接依赖于你对 Attention 多头结构和 FFN 升维-降维结构的理解。
 
 **流水线并行（PP）与 Decoder Block 堆叠**
 
-一个大模型通常由几十层 Decoder Block 堆叠而成（如 LLaMA-2-7B 有 32 层）。流水线并行将这些层分成若干段，分配到不同的 GPU 上——比如前 8 层在 GPU 0，第 9-16 层在 GPU 1，以此类推。数据像流水线一样依次流过每段。这种策略之所以可行，根本原因在于每个 Decoder Block 的输入输出维度完全相同（都是 (N, d_model)），前一个 Block 的输出可以直接作为下一个 Block 的输入，天然支持分段。
+一个大模型通常由几十层 Decoder Block 堆叠而成（如 LLaMA-2-7B 有 32 层）。流水线并行将这些层分成若干段，分配到不同的 GPU 上——比如前 8 层在 GPU 0，第 9-16 层在 GPU 1，以此类推。数据像流水线一样依次流过每段。这种策略之所以可行，根本原因在于每个 Decoder Block 的输入输出维度完全相同（都是 $(N, d_{model})$），前一个 Block 的输出可以直接作为下一个 Block 的输入，天然支持分段。
 
 **ZeRO 显存优化与所有参数矩阵**
 
-ZeRO 的策略是将训练过程中的"重复存储"消除——标准数据并行中，每张 GPU 都保存完整的模型参数、梯度和优化器状态，而 ZeRO 将这些按切片分摊到各卡上。这项优化作用于模型的所有参数矩阵——包括 Attention 的 W_Q/W_K/W_V/W_O 和 FFN 的 W_gate/W_up/W_down。理解模型的参数量分布（FFN 约占 2/3，Attention 约占 1/3）对于评估 ZeRO 的显存节省效果和通信开销至关重要。
+ZeRO 的策略是将训练过程中的"重复存储"消除——标准数据并行中，每张 GPU 都保存完整的模型参数、梯度和优化器状态，而 ZeRO 将这些按切片分摊到各卡上。这项优化作用于模型的所有参数矩阵——包括 Attention 的 $W_Q / W_K / W_V / W_O$ 和 FFN 的 $W_{gate} / W_{up} / W_{down}$。理解模型的参数量分布（FFN 约占 2/3，Attention 约占 1/3）对于评估 ZeRO 的显存节省效果和通信开销至关重要。
 
 ### 3.3 推理部署层
 
@@ -197,7 +198,7 @@ LLM 的自回归生成每一步只输出一个 token，但 Attention 计算需�
 
 **量化与所有权重矩阵 / KV Cache**
 
-量化的本质是用更少的比特位表示数值——比如从 FP16（16 位）压缩到 INT4（4 位），权重占用的显存直接降为 1/4。这项技术作用于 Transformer 中所有的权重矩阵（W_Q, W_K, W_V, W_O, W_gate, W_up, W_down）以及 KV Cache。理解每个矩阵的数值分布特征（比如 FFN 的某些层是否有异常大的 activation outlier）对于选择合适的量化策略至关重要。
+量化的本质是用更少的比特位表示数值——比如从 FP16（16 位）压缩到 INT4（4 位），权重占用的显存直接降为 1/4。这项技术作用于 Transformer 中所有的权重矩阵（$W_Q, W_K, W_V, W_O, W_{gate}, W_{up}, W_{down}$）以及 KV Cache。理解每个矩阵的数值分布特征（比如 FFN 的某些层是否有异常大的 activation outlier）对于选择合适的量化策略至关重要。
 
 **Speculative Decoding 与自回归生成的串行瓶颈**
 
@@ -209,7 +210,7 @@ LLM 的自回归生成每一步只输出一个 token，但 Attention 计算需�
 
 为了将上面的理论映射到实践，让我们追踪一个具体的推理请求，从用户发出提问到收到回答，看数据如何流经 Transformer 的每个模块，以及每个环节对应哪些 AI Infra 优化。
 
-假设我们部署了一个 LLaMA-2-7B 模型（32 层 Decoder Block，hidden_dim=4096，32 个 Attention 头），使用 vLLM 推理引擎，用户发送了请求："请用一句话解释什么是 Transformer"。
+假设我们部署了一个 LLaMA-2-7B 模型（32 层 Decoder Block，$hidden\_dim = 4096$，32 个 Attention 头），使用 vLLM 推理引擎，用户发送了请求："请用一句话解释什么是 Transformer"。
 
 ### 4.1 Tokenize 与 Embedding
 
@@ -260,7 +261,7 @@ O = A * V:                  (10, 10) x (10, 128) = (10, 128)  [每个头]
 输出投影: (10, 4096) x (4096, 4096) = (10, 4096)
 ```
 
-AI Infra 优化：FlashAttention 将 QK^T、Scale、Mask、Softmax、PV 全部融合在一个 kernel 中，利用 tiling 技术在 SRAM 中完成计算。Prefill 阶段的 batch 维度较大（10 个 token），属于 Compute Bound 操作。
+AI Infra 优化：FlashAttention 将 $QK^T$、Scale、Mask、Softmax、$PV$ 全部融合在一个 kernel 中，利用 tiling 技术在 SRAM 中完成计算。Prefill 阶段的 batch 维度较大（10 个 token），属于 Compute Bound 操作。
 
 **缓存 K 和 V**：将本层的 K 和 V 存入 KV Cache。
 
@@ -279,7 +280,7 @@ FFN (SwiGLU):
 残差加法: output = h + down                 (10, 4096)
 ```
 
-AI Infra 优化：FFN 的三个大矩阵（W_gate, W_up, W_down）是模型参数的大头（约占 2/3）。在 TP 中，W_gate 和 W_up 按列切分、W_down 按行切分。在量化场景中，这三个矩阵是 INT4/INT8 量化的主要对象。
+AI Infra 优化：FFN 的三个大矩阵（$W_{gate}$, $W_{up}$, $W_{down}$）是模型参数的大头（约占 2/3）。在 TP 中，$W_{gate}$ 和 $W_{up}$ 按列切分、$W_{down}$ 按行切分。在量化场景中，这三个矩阵是 INT4/INT8 量化的主要对象。
 
 **经过全部 32 层后**：最终输出 + Final LayerNorm + LM Head → 词表概率分布 → 采样得到第一个输出 token。
 
@@ -453,5 +454,5 @@ Transformer 的核心骨架虽然稳定，但细节在持续演进：GQA 改变�
 
 - **The Illustrated Transformer** (Jay Alammar)：[https://jalammar.github.io/illustrated-transformer/](https://jalammar.github.io/illustrated-transformer/) -- 图文并茂的 Transformer 入门
 - **Andrej Karpathy: Let's build GPT from scratch**：[https://www.youtube.com/watch?v=kCc8FmEb1nY](https://www.youtube.com/watch?v=kCc8FmEb1nY) -- 从零手写 GPT
-- **3Blue1Brown: But what is a GPT?**：[https://www.youtube.com/watch?v=wjZofJX0v4M](https://www.youtube.com/watch?v=wjZofJX0v4M) -- 直觉级理解 Transformer
+- **3Blue1Brown: But what is a GPT**： [https://www.youtube.com/watch?v=wjZofJX0v4M](https://www.youtube.com/watch?v=wjZofJX0v4M) -- 直觉级理解 Transformer
 - **The Annotated Transformer** (Harvard NLP)：[https://nlp.seas.harvard.edu/annotated-transformer/](https://nlp.seas.harvard.edu/annotated-transformer/) -- 论文逐行对应 PyTorch 实现

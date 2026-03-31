@@ -30,19 +30,19 @@ mathjax: true
 
 ### 1.1 梯度消失与梯度爆炸
 
-神经网络的训练依赖反向传播（Backpropagation），其本质是链式法则（Chain Rule）的递归应用。假设一个 L 层的网络，每层的变换为 f_l，那么损失函数 Loss 对第 1 层参数的梯度涉及从第 L 层到第 1 层的连续偏导数相乘：
+神经网络的训练依赖反向传播（Backpropagation），其本质是链式法则（Chain Rule）的递归应用。假设一个 $L$ 层的网络，每层的变换为 $f_l$，那么损失函数 Loss 对第 1 层参数的梯度涉及从第 $L$ 层到第 1 层的连续偏导数相乘：
 
-```
-dLoss/dW_1 = dLoss/df_L * df_L/df_{L-1} * ... * df_2/df_1 * df_1/dW_1
-```
+$$
+\frac{\partial \text{Loss}}{\partial W_1} = \frac{\partial \text{Loss}}{\partial f_L} \cdot \frac{\partial f_L}{\partial f_{L-1}} \cdots \frac{\partial f_2}{\partial f_1} \cdot \frac{\partial f_1}{\partial W_1}
+$$
 
 这是一连串乘法。想象你在玩一个"传话游戏"：消息从队尾传到队首，每个人都会对消息做一次"缩放"处理再传给下一个人。如果每个人都把消息音量缩小 10%，经过 50 个人之后，消息几乎听不见了——这就是**梯度消失**。反过来，如果每个人都把音量放大 10%，经过 50 个人之后就变成了震耳欲聋的噪声——这就是**梯度爆炸**。
 
-用数学来说，假设每层的雅可比矩阵的谱范数（最大奇异值）为 sigma。经过 L 层的连乘后：
+用数学来说，假设每层的雅可比矩阵的谱范数（最大奇异值）为 $\sigma$。经过 $L$ 层的连乘后：
 
-- 若 sigma < 1，梯度以 sigma^L 的速度指数衰减，深层参数几乎收不到有意义的更新信号
-- 若 sigma > 1，梯度以 sigma^L 的速度指数增长，参数更新剧烈震荡甚至变为 NaN
-- 只有 sigma 恰好等于 1 的理想情况下，梯度才能稳定传播——但这在实际训练中几乎不可能自然满足
+- 若 $\sigma < 1$，梯度以 $\sigma^L$ 的速度指数衰减，深层参数几乎收不到有意义的更新信号
+- 若 $\sigma > 1$，梯度以 $\sigma^L$ 的速度指数增长，参数更新剧烈震荡甚至变为 NaN
+- 只有 $\sigma$ 恰好等于 1 的理想情况下，梯度才能稳定传播——但这在实际训练中几乎不可能自然满足
 
 这个问题随着网络深度的增加而急剧恶化。在 Transformer 出现之前，LSTM 通过门控机制部分缓解了梯度消失；但对于动辄几十上百层的 Transformer 来说，我们需要更根本、更直接的解决方案。
 
@@ -60,11 +60,11 @@ dLoss/dW_1 = dLoss/df_L * df_L/df_{L-1} * ... * df_2/df_1 * df_1/dW_1
 
 2015 年底，何恺明等人提出了 ResNet（Residual Network），用一个极其简洁的结构解决了上述退化问题：
 
-```
-output = x + F(x)
-```
+$$
+\text{output} = x + F(x)
+$$
 
-其中 x 是层的输入，F(x) 是需要学习的变换（称为"残差函数"）。这个加号看似平淡无奇，却彻底改变了深度学习的格局——ResNet 把网络从几十层成功推进到了 152 层乃至上千层，并赢得了 2015 年 ImageNet 竞赛冠军。
+其中 $x$ 是层的输入，$F(x)$ 是需要学习的变换（称为"残差函数"）。这个加号看似平淡无奇，却彻底改变了深度学习的格局——ResNet 把网络从几十层成功推进到了 152 层乃至上千层，并赢得了 2015 年 ImageNet 竞赛冠军。
 
 **为什么学"残差"比学"完整映射"容易？**
 
@@ -73,14 +73,16 @@ output = x + F(x)
 - **方式 A**（无残差）：从零开始画一份全新的终版图纸。你需要重新考虑所有细节，压力巨大。
 - **方式 B**（有残差）：在初版图纸上用红笔标注修改意见。你只需要关注"哪里需要改"，大部分不需要改的内容自动保留。
 
-显然方式 B 的认知负担小得多。当网络某一层确实不需要做太多变换时，F(x) 只需要趋近于零——而学习一个趋近零的函数远比学习一个恒等映射容易。在初始化阶段，权重通常被设为接近零的小值，这意味着 F(x) 天然就接近零，output 接近 x，网络自动具备了"什么都不做"的能力作为起点，然后再从这个起点慢慢学习有意义的变换。
+显然方式 B 的认知负担小得多。当网络某一层确实不需要做太多变换时，$F(x)$ 只需要趋近于零——而学习一个趋近零的函数远比学习一个恒等映射容易。在初始化阶段，权重通常被设为接近零的小值，这意味着 $F(x)$ 天然就接近零，output 接近 $x$，网络自动具备了"什么都不做"的能力作为起点，然后再从这个起点慢慢学习有意义的变换。
 
 2017 年，Vaswani 等人在设计 Transformer 时直接采用了残差连接。在 Transformer 的每个 Decoder Block 中，Attention 子层和 FFN 子层各有一条残差连接：
 
-```
-h = x + Attention(x)
-output = h + FFN(h)
-```
+$$
+\begin{aligned}
+h &= x + \text{Attention}(x) \\
+\text{output} &= h + \text{FFN}(h)
+\end{aligned}
+$$
 
 对于一个包含 32 个 Block 的 LLaMA-7B 模型，信号从第 1 层到第 32 层需要经过 64 个子层。没有残差连接，梯度几乎不可能穿越这么多层而不消失。
 
@@ -90,35 +92,35 @@ output = h + FFN(h)
 
 **无残差连接的情况：**
 
-假设每一层的计算为 x_{l+1} = f_l(x_l)，那么损失 L 对某中间层 x_l 的梯度为：
+假设每一层的计算为 $x_{l+1} = f_l(x_l)$，那么损失 $L$ 对某中间层 $x_l$ 的梯度为：
 
-```
-dL/dx_l = dL/dx_L * (df_{L-1}/dx_{L-1}) * (df_{L-2}/dx_{L-2}) * ... * (df_l/dx_l)
-```
+$$
+\frac{\partial L}{\partial x_l} = \frac{\partial L}{\partial x_L} \cdot \frac{\partial f_{L-1}}{\partial x_{L-1}} \cdot \frac{\partial f_{L-2}}{\partial x_{L-2}} \cdots \frac{\partial f_l}{\partial x_l}
+$$
 
 这是一连串雅可比矩阵的**乘法**。任何一个因子的谱范数偏离 1，经过多层累乘都会导致梯度消失或爆炸。
 
 **有残差连接的情况：**
 
-每一层的计算变为 x_{l+1} = x_l + F_l(x_l)，对 x_l 求导：
+每一层的计算变为 $x_{l+1} = x_l + F_l(x_l)$，对 $x_l$ 求导：
 
-```
-dx_{l+1}/dx_l = I + dF_l/dx_l
-```
+$$
+\frac{\partial x_{l+1}}{\partial x_l} = I + \frac{\partial F_l}{\partial x_l}
+$$
 
-其中 I 是单位矩阵。展开从第 L 层到第 l 层的梯度：
+其中 $I$ 是单位矩阵。展开从第 $L$ 层到第 $l$ 层的梯度：
 
-```
-dL/dx_l = dL/dx_L * (I + dF_{L-1}/dx_{L-1}) * (I + dF_{L-2}/dx_{L-2}) * ... * (I + dF_l/dx_l)
-```
+$$
+\frac{\partial L}{\partial x_l} = \frac{\partial L}{\partial x_L} \cdot \left(I + \frac{\partial F_{L-1}}{\partial x_{L-1}}\right) \cdot \left(I + \frac{\partial F_{L-2}}{\partial x_{L-2}}\right) \cdots \left(I + \frac{\partial F_l}{\partial x_l}\right)
+$$
 
-把这个连乘展开后，其中**必然包含一项恒为 I^(L-l) = I 的乘积**（即所有括号都选 I 那一项），这意味着：
+把这个连乘展开后，其中**必然包含一项恒为 $I^{(L-l)} = I$ 的乘积**（即所有括号都选 $I$ 那一项），这意味着：
 
-```
-dL/dx_l = dL/dx_L * (I + 其他交叉项)
-```
+$$
+\frac{\partial L}{\partial x_l} = \frac{\partial L}{\partial x_L} \cdot (I + \text{其他交叉项})
+$$
 
-关键在于这个 I。无论中间各层的 dF_l/dx_l 有多小甚至趋近于零，梯度 dL/dx_L 都可以通过这条"恒等通道"**原封不动地**传递到第 l 层。这就是残差连接被称为"梯度高速公路"的原因——它在反向传播的计算图中开辟了一条短路路径，梯度不必被逼着走那条经过所有非线性变换的崎岖小路，而是可以直达目的地。
+关键在于这个 $I$。无论中间各层的 $\partial F_l / \partial x_l$ 有多小甚至趋近于零，梯度 $\partial L / \partial x_L$ 都可以通过这条"恒等通道"**原封不动地**传递到第 $l$ 层。这就是残差连接被称为"梯度高速公路"的原因——它在反向传播的计算图中开辟了一条短路路径，梯度不必被逼着走那条经过所有非线性变换的崎岖小路，而是可以直达目的地。
 
 从另一个角度看，残差连接把反向传播中的纯"乘法链"变成了"加法 + 乘法"的混合结构。纯乘法链对数值极其敏感（想想连续乘以 0.9 五十次的结果），而加法的引入让梯度有了一个"保底值"，大幅提升了数值稳定性。
 
@@ -196,16 +198,18 @@ print(f"残差的标准差: {residual.std().item():.6f}")
 
 **原理**
 
-BatchNorm（Batch Normalization，2015 年 Ioffe 和 Szegedy 提出）沿 batch 维度 对每个特征做归一化。对于一个形状为 (B, d) 的输入（B 是 batch size，d 是特征维度），对每个特征维度 j：
+BatchNorm（Batch Normalization，2015 年 Ioffe 和 Szegedy 提出）沿 batch 维度 对每个特征做归一化。对于一个形状为 $(B, d)$ 的输入（$B$ 是 batch size，$d$ 是特征维度），对每个特征维度 $j$：
 
-```
-mu_j = (1/B) * sum_{i=1}^{B} x_{i,j}
-sigma_j^2 = (1/B) * sum_{i=1}^{B} (x_{i,j} - mu_j)^2
-hat_x_{i,j} = (x_{i,j} - mu_j) / sqrt(sigma_j^2 + epsilon)
-y_{i,j} = gamma_j * hat_x_{i,j} + beta_j
-```
+$$
+\begin{aligned}
+\mu_j &= \frac{1}{B} \sum_{i=1}^{B} x_{i,j} \\
+\sigma_j^2 &= \frac{1}{B} \sum_{i=1}^{B} (x_{i,j} - \mu_j)^2 \\
+\hat{x}_{i,j} &= \frac{x_{i,j} - \mu_j}{\sqrt{\sigma_j^2 + \epsilon}} \\
+y_{i,j} &= \gamma_j \cdot \hat{x}_{i,j} + \beta_j
+\end{aligned}
+$$
 
-即：对每个特征通道，统计这个 batch 内所有样本在该通道上的均值和方差，然后做标准化。gamma 和 beta 是可学习的参数，用于恢复表达能力。
+即：对每个特征通道，统计这个 batch 内所有样本在该通道上的均值和方差，然后做标准化。$\gamma$ 和 $\beta$ 是可学习的参数，用于恢复表达能力。
 
 BatchNorm 在 CV 领域取得了巨大成功——它让 CNN 的训练速度和稳定性都有了质的飞跃。但把它搬到 NLP 和 Transformer 中时，会遇到几个根本性的困难：
 
@@ -220,20 +224,22 @@ BatchNorm 在 CV 领域取得了巨大成功——它让 CNN 的训练速度和�
 
 **原理**
 
-LayerNorm（Layer Normalization，2016 年 Jimmy Ba 等人提出）转换了归一化的方向：不是沿 batch 维度，而是沿**特征维度**对每个样本独立做归一化。对于一个形状为 (B, N, d) 的输入（B 是 batch size，N 是序列长度，d 是特征维度），对每个 token 的 d 维特征向量独立归一化：
+LayerNorm（Layer Normalization，2016 年 Jimmy Ba 等人提出）转换了归一化的方向：不是沿 batch 维度，而是沿**特征维度**对每个样本独立做归一化。对于一个形状为 $(B, N, d)$ 的输入（$B$ 是 batch size，$N$ 是序列长度，$d$ 是特征维度），对每个 token 的 $d$ 维特征向量独立归一化：
 
-```
-对于位置 (b, n) 的 token，其特征向量 x 维度为 d：
+对于位置 $(b, n)$ 的 token，其特征向量 $x$ 维度为 $d$：
 
-mu = (1/d) * sum_{j=1}^{d} x_j
-sigma^2 = (1/d) * sum_{j=1}^{d} (x_j - mu)^2
-hat_x_j = (x_j - mu) / sqrt(sigma^2 + epsilon)
-y_j = gamma_j * hat_x_j + beta_j
-```
+$$
+\begin{aligned}
+\mu &= \frac{1}{d} \sum_{j=1}^{d} x_j \\
+\sigma^2 &= \frac{1}{d} \sum_{j=1}^{d} (x_j - \mu)^2 \\
+\hat{x}_j &= \frac{x_j - \mu}{\sqrt{\sigma^2 + \epsilon}} \\
+y_j &= \gamma_j \cdot \hat{x}_j + \beta_j
+\end{aligned}
+$$
 
 **为什么 LayerNorm 适合 Transformer？**
 
-1. **完全独立于 batch**：每个 token 的归一化只依赖自身的 d 维特征，与 batch 中其他样本无关，避免了 BatchNorm 的所有问题。
+1. **完全独立于 batch**：每个 token 的归一化只依赖自身的 $d$ 维特征，与 batch 中其他样本无关，避免了 BatchNorm 的所有问题。
 2. **不受序列长度影响**：不同长度的句子中的 token 各自独立归一化，长度不等完全不是问题。
 3. **训练和推理行为一致**：没有 running mean/variance，训练和推理时的计算逻辑完全相同。
 4. **自回归友好**：逐 token 生成时，每个 token 可以独立归一化，不需要依赖其他 token。
@@ -296,24 +302,26 @@ print(f"最大差异: {(out_manual - out_official).abs().max().item():.2e}")
 
 RMSNorm 去掉了均值的计算，只保留了基于均方根（Root Mean Square）的缩放：
 
-```
-RMS(x) = sqrt((1/d) * sum_{j=1}^{d} x_j^2)
-hat_x_j = x_j / RMS(x)
-y_j = gamma_j * hat_x_j
-```
+$$
+\begin{aligned}
+\text{RMS}(x) &= \sqrt{\frac{1}{d} \sum_{j=1}^{d} x_j^2} \\
+\hat{x}_j &= \frac{x_j}{\text{RMS}(x)} \\
+y_j &= \gamma_j \cdot \hat{x}_j
+\end{aligned}
+$$
 
 注意两个关键简化：
 
 1. **去掉了均值的计算**：不做 re-centering，直接用 RMS 归一化
-2. **通常去掉了 beta 参数**：没有 re-centering 也就不需要偏移项
+2. **通常去掉了 $\beta$ 参数**：没有 re-centering 也就不需要偏移项
 
-从数学上看，RMS(x) 和标准差 std(x) 的关系为：
+从数学上看，$\text{RMS}(x)$ 和标准差 $\text{std}(x)$ 的关系为：
 
-```
-RMS(x)^2 = mean(x^2) = var(x) + mean(x)^2
-```
+$$
+\text{RMS}(x)^2 = \text{mean}(x^2) = \text{Var}(x) + \text{mean}(x)^2
+$$
 
-当 mean(x) 接近 0 时，RMS(x) 近似等于 std(x)，RMSNorm 和 LayerNorm 的行为基本一致。实验表明，在深层 Transformer 中，各层特征向量的均值确实通常接近于零（尤其在 Pre-Norm 架构中，因为残差连接会不断累加，均值的相对比重越来越小），这为 RMSNorm 的有效性提供了直觉解释。
+当 $\text{mean}(x)$ 接近 0 时，$\text{RMS}(x)$ 近似等于 $\text{std}(x)$，RMSNorm 和 LayerNorm 的行为基本一致。实验表明，在深层 Transformer 中，各层特征向量的均值确实通常接近于零（尤其在 Pre-Norm 架构中，因为残差连接会不断累加，均值的相对比重越来越小），这为 RMSNorm 的有效性提供了直觉解释。
 
 **为什么效果相当？**
 
@@ -323,8 +331,8 @@ RMS(x)^2 = mean(x^2) = var(x) + mean(x)^2
 
 RMSNorm 比 LayerNorm 节省的计算量看似不多（少了一次求均值和一次减法），但在实际工程中，这个差异不可忽视：
 
-- LayerNorm 需要**两遍扫描**特征向量：第一遍算均值，第二遍用均值算方差，第三遍用均值和方差做归一化（实际实现中通常合并为两遍：第一遍同时算 sum(x) 和 sum(x^2)，第二遍归一化）
-- RMSNorm 天然只需要**一遍扫描**算 sum(x^2)，然后一遍做归一化
+- LayerNorm 需要**两遍扫描**特征向量：第一遍算均值，第二遍用均值算方差，第三遍用均值和方差做归一化（实际实现中通常合并为两遍：第一遍同时算 $\sum x$ 和 $\sum x^2$，第二遍归一化）
+- RMSNorm 天然只需要**一遍扫描**算 $\sum x^2$，然后一遍做归一化
 
 在 GPU 上，这类操作是 memory-bound 的（瓶颈在显存带宽而非计算能力），减少一次全局扫描意味着少一次 HBM 读取，对性能有实实在在的提升。
 
@@ -376,7 +384,7 @@ print(f"归一化后 RMS 的均值: {rms_after.mean().item():.4f}")
 |---------|-----------|-----------|---------|
 | **归一化维度** | Batch 维度（对每个特征通道跨样本统计） | 特征维度（对每个样本独立统计） | 特征维度（对每个样本独立统计） |
 | **是否有 Mean Shift（去均值）** | 是 | 是 | 否 |
-| **可学习参数** | gamma + beta | gamma + beta | 仅 gamma |
+| **可学习参数** | $\gamma$ + $\beta$ | $\gamma$ + $\beta$ | 仅 $\gamma$ |
 | **Batch 依赖** | 强依赖，小 batch 不稳定 | 无依赖 | 无依赖 |
 | **训练/推理一致性** | 不一致（需 running stats） | 完全一致 | 完全一致 |
 | **计算量（相对）** | 较高（需跨 batch 通信） | 中等（两遍扫描） | 较低（可一遍扫描） |
@@ -437,23 +445,23 @@ LayerNorm 放在子层的前面还是后面，看起来只是一个微不足道�
 
 **Post-Norm 的梯度流**
 
-在 Post-Norm 中，残差加法的结果要再经过一次 LayerNorm。从反向传播的角度看，梯度从第 L 层回传到第 l 层时，每经过一个 Block 都要被 LayerNorm 的雅可比矩阵"调制"一次：
+在 Post-Norm 中，残差加法的结果要再经过一次 LayerNorm。从反向传播的角度看，梯度从第 $L$ 层回传到第 $l$ 层时，每经过一个 Block 都要被 LayerNorm 的雅可比矩阵"调制"一次：
 
-```
-dL/dx_l = dL/dx_L * prod_{k=l}^{L-1} [dLN_k/d(x_k + F_k) * (I + dF_k/dx_k)]
-```
+$$
+\frac{\partial L}{\partial x_l} = \frac{\partial L}{\partial x_L} \prod_{k=l}^{L-1} \left[\frac{\partial \text{LN}_k}{\partial(x_k + F_k)} \cdot \left(I + \frac{\partial F_k}{\partial x_k}\right)\right]
+$$
 
 LayerNorm 的雅可比矩阵并不是单位阵——它涉及均值和方差的梯度，会对回传的梯度做一次非平凡的线性变换。这些变换累乘起来，可能导致梯度的方向和大小发生显著变化。在深层网络中（比如 96 层的 GPT-3），这种累积效应可能引发梯度爆炸，需要精心设计学习率 warmup 策略来抑制。
 
 **Pre-Norm 的梯度流**
 
-在 Pre-Norm 中，残差加法之后**没有**任何操作，输出直接传入下一层。梯度从第 L 层到第 l 层的传播为：
+在 Pre-Norm 中，残差加法之后**没有**任何操作，输出直接传入下一层。梯度从第 $L$ 层到第 $l$ 层的传播为：
 
-```
-dL/dx_l = dL/dx_L * prod_{k=l}^{L-1} [I + d(F_k(LN_k(x_k)))/dx_k]
-```
+$$
+\frac{\partial L}{\partial x_l} = \frac{\partial L}{\partial x_L} \prod_{k=l}^{L-1} \left[I + \frac{\partial\big(F_k(\text{LN}_k(x_k))\big)}{\partial x_k}\right]
+$$
 
-注意这里每个因子都是 "I + 某个东西" 的形式。和前面第 2.2 节的分析一样，展开这个连乘后必然包含 I 项——梯度可以通过恒等路径直达任意浅层，不经过任何 LayerNorm。LayerNorm 的雅可比矩阵只出现在"交叉项"中，不会阻塞主梯度通路。
+注意这里每个因子都是 "$I$ + 某个东西" 的形式。和前面第 2.2 节的分析一样，展开这个连乘后必然包含 $I$ 项——梯度可以通过恒等路径直达任意浅层，不经过任何 LayerNorm。LayerNorm 的雅可比矩阵只出现在"交叉项"中，不会阻塞主梯度通路。
 
 一句话总结：**Pre-Norm 让残差路径保持"纯净"**，梯度可以无损地穿越任意多层，训练自然更加稳定。
 
@@ -482,15 +490,15 @@ dL/dx_l = dL/dx_L * prod_{k=l}^{L-1} [I + d(F_k(LN_k(x_k)))/dx_k]
 
 尽管 Pre-Norm 已经是主流，研究者仍在探索能否兼得两者优点。2022 年，微软提出的 DeepNorm 是一种值得注意的混合方案：
 
-```
-output = LayerNorm(alpha * x + SubLayer(x))
-```
+$$
+\text{output} = \text{LayerNorm}(\alpha \cdot x + \text{SubLayer}(x))
+$$
 
-其中 alpha 是一个与网络深度相关的常数（大于 1），用于放大残差路径的贡献。关键设计是：
+其中 $\alpha$ 是一个与网络深度相关的常数（大于 1），用于放大残差路径的贡献。关键设计是：
 
-- 残差路径乘以 alpha 进行放大
-- SubLayer 的参数按特定规则缩小初始化（乘以 beta，beta < 1）
-- alpha 和 beta 的取值由模型深度 L 决定
+- 残差路径乘以 $\alpha$ 进行放大
+- SubLayer 的参数按特定规则缩小初始化（乘以 $\beta$，$\beta < 1$）
+- $\alpha$ 和 $\beta$ 的取值由模型深度 $L$ 决定
 
 这样做的效果是：在形式上采用 Post-Norm 的结构（可能获得更好的最终效果），但通过放大残差路径和缩小子层输出，实现了类似 Pre-Norm 的梯度稳定性。微软用 DeepNorm 成功训练了 1000 层的 Transformer。
 
@@ -511,19 +519,19 @@ LayerNorm 的计算在数学上并不复杂，但在 GPU 上高效实现却有�
 最朴素的 LayerNorm 实现需要两遍扫描输入数据：
 
 ```
-第一遍：遍历 d 个元素，计算 sum(x) 和 sum(x^2)，进而得到 mean 和 variance
+第一遍：遍历 d 个元素，计算 sum(x) 和 sum(x²)，进而得到 mean 和 variance
 第二遍：再次遍历 d 个元素，用 mean 和 variance 对每个元素做归一化
 ```
 
-这意味着特征向量的数据需要从 HBM（高带宽显存）被读取**两次**。对于 d_model = 4096 甚至 8192 的大模型，每个 token 的特征向量有 4096-8192 个 float16 元素，虽然绝对大小不算大（8-16 KB），但 LayerNorm 在每个 Transformer Block 中被调用两次（Attention 前一次，FFN 前一次），而模型有几十个 Block，加上 batch 和序列长度，累计的 HBM 访问量相当可观。
+这意味着特征向量的数据需要从 HBM（高带宽显存）被读取**两次**。对于 $d_{model} = 4096$ 甚至 8192 的大模型，每个 token 的特征向量有 4096-8192 个 float16 元素，虽然绝对大小不算大（8-16 KB），但 LayerNorm 在每个 Transformer Block 中被调用两次（Attention 前一次，FFN 前一次），而模型有几十个 Block，加上 batch 和序列长度，累计的 HBM 访问量相当可观。
 
 **Welford 算法与在线计算**
 
-一种优化是使用 Welford 在线算法，一遍扫描同时计算均值和方差，避免数值不稳定的 sum(x^2) - (sum(x))^2 公式。但这种方法的累加操作是顺序的，在 GPU 的并行 reduction 框架下实现起来需要仔细处理。
+一种优化是使用 Welford 在线算法，一遍扫描同时计算均值和方差，避免数值不稳定的 $\sum x^2 - (\sum x)^2$ 公式。但这种方法的累加操作是顺序的，在 GPU 的并行 reduction 框架下实现起来需要仔细处理。
 
 **RMSNorm 的优势在这里体现**
 
-RMSNorm 去掉了均值计算，只需要计算 sum(x^2)。这不仅减少了计算量，更重要的是简化了 reduction 操作——只需要一个 reduction（sum of squares）而非两个（sum 和 sum of squares），kernel 实现更简单，数值稳定性问题也更少。
+RMSNorm 去掉了均值计算，只需要计算 $\sum x^2$。这不仅减少了计算量，更重要的是简化了 reduction 操作——只需要一个 reduction（sum of squares）而非两个（sum 和 sum of squares），kernel 实现更简单，数值稳定性问题也更少。
 
 ### 5.2 Residual Add + LayerNorm 融合
 
@@ -559,14 +567,14 @@ next_input = LayerNorm(h)  # 下一个子层的输入需要先归一化
 
 FP16 的有效精度约 3.3 位十进制数（11 位尾数），可表示的最小正数约 6e-8，最大值约 65504。在归一化计算中：
 
-1. **求和时的精度损失**：当 d_model = 4096 时，sum(x) 涉及 4096 个数的累加。如果这些数的量级相近且符号一致，累加结果可能远大于单个元素，导致精度不足。更严重的是，sum(x^2) 中的平方操作会放大数值范围，可能溢出 FP16 的表示范围（65504）。
-2. **方差计算的灾难性抵消**：var(x) = mean(x^2) - mean(x)^2，当方差较小时，这是一个"大数减大数"的操作，会导致灾难性的精度损失。
+1. **求和时的精度损失**：当 $d_{model} = 4096$ 时，$\sum x$ 涉及 4096 个数的累加。如果这些数的量级相近且符号一致，累加结果可能远大于单个元素，导致精度不足。更严重的是，$\sum x^2$ 中的平方操作会放大数值范围，可能溢出 FP16 的表示范围（65504）。
+2. **方差计算的灾难性抵消**：$\text{Var}(x) = \text{mean}(x^2) - \text{mean}(x)^2$，当方差较小时，这是一个"大数减大数"的操作，会导致灾难性的精度损失。
 
 **工程解决方案**
 
 主流的做法是在 reduction 操作（求均值和方差）时**提升到 FP32 精度**进行累加，计算完 mean 和 variance 后再转回 FP16/BF16 做归一化。这在 CUDA kernel 的实现中通常表现为：
 
-```
+```cpp
 // 伪代码
 float sum = 0.0f;      // FP32 累加器
 float sum_sq = 0.0f;   // FP32 累加器
@@ -650,11 +658,11 @@ LLaMA 系列在这个演进中起到了关键作用。Meta 在 LLaMA 论文中�
 
 ## 参考资料
 
-1. He, K., et al. "Deep Residual Learning for Image Recognition." CVPR 2016. -- ResNet 原始论文
-2. Ba, J. L., Kiros, J. R., & Hinton, G. E. "Layer Normalization." arXiv 2016. -- LayerNorm 原始论文
-3. Zhang, B. & Sennrich, R. "Root Mean Square Layer Normalization." NeurIPS 2019. -- RMSNorm 原始论文
-4. Xiong, R., et al. "On Layer Normalization in the Transformer Architecture." ICML 2020. -- Pre-Norm vs Post-Norm 理论分析
-5. Wang, H., et al. "DeepNet: Scaling Transformers to 1,000 Layers." arXiv 2022. -- DeepNorm 方案
-6. Touvron, H., et al. "LLaMA: Open and Efficient Foundation Language Models." arXiv 2023. -- LLaMA 架构选择
-7. Ioffe, S. & Szegedy, C. "Batch Normalization: Accelerating Deep Network Training." ICML 2015. -- BatchNorm 原始论文
-8. Vaswani, A., et al. "Attention Is All You Need." NeurIPS 2017. -- Transformer 原始论文
+- **Deep Residual Learning for Image Recognition** (He et al., 2016)：[https://arxiv.org/abs/1512.03385](https://arxiv.org/abs/1512.03385) -- ResNet 原始论文
+- **Layer Normalization** (Ba et al., 2016)：[https://arxiv.org/abs/1607.06450](https://arxiv.org/abs/1607.06450) -- LayerNorm 原始论文
+- **Root Mean Square Layer Normalization** (Zhang & Sennrich, 2019)：[https://arxiv.org/abs/1910.07467](https://arxiv.org/abs/1910.07467) -- RMSNorm 原始论文
+- **On Layer Normalization in the Transformer Architecture** (Xiong et al., 2020)：[https://arxiv.org/abs/2002.04745](https://arxiv.org/abs/2002.04745) -- Pre-Norm vs Post-Norm 理论分析
+- **DeepNet: Scaling Transformers to 1,000 Layers** (Wang et al., 2022)：[https://arxiv.org/abs/2203.00555](https://arxiv.org/abs/2203.00555) -- DeepNorm 方案
+- **LLaMA: Open and Efficient Foundation Language Models** (Touvron et al., 2023)：[https://arxiv.org/abs/2302.13971](https://arxiv.org/abs/2302.13971) -- LLaMA 架构选择
+- **Batch Normalization: Accelerating Deep Network Training** (Ioffe & Szegedy, 2015)：[https://arxiv.org/abs/1502.03167](https://arxiv.org/abs/1502.03167) -- BatchNorm 原始论文
+- **Attention Is All You Need** (Vaswani et al., 2017)：[https://arxiv.org/abs/1706.03762](https://arxiv.org/abs/1706.03762) -- Transformer 原始论文

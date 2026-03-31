@@ -4,6 +4,7 @@ date: 2026-03-30 13:30:00
 categories:
   - [AI Infra, 前置知识]
 tags: [位置编码, RoPE, Sinusoidal, ALiBi, 长上下文]
+mathjax: true
 ---
 
 位置编码是 Transformer 架构中一个看似不起眼却至关重要的组件。没有它，Transformer 无法区分"猫吃鱼"和"鱼吃猫"的区别。本文从"为什么需要位置信息"这个根本问题出发，系统讲解 Sinusoidal 编码、可学习编码、RoPE、ALiBi 等主流方案的原理与实现，并深入探讨长上下文扩展中的位置编码外推技术，最终关联到 AI Infra 工程实践中的 CUDA kernel 融合与 KV Cache 管理。

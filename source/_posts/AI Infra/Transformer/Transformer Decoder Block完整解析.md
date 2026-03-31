@@ -174,7 +174,7 @@ t3  [  0     0     0     0   -inf ]
 t4  [  0     0     0     0     0  ]
 ```
 
-将 M 加到 S 上之后，被屏蔽的位置变成负无穷。接下来做 softmax 时，e^(-inf) = 0，这些位置的注意力权重就变成了零。
+将 M 加到 S 上之后，被屏蔽的位置变成负无穷。接下来做 softmax 时，$e^{-\infty} = 0$，这些位置的注意力权重就变成了零。
 
 用另一种直观的方式表示——哪些位置能被"看到"（用 1 表示可见，0 表示不可见）：
 
@@ -404,9 +404,9 @@ if __name__ == "__main__":
 
 代码说明几个关键点：
 
-1. **RMSNorm** 只有一个可学习参数 `weight`（即 gamma），没有 bias。它对每个 token 的特征向量计算均方根，然后归一化。
+1. **RMSNorm** 只有一个可学习参数 `weight`（即 $\gamma$），没有 bias。它对每个 token 的特征向量计算均方根，然后归一化。
 2. **RoPE** 是预计算的，不引入额外可学习参数。只对 Q 和 K 旋转，V 保持不变。
-3. **SwiGLU FFN** 有三个权重矩阵，其中 `W_gate` 的输出经过 SiLU 激活后与 `W_up` 的输出逐元素相乘，形成门控机制，最后由 `W_down` 降维。
+3. **SwiGLU FFN** 有三个权重矩阵，其中 $W_{gate}$ 的输出经过 SiLU 激活后与 $W_{up}$ 的输出逐元素相乘，形成门控机制，最后由 $W_{down}$ 降维。
 4. **残差连接**在 Block 的 `forward` 中用简单的加法实现：`h = x + self.attn(self.norm1(x), ...)`。
 
 ---
@@ -415,7 +415,7 @@ if __name__ == "__main__":
 
 不同规模的模型本质上是同一套 Decoder Block 结构，只是维度配置不同。下表汇总了几个标志性模型的关键参数：
 
-| 模型 | d_model | num_heads | num_kv_heads | d_k | num_layers | ffn_dim | vocab_size | max_seq_len |
+| 模型 | $d_{model}$ | $h$ | $h_{kv}$ | $d_k$ | $L$ | $d_{ff}$ | $V$ | max_seq_len |
 |------|---------|-----------|-------------|-----|------------|---------|------------|-------------|
 | LLaMA-2-7B | 4096 | 32 | 32 (MHA) | 128 | 32 | 11008 | 32000 | 4096 |
 | LLaMA-2-13B | 5120 | 40 | 40 (MHA) | 128 | 40 | 13824 | 32000 | 4096 |
@@ -425,9 +425,9 @@ if __name__ == "__main__":
 
 几个值得注意的规律：
 
-**d_k（每头维度）基本恒定为 128**。无论模型多大，每个注意力头处理的维度都是 128。模型变大时增加的是头的数量（num_heads）和层数（num_layers），而非单头维度。这是因为 128 维已经足以让每个头捕捉一种有意义的注意力模式。
+**$d_k$（每头维度）基本恒定为 128**。无论模型多大，每个注意力头处理的维度都是 128。模型变大时增加的是头的数量（$h$）和层数（$L$），而非单头维度。这是因为 128 维已经足以让每个头捕捉一种有意义的注意力模式。
 
-**ffn_dim 与 d_model 的比例**。标准 Transformer 中 ffn_dim = 4 * d_model。但使用 SwiGLU 后，为了保持总参数量不变（三个矩阵 vs 两个矩阵），通常取 ffn_dim = (8/3) * d_model，再向上取整到某个方便的数。比如 LLaMA-2-7B 的 (8/3) * 4096 = 10922.67，取整到 11008（256 的倍数，有利于 GPU 计算对齐）。Mistral-7B 的 ffn_dim = 14336 略大，因为其设计选择了更大的 FFN。
+**$d_{ff}$ 与 $d_{model}$ 的比例**。标准 Transformer 中 $d_{ff} = 4 \times d_{model}$。但使用 SwiGLU 后，为了保持总参数量不变（三个矩阵 vs 两个矩阵），通常取 $d_{ff} = (8/3) \times d_{model}$，再向上取整到某个方便的数。比如 LLaMA-2-7B 的 $(8/3) \times 4096 = 10922.67$，取整到 11008（256 的倍数，有利于 GPU 计算对齐）。Mistral-7B 的 $d_{ff} = 14336$ 略大，因为其设计选择了更大的 FFN。
 
 **GQA 的引入**。LLaMA-2-70B 和 Mistral-7B 使用了 Grouped-Query Attention：KV 头数少于 Q 头数。LLaMA-2-70B 用 8 个 KV 头服务 64 个 Q 头（每组 8 个 Q 头共享 1 组 KV），这将 KV Cache 减少到 MHA 的 1/8，大幅降低推理时的显存消耗。
 
@@ -447,7 +447,7 @@ if __name__ == "__main__":
 
 $$P_{embed} = V \times d$$
 
-其中 V 是词表大小，d 是 d_model。
+其中 $V$ 是词表大小，$d$ 是 $d_{model}$。
 
 **（2）单个 Decoder Block**
 
@@ -457,9 +457,9 @@ Attention 部分四个投影矩阵（不含 bias）：
 
 $$P_{attn} = 4 \times d^2$$
 
-为什么是 4 * d^2？W_Q、W_K、W_V、W_O 每个都是 (d, d) 的矩阵，每个有 d^2 个参数。
+为什么是 $4d^2$？$W_Q$、$W_K$、$W_V$、$W_O$ 每个都是 $(d, d)$ 的矩阵，每个有 $d^2$ 个参数。
 
-如果使用 GQA（KV 头数为 h_kv，Q 头数为 h_q，每头维度 d_k）：
+如果使用 GQA（KV 头数为 $h_{kv}$，Q 头数为 $h_q$，每头维度 $d_k$）：
 
 $$P_{attn} = d \times (h_q \cdot d_k) + 2 \times d \times (h_{kv} \cdot d_k) + (h_q \cdot d_k) \times d$$
 
@@ -469,9 +469,9 @@ SwiGLU FFN 部分三个矩阵（不含 bias）：
 
 $$P_{ffn} = 3 \times d \times d_{ff}$$
 
-其中 d_ff 是 FFN 中间维度。
+其中 $d_{ff}$ 是 FFN 中间维度。
 
-RMSNorm 部分（两个，每个有 d 个参数）：
+RMSNorm 部分（两个，每个有 $d$ 个参数）：
 
 $$P_{norm} = 2 \times d$$
 
@@ -483,48 +483,48 @@ $$P_{block} = 4d^2 + 3 \times d \times d_{ff} + 2d \quad (\text{MHA 情况})$$
 
 $$P_{final} = d + V \times d$$
 
-第一项是最终 RMSNorm 的参数，第二项是 LM Head 的参数（将 d_model 映射到 vocab_size）。
+第一项是最终 RMSNorm 的参数，第二项是 LM Head 的参数（将 $d_{model}$ 映射到 $V$）。
 
 **（4）模型总参数量**
 
 $$P_{total} = V \times d + L \times P_{block} + d + V \times d$$
 
-其中 L 是层数。如果 Embedding 和 LM Head 共享权重（Weight Tying），则减去一个 V * d。
+其中 $L$ 是层数。如果 Embedding 和 LM Head 共享权重（Weight Tying），则减去一个 $V \times d$。
 
 ### 6.2 详细计算：以 LLaMA-2-7B 为例
 
-配置回顾：d = 4096, h = 32, d_k = 128, d_ff = 11008, L = 32, V = 32000
+配置回顾：$d = 4096$, $h = 32$, $d_k = 128$, $d_{ff} = 11008$, $L = 32$, $V = 32000$
 
 **Attention 参数量（单 Block）：**
 
 | 矩阵 | 形状 | 参数量 |
 |-------|------|--------|
-| W_Q | 4096 x 4096 | 16,777,216 |
-| W_K | 4096 x 4096 | 16,777,216 |
-| W_V | 4096 x 4096 | 16,777,216 |
-| W_O | 4096 x 4096 | 16,777,216 |
+| $W_Q$ | 4096 x 4096 | 16,777,216 |
+| $W_K$ | 4096 x 4096 | 16,777,216 |
+| $W_V$ | 4096 x 4096 | 16,777,216 |
+| $W_O$ | 4096 x 4096 | 16,777,216 |
 | **Attention 小计** | | **67,108,864 (67.1M)** |
 
-验证：4 x 4096^2 = 4 x 16,777,216 = 67,108,864
+验证：$4 \times 4096^2 = 4 \times 16{,}777{,}216 = 67{,}108{,}864$
 
 **FFN 参数量（单 Block）：**
 
 | 矩阵 | 形状 | 参数量 |
 |-------|------|--------|
-| W_gate | 4096 x 11008 | 45,088,768 |
-| W_up | 4096 x 11008 | 45,088,768 |
-| W_down | 11008 x 4096 | 45,088,768 |
+| $W_{gate}$ | 4096 x 11008 | 45,088,768 |
+| $W_{up}$ | 4096 x 11008 | 45,088,768 |
+| $W_{down}$ | 11008 x 4096 | 45,088,768 |
 | **FFN 小计** | | **135,266,304 (135.3M)** |
 
-验证：3 x 4096 x 11008 = 3 x 45,088,768 = 135,266,304
+验证：$3 \times 4096 \times 11008 = 3 \times 45{,}088{,}768 = 135{,}266{,}304$
 
 **RMSNorm 参数量（单 Block）：**
 
-2 x 4096 = 8,192
+$2 \times 4096 = 8{,}192$
 
 **单 Block 合计：**
 
-67,108,864 + 135,266,304 + 8,192 = **202,383,360 (~202M)**
+$67{,}108{,}864 + 135{,}266{,}304 + 8{,}192$ = **202,383,360 (~202M)**
 
 其中 FFN 占比 = 135.3M / 202.4M = **66.8%**，Attention 占比 = 67.1M / 202.4M = **33.2%**
 
@@ -532,32 +532,32 @@ $$P_{total} = V \times d + L \times P_{block} + d + V \times d$$
 
 | 组件 | 计算 | 参数量 |
 |------|------|--------|
-| Token Embedding | 32000 x 4096 | 131,072,000 |
-| 32 层 Block | 32 x 202,383,360 | 6,476,267,520 |
+| Token Embedding | $32000 \times 4096$ | 131,072,000 |
+| 32 层 Block | $32 \times 202{,}383{,}360$ | 6,476,267,520 |
 | 最终 RMSNorm | 4096 | 4,096 |
-| LM Head | 4096 x 32000 | 131,072,000 |
+| LM Head | $4096 \times 32000$ | 131,072,000 |
 | **总计** | | **6,738,415,616 (~6.74B)** |
 
 如果 Embedding 和 LM Head 共享权重，则减去 131M，约 **6.61B**。官方标注 "7B" 是近似值。
 
 ### 6.3 练习：LLaMA-2-13B 参数量
 
-配置：d = 5120, h = 40, d_k = 128, d_ff = 13824, L = 40, V = 32000
+配置：$d = 5120$, $h = 40$, $d_k = 128$, $d_{ff} = 13824$, $L = 40$, $V = 32000$
 
 读者可以先自己算，再对照下面的答案：
 
 **单 Block：**
-- Attention: 4 x 5120^2 = 4 x 26,214,400 = 104,857,600 (104.9M)
-- FFN: 3 x 5120 x 13824 = 3 x 70,778,880 = 212,336,640 (212.3M)
-- RMSNorm: 2 x 5120 = 10,240
-- 单 Block 合计: 317,204,480 (~317M)
+- Attention: $4 \times 5120^2 = 4 \times 26{,}214{,}400 = 104{,}857{,}600$ (104.9M)
+- FFN: $3 \times 5120 \times 13824 = 3 \times 70{,}778{,}880 = 212{,}336{,}640$ (212.3M)
+- RMSNorm: $2 \times 5120 = 10{,}240$
+- 单 Block 合计: $317{,}204{,}480$ (~317M)
 
 **整个模型：**
-- Embedding: 32000 x 5120 = 163,840,000
-- 40 层 Block: 40 x 317,204,480 = 12,688,179,200
-- 最终 RMSNorm: 5,120
-- LM Head: 5120 x 32000 = 163,840,000
-- 总计: **13,015,864,320 (~13.0B)**
+- Embedding: $32000 \times 5120 = 163{,}840{,}000$
+- 40 层 Block: $40 \times 317{,}204{,}480 = 12{,}688{,}179{,}200$
+- 最终 RMSNorm: $5{,}120$
+- LM Head: $5120 \times 32000 = 163{,}840{,}000$
+- 总计: **$13{,}015{,}864{,}320$ (~13.0B)**
 
 与官方标注的 13B 吻合。
 
@@ -568,9 +568,9 @@ $$P_{total} = V \times d + L \times P_{block} + d + V \times d$$
 直觉上可以这样理解：Embedding 层的工作是"将 token ID 映射为语义向量"（从离散空间到连续空间），LM Head 的工作是"将语义向量映射回 token 概率"（从连续空间到离散空间）。这两个操作是互逆的，使用相同的权重矩阵（一个用正矩阵，一个用其转置）是合理的。
 
 Weight Tying 的好处：
-- **节省参数**：对于 V=32000, d=4096 的模型，节省 131M 参数，约占 7B 模型的 2%
+- **节省参数**：对于 $V=32000$, $d=4096$ 的模型，节省 131M 参数，约占 7B 模型的 2%
 - **正则化效果**：共享权重相当于一种隐式的约束，防止 Embedding 空间和输出空间"漂移"
-- **减少显存**：少存储一个 (V, d) 矩阵
+- **减少显存**：少存储一个 $(V, d)$ 矩阵
 
 LLaMA-2 系列使用了 Weight Tying，而 GPT-3 没有使用。是否使用取决于词表大小与模型大小的比例——当词表相对于模型较小时（如 32000 vs 7B），共享带来的参数节省比例很小，但正则化效果仍然有意义。
 
@@ -582,24 +582,24 @@ LLaMA-2 系列使用了 Weight Tying，而 GPT-3 没有使用。是否使用取�
 
 ### 7.1 矩阵乘法的 FLOPs
 
-计算量估算的基础是矩阵乘法。一个 (M, K) x (K, N) 的矩阵乘法：
-- 结果矩阵有 M x N 个元素
-- 每个元素需要 K 次乘法和 K-1 次加法
-- 总 FLOPs 约为 2 x M x K x N（乘法和加法各算一次浮点操作）
+计算量估算的基础是矩阵乘法。一个 $(M, K) \times (K, N)$ 的矩阵乘法：
+- 结果矩阵有 $M \times N$ 个元素
+- 每个元素需要 $K$ 次乘法和 $K-1$ 次加法
+- 总 FLOPs 约为 $2 \times M \times K \times N$（乘法和加法各算一次浮点操作）
 
 ### 7.2 单次前向传播的 FLOPs
 
-对于一个有 N 个参数的 Transformer 模型，处理长度为 s 的序列时，前向传播的计算量近似为：
+对于一个有 $N$ 个参数的 Transformer 模型，处理长度为 $s$ 的序列时，前向传播的计算量近似为：
 
 $$FLOPs_{forward} \approx 2 \times N \times s$$
 
-这就是 "2N" 经验法则。这里的直觉是：模型的主要计算都是矩阵乘法，每个参数在前向传播中恰好参与一次矩阵乘法，贡献约 2 FLOPs（一次乘法一次加法），再乘以序列中的 s 个 token。
+这就是 "$2N$" 经验法则。这里的直觉是：模型的主要计算都是矩阵乘法，每个参数在前向传播中恰好参与一次矩阵乘法，贡献约 2 FLOPs（一次乘法一次加法），再乘以序列中的 $s$ 个 token。
 
-更精确地说，这个 2Ns 只计算了线性层（GEMM）的 FLOPs，忽略了 Attention 中 QK^T 和 AV 的计算量（这部分与序列长度的平方成正比）。完整的公式是：
+更精确地说，这个 $2Ns$ 只计算了线性层（GEMM）的 FLOPs，忽略了 Attention 中 $QK^T$ 和 $AV$ 的计算量（这部分与序列长度的平方成正比）。完整的公式是：
 
 $$FLOPs_{forward} \approx 2Ns + 2 \times L \times h \times s^2 \times d_k$$
 
-其中第二项是 Attention 的计算量（每层每个头有两个 (s, d_k) x (d_k, s) 的矩阵乘法）。当序列长度 s 较短时（比如 2048），第二项远小于第一项，"2Ns" 是一个好的近似。当 s 很长（如 128K）时，Attention 的计算量可能接近甚至超过线性层。
+其中第二项是 Attention 的计算量（每层每个头有两个 $(s, d_k) \times (d_k, s)$ 的矩阵乘法）。当序列长度 $s$ 较短时（比如 2048），第二项远小于第一项，"$2Ns$" 是一个好的近似。当 $s$ 很长（如 128K）时，Attention 的计算量可能接近甚至超过线性层。
 
 ### 7.3 训练 vs 推理的 FLOPs
 
@@ -609,29 +609,29 @@ $$FLOPs_{forward} \approx 2Ns + 2 \times L \times h \times s^2 \times d_k$$
 
 $$FLOPs_{train} \approx 3 \times FLOPs_{forward} = 6Ns \quad (\text{per token})$$
 
-对于整个训练过程，如果训练了 T 个 token：
+对于整个训练过程，如果训练了 $T$ 个 token：
 
 $$FLOPs_{total} = 6 \times N \times T$$
 
 举个例子：LLaMA-2-7B 用 2 万亿 token 训练：
-- FLOPs = 6 x 6.7B x 2T = 6 x 6.7 x 10^9 x 2 x 10^12 = 8.04 x 10^22
+- FLOPs $= 6 \times 6.7\text{B} \times 2\text{T} = 6 \times 6.7 \times 10^9 \times 2 \times 10^{12} = 8.04 \times 10^{22}$
 
 如果使用 1000 张 A100（BF16 峰值算力 312 TFLOPS 每张，假设 MFU=50%）：
-- 有效算力 = 1000 x 312 x 10^12 x 0.5 = 1.56 x 10^17 FLOPS
-- 训练时间 = 8.04 x 10^22 / 1.56 x 10^17 = 515,385 秒 = 约 6 天
+- 有效算力 $= 1000 \times 312 \times 10^{12} \times 0.5 = 1.56 \times 10^{17}$ FLOPS
+- 训练时间 $= 8.04 \times 10^{22} / 1.56 \times 10^{17} = 515{,}385$ 秒 = 约 6 天
 
 这与实际公开的训练时间量级相符。
 
 **推理时的 FLOPs**
 
-推理只有前向传播，per token 约 2N FLOPs。但推理的特殊之处在于 Decode 阶段每步只处理 1 个 token，矩阵乘法退化为矩阵-向量乘（GEMV），GPU 的算力远远用不满，瓶颈变成了显存带宽而非计算能力。所以推理优化更关注显存带宽（Memory Bound）而非峰值算力。
+推理只有前向传播，per token 约 $2N$ FLOPs。但推理的特殊之处在于 Decode 阶段每步只处理 1 个 token，矩阵乘法退化为矩阵-向量乘（GEMV），GPU 的算力远远用不满，瓶颈变成了显存带宽而非计算能力。所以推理优化更关注显存带宽（Memory Bound）而非峰值算力。
 
 ### 7.4 估算实例
 
 以 LLaMA-2-7B 推理为例，在 A100-80GB 上：
-- 单 token Decode FLOPs = 2 x 6.7B = 13.4 GFLOPs
-- A100 FP16 峰值算力 = 312 TFLOPS
-- 理论上 FLOPs 只需 13.4G / 312T = 0.043ms
+- 单 token Decode FLOPs $= 2 \times 6.7\text{B} = 13.4$ GFLOPs
+- A100 FP16 峰值算力 $= 312$ TFLOPS
+- 理论上 FLOPs 只需 $13.4\text{G} / 312\text{T} = 0.043\text{ms}$
 
 但实际一个 token 的 Decode 时间约为 10-20ms。为什么差了几百倍？因为 Decode 是 Memory Bound：需要从 HBM 搬运全部模型权重（13.4 GB FP16），A100 的 HBM 带宽是 2 TB/s，光搬权重就需要 13.4 GB / 2 TB/s = 6.7ms，再加上 KV Cache 的搬运和其他开销，10-20ms 就合理了。
 
@@ -662,23 +662,23 @@ FP16 和 BF16 都是 16 位浮点数，占用相同的显存。BF16 的指数位
 
 **（1）模型权重：2 Bytes/param**
 
-训练时模型以 BF16 存储，即 2N Bytes（N 为参数量）。
+训练时模型以 BF16 存储，即 $2N$ Bytes（$N$ 为参数量）。
 
 **（2）梯度：2 Bytes/param**
 
-梯度与权重形状相同，BF16 存储，2N Bytes。
+梯度与权重形状相同，BF16 存储，$2N$ Bytes。
 
 **（3）优化器状态：视优化器而定**
 
 这是显存消耗的大头。以最常用的 Adam/AdamW 优化器为例，它需要维护三样东西：
 
-- **FP32 参数副本（Master Weights）**：4N Bytes。为什么需要 FP32 副本？BF16 只有约 3-4 位有效数字，在更新权重时，如果学习率乘以梯度的值很小（比如 1e-5），BF16 的精度不够表示这个微小的增量，更新就会被"四舍五入"掉。FP32 有约 7 位有效数字，能捕捉这些微小更新。
-- **一阶动量（First Moment, m）**：4N Bytes。Adam 维护梯度的指数移动平均，用于估计梯度的均值。
-- **二阶动量（Second Moment, v）**：4N Bytes。Adam 维护梯度平方的指数移动平均，用于估计梯度的方差，实现自适应学习率。
+- **FP32 参数副本（Master Weights）**：$4N$ Bytes。为什么需要 FP32 副本？BF16 只有约 3-4 位有效数字，在更新权重时，如果学习率乘以梯度的值很小（比如 1e-5），BF16 的精度不够表示这个微小的增量，更新就会被"四舍五入"掉。FP32 有约 7 位有效数字，能捕捉这些微小更新。
+- **一阶动量（First Moment, m）**：$4N$ Bytes。Adam 维护梯度的指数移动平均，用于估计梯度的均值。
+- **二阶动量（Second Moment, v）**：$4N$ Bytes。Adam 维护梯度平方的指数移动平均，用于估计梯度的方差，实现自适应学习率。
 
-优化器状态合计：4N + 4N + 4N = **12N Bytes**。
+优化器状态合计：$4N + 4N + 4N$ = **$12N$ Bytes**。
 
-所以人们说"Adam 需要 4x 参数量的显存"，指的就是 12N / (2N 权重 + 2N 梯度) = 大约 3-4 倍额外显存：优化器状态 12N 本身就是 BF16 权重 2N 的 6 倍。
+所以人们说"Adam 需要 4x 参数量的显存"，指的就是 $12N / (2N + 2N)$ = 大约 3-4 倍额外显存：优化器状态 $12N$ 本身就是 BF16 权重 $2N$ 的 6 倍。
 
 **（4）Activation Memory（激活值显存）**
 
@@ -686,7 +686,7 @@ FP16 和 BF16 都是 16 位浮点数，占用相同的显存。BF16 的指数位
 
 $$M_{act} \approx s \times b \times d \times L \times k$$
 
-其中 s 是序列长度，b 是 batch_size，d 是 d_model，L 是层数，k 是一个常数（约 10-14，取决于是否使用 Activation Checkpointing）。
+其中 $s$ 是序列长度，$b$ 是 batch_size，$d$ 是 $d_{model}$，$L$ 是层数，$k$ 是一个常数（约 10-14，取决于是否使用 Activation Checkpointing）。
 
 对于 LLaMA-2-7B，seq_len=2048, batch_size=4, 不使用 Activation Checkpointing：
 - 粗估 $M_{act} \approx 2048 \times 4 \times 4096 \times 32 \times 12 \times 2$ Bytes (BF16)
@@ -698,11 +698,11 @@ $$M_{act} \approx s \times b \times d \times L \times k$$
 
 | 组件 | 计算方式 | 显存 |
 |------|---------|------|
-| BF16 模型权重 | 6.7B x 2 | 13.4 GB |
-| BF16 梯度 | 6.7B x 2 | 13.4 GB |
-| FP32 Master Weights | 6.7B x 4 | 26.8 GB |
-| Adam 一阶动量 (FP32) | 6.7B x 4 | 26.8 GB |
-| Adam 二阶动量 (FP32) | 6.7B x 4 | 26.8 GB |
+| BF16 模型权重 | $6.7\text{B} \times 2$ | 13.4 GB |
+| BF16 梯度 | $6.7\text{B} \times 2$ | 13.4 GB |
+| FP32 Master Weights | $6.7\text{B} \times 4$ | 26.8 GB |
+| Adam 一阶动量 (FP32) | $6.7\text{B} \times 4$ | 26.8 GB |
+| Adam 二阶动量 (FP32) | $6.7\text{B} \times 4$ | 26.8 GB |
 | **静态合计** | | **107.2 GB** |
 | Activation (估算) | batch=4, seq=2048 | ~25.8 GB |
 | **总计** | | **~133 GB** |
@@ -723,10 +723,10 @@ $$M_{act} \approx s \times b \times d \times L \times k$$
 
 $$M_{kv} = 2 \times L \times h_{kv} \times d_k \times s \times b \times \text{bytes\_per\_element}$$
 
-以 LLaMA-2-7B（MHA, h_kv = 32）为例：
-- 单个 token：2 x 32(层) x 32(头) x 128(head_dim) x 2(FP16) = 524,288 Bytes = 512 KB
-- seq_len = 4096：4096 x 512 KB = 2 GB
-- batch_size = 16：16 x 2 GB = 32 GB
+以 LLaMA-2-7B（MHA, $h_{kv} = 32$）为例：
+- 单个 token：$2 \times 32 \times 32 \times 128 \times 2 = 524{,}288$ Bytes = 512 KB
+- seq_len = 4096：$4096 \times 512$ KB = 2 GB
+- batch_size = 16：$16 \times 2$ GB = 32 GB
 
 **推理态显存汇总：**
 
@@ -744,12 +744,12 @@ $$M_{kv} = 2 \times L \times h_{kv} \times d_k \times s \times b \times \text{by
 **场景：用单张 A100-80GB 部署 LLaMA-2-13B 进行推理，目标 batch_size=8，最大序列长度 4096，能否装下？**
 
 第一步，计算模型权重：
-- 13B 参数 x 2 Bytes (FP16) = 26 GB
+- 13B 参数 $\times$ 2 Bytes (FP16) = 26 GB
 
 第二步，计算 KV Cache：
-- LLaMA-2-13B 配置：L=40, h_kv=40 (MHA), d_k=128
-- 单 token KV：2 x 40 x 40 x 128 x 2 = 819,200 Bytes = 800 KB
-- seq=4096, batch=8：4096 x 800 KB x 8 = 25.6 GB
+- LLaMA-2-13B 配置：$L=40$, $h_{kv}=40$ (MHA), $d_k=128$
+- 单 token KV：$2 \times 40 \times 40 \times 128 \times 2 = 819{,}200$ Bytes = 800 KB
+- seq=4096, batch=8：$4096 \times 800\text{KB} \times 8 = 25.6$ GB
 
 第三步，加上框架开销：
 - CUDA 上下文 + 框架 buffer + 临时空间 约 2 GB
@@ -760,11 +760,11 @@ $$M_{kv} = 2 \times L \times h_{kv} \times d_k \times s \times b \times \text{by
 **结论：53.6 GB < 80 GB，可以装下**，还有约 26 GB 的余量。
 
 但如果想把 batch_size 提高到 16 呢？
-- KV Cache 翻倍：25.6 x 2 = 51.2 GB
-- 总计：26 + 51.2 + 2 = 79.2 GB
+- KV Cache 翻倍：$25.6 \times 2 = 51.2$ GB
+- 总计：$26 + 51.2 + 2 = 79.2$ GB
 
 非常接近 80 GB 上限，几乎没有余量，实际运行大概率 OOM。此时的选择：
-1. 使用 INT8 量化模型权重：13B x 1 = 13 GB，总计 66.2 GB，可行
+1. 使用 INT8 量化模型权重：$13\text{B} \times 1 = 13$ GB，总计 66.2 GB，可行
 2. 使用 GQA 模型（如 Mistral）减少 KV Cache
 3. 使用 KV Cache 量化
 4. 减少最大序列长度
@@ -809,9 +809,9 @@ $$M_{kv} = 2 \times L \times h_{kv} \times d_k \times s \times b \times \text{by
 
 - 能解释 Decoder-only 架构为什么在大模型时代胜出，至少说出三个理由
 - 能在白板上画出完整的 Decoder Block 数据流图，标注 RMSNorm、Masked MHA、SwiGLU FFN、残差连接的位置和顺序
-- 能画出因果掩码矩阵（给定序列长度 N），解释上三角 -inf 的作用
+- 能画出因果掩码矩阵（给定序列长度 $N$），解释上三角 $-\infty$ 的作用
 - 能手算 LLaMA-2-7B 和 13B 的参数量（误差不超过 5%），说清 FFN 和 Attention 的参数比例
-- 能用 "6Ns" 公式估算训练 FLOPs，用 "2Ns" 估算推理 FLOPs
+- 能用 "$6Ns$" 公式估算训练 FLOPs，用 "$2Ns$" 估算推理 FLOPs
 - 能计算给定模型在 FP16、INT8、INT4 下的权重显存
 - 能算出 Adam 优化器需要多少显存，并解释为什么需要 FP32 Master Weights
 - 给定一个模型配置和 GPU 型号，能完成完整的显存规划（权重 + KV Cache 或 权重 + 梯度 + 优化器 + Activation），判断是否能装下
