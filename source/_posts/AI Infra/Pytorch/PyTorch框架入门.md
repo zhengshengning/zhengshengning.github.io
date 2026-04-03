@@ -10,7 +10,7 @@ PyTorch 是当前大模型训练和推理的事实标准框架。本文聚焦于
 
 <!-- more -->
 
-## 目录
+## 📑 目录
 
 - [1. Tensor：PyTorch 的基本数据单元](#1-tensorpytorch-的基本数据单元)
 - [2. 自动微分（autograd）](#2-自动微分autograd)
@@ -599,7 +599,7 @@ prof.export_chrome_trace("trace.json")   # 可在 chrome://tracing 中可视化
 
 ---
 
-## 总结
+## 📝 总结
 
 | 层次 | 内容 | 核心能力 |
 |------|------|---------|
@@ -614,7 +614,7 @@ prof.export_chrome_trace("trace.json")   # 可在 chrome://tracing 中可视化
 
 ---
 
-## 检验标准与进阶方向
+## 🎯 检验标准与进阶方向
 
 ### 自我检验清单
 
@@ -638,7 +638,7 @@ prof.export_chrome_trace("trace.json")   # 可在 chrome://tracing 中可视化
 | torch.compile | 图编译优化、TorchDynamo | [torch.compile Tutorial](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html) |
 | 推理优化 | TorchScript、ONNX 导出、量化 | [PyTorch Quantization Docs](https://pytorch.org/docs/stable/quantization.html) |
 
-## 参考资料
+## 📚 参考资料
 
 - [PyTorch 官方文档](https://pytorch.org/docs/stable/)
 - [PyTorch Tutorials](https://pytorch.org/tutorials/)

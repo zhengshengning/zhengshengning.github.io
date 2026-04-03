@@ -39,7 +39,7 @@ OpenCode 是一个开源的 AI 编程智能体，提供基于终端的界面、�
 
 > 白话理解：API 密钥就像一把"通行证钥匙"，你拿着它才能调用大模型的能力。每个提供商（比如 OpenAI、Anthropic）会给你发一串字符串，OpenCode 拿着这串字符串去帮你跟大模型对话。
 
-## 安装
+## ⚙️ 安装
 
 安装 OpenCode 最简单的方法是通过安装脚本。
 
@@ -149,7 +149,7 @@ docker run -it --rm ghcr.io/anomalyco/opencode
 
 你也可以从 [Releases](https://github.com/anomalyco/opencode/releases) 下载二进制文件。
 
-## 配置
+## ⚙️ 配置
 
 使用 OpenCode，你可以通过配置 API 密钥来使用任何 LLM 提供商。
 
@@ -171,7 +171,7 @@ docker run -it --rm ghcr.io/anomalyco/opencode
 
 或者，你可以选择其他提供商之一。[了解更多](/docs/providers#directory)。
 
-## 初始化
+## 🎬 初始化
 
 现在你已经配置了提供商，可以导航到你想处理的项目。
 
@@ -204,7 +204,7 @@ opencode
 
 这有助于 OpenCode 理解项目结构和使用的编码模式。
 
-## 用法
+## 📖 用法
 
 现在你准备好使用 OpenCode 来处理你的项目了。随意问它任何问题！
 
@@ -325,7 +325,7 @@ Can you refactor the function in @packages/functions/src/api/index.ts?
 /redo
 ```
 
-## 分享
+## 🔗 分享
 
 你与 OpenCode 的对话可以 [与你的团队分享](/docs/share)。
 
@@ -340,13 +340,13 @@ Can you refactor the function in @packages/functions/src/api/index.ts?
 
 这里有一个与 OpenCode 的 [对话示例](https://opencode.ai/s/4XP1fce5)。
 
-## 自定义
+## 🎛️ 自定义
 
 就是这样！你现在是使用 OpenCode 的专家了。
 
 为了让它更适合你，我们建议 [选择一个主题](/docs/themes)、[自定义键绑定](/docs/keybinds)、[配置代码格式化程序](/docs/formatters)、[创建自定义命令](/docs/commands)，或者摆弄 [OpenCode 配置](/docs/config)。
 
-## 检验标准与进阶方向
+## 🎯 检验标准与进阶方向
 
 ### 自我检验清单
 
@@ -372,7 +372,7 @@ Can you refactor the function in @packages/functions/src/api/index.ts?
 | MCP 集成 | 通过 Model Context Protocol 扩展 OpenCode 的能力，接入数据库、API 等外部工具 | [MCP 文档](https://opencode.ai/docs/mcp) |
 | 提示工程 | 学习如何编写更精准的提示词，提升 AI 生成代码的质量和准确性 | [OpenCode 最佳实践](https://opencode.ai/docs/) |
 
-## 参考资料
+## 📚 参考资料
 
 - [OpenCode 官方文档](https://opencode.ai/docs/) - 官方完整文档，涵盖安装、配置、使用的方方面面
 - [OpenCode GitHub 仓库](https://github.com/anomalyco/opencode) - 源代码、Issue 追踪和 Release 下载

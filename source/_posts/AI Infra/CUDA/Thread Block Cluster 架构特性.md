@@ -138,11 +138,11 @@ conv2d_cluster() {
 - **硬件加速同步原语**：原生支持Cluster级别barrier
 - **低延迟跨SM访问**：DSM访问延迟接近本地Shared Memory
 
-## 总结
+## 📝 总结
 
 Thread Block Cluster是Hopper架构的重要创新，为大规模协作并行计算提供了更高效的硬件支持。其核心价值在于通过Distributed Shared Memory实现低延迟的跨Block数据共享，特别适合需要大量Block间数据交换的算法（如大型矩阵运算、3D卷积等）。
 
-## 检验标准与进阶方向
+## 🎯 检验标准与进阶方向
 
 ### 自我检验清单
 
@@ -165,7 +165,7 @@ Thread Block Cluster是Hopper架构的重要创新，为大规模协作并行计
 | CUTLASS 3.x Cluster 支持 | CUTLASS 3.x 原生支持 Cluster 级别的 GEMM 分块策略，可直接参考工业级实现 | [CUTLASS 3.x](https://github.com/NVIDIA/cutlass/tree/main/examples/cute) |
 | Hopper 架构深度分析 | 全面理解 Hopper 架构的硬件特性（SM 结构、内存层次、互连拓扑），为 Cluster 编程打下硬件基础 | [H100 Architecture Whitepaper](https://resources.nvidia.com/en-us-tensor-core) |
 
-## 参考资料
+## 📚 参考资料
 
 - [CUDA C Programming Guide - Thread Block Clusters](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#thread-block-clusters)
 - [NVIDIA H100 Tensor Core GPU Architecture](https://resources.nvidia.com/en-us-tensor-core)

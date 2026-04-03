@@ -10,13 +10,13 @@ tags: [Python, uv, CLI, Click, 命令行工具]
 
 <!-- more -->
 
-## 为什么选择 uv？
+## ❓ 为什么选择 uv？
 
 `uv` 是 Astral 团队（ruff 的开发者）推出的新一代 Python 包管理工具，它比传统的 `pip` 快 10-100 倍，并且原生支持 `pyproject.toml` 标准。使用 uv 管理 Python 项目，不仅能获得极快的安装速度，还能享受更现代化的开发体验。
 
 > **白话理解**：uv 是用 Rust 写的超快 Python 包管理器，可以理解为 pip 的"涡轮增压版"——做的事情和 pip 一样，但速度快了几十倍，还自带项目管理功能。
 
-## 最终效果预览
+## 👀 最终效果预览
 
 完成本教程后，你将能够：
 1. 编写 Python 命令行工具代码
@@ -43,7 +43,7 @@ Commands:
   myhello     向 NAME 问好
 ```
 
-## 第一步：项目初始化
+## 📁 第一步：项目初始化
 
 首先，创建项目目录并初始化 uv 项目。
 
@@ -58,7 +58,7 @@ uv init
 
 执行 `uv init` 后，uv 会自动创建一个 `pyproject.toml` 文件，包含基本的项目配置。
 
-## 第二步：规划项目结构
+## 🏗️ 第二步：规划项目结构
 
 采用 `src` 布局是 Python 社区的推荐实践，可以避免导入时的一些常见问题。
 
@@ -80,7 +80,7 @@ touch src/nzs_tool/__init__.py
 touch src/nzs_tool/cli.py
 ```
 
-## 第三步：编写命令行工具代码
+## 💻 第三步：编写命令行工具代码
 
 我们将使用 **Click** 库来构建命令行接口。Click 是一个优雅的 Python CLI 库，通过装饰器就能轻松创建复杂的命令行工具。
 
@@ -128,7 +128,7 @@ if __name__ == "__main__":
 - `@click.argument()` 定义位置参数（如 `myhello` 后面的名字）
 - `click.echo()` 是跨平台的打印函数，比 `print` 更强大
 
-## 第四步：配置 pyproject.toml
+## 📄 第四步：配置 pyproject.toml
 
 这是最关键的一步。我们需要在 `pyproject.toml` 中配置两件事：
 1. 项目的元数据（名称、版本、依赖等）
@@ -169,7 +169,7 @@ build-backend = "setuptools.build_meta"
 
 > **白话理解**：`[project.scripts]`（即 entry_points / console_scripts）的作用是告诉 Python"安装完之后，在终端输入这个命令就能启动这个程序"——就像给程序创建了一个桌面快捷方式，双击（输入命令）就能运行。
 
-## 第五步：安装工具
+## ⚙️ 第五步：安装工具
 
 现在，我们可以将工具安装到本地环境中。uv 提供了两种安装方式：
 
@@ -196,7 +196,7 @@ uv pip list | grep nzs-tool
 # 应该显示：nzs-tool 0.1.0
 ```
 
-## 第六步：运行命令
+## ⌨️ 第六步：运行命令
 
 安装成功后，你就可以在终端直接运行命令了！
 
@@ -226,7 +226,7 @@ uv run nzs-tool myhello Alice
 
 `uv run` 会自动识别当前项目环境，非常方便。
 
-## 进阶：添加更多功能
+## ✨ 进阶：添加更多功能
 
 ### 1. 添加选项参数
 
@@ -287,7 +287,7 @@ def status(color):
         click.echo("操作失败")
 ```
 
-## 调试技巧
+## 🔍 调试技巧
 
 ### 直接运行 Python 文件
 
@@ -319,7 +319,7 @@ which nzs-tool
 cat $(which nzs-tool)
 ```
 
-## 发布到 PyPI（可选）
+## 📦 发布到 PyPI（可选）
 
 如果你想和全世界分享你的工具，可以发布到 PyPI：
 
@@ -346,7 +346,7 @@ uv pip install nzs-tool
 pip install nzs-tool
 ```
 
-## 常见问题
+## ✅ 常见问题
 
 ### Q1: 命令找不到怎么办？
 
@@ -364,7 +364,7 @@ Click 和 uv 都完美支持 Windows。如果遇到路径问题，确保在命�
 
 使用 `uv add package-name` 添加依赖，会自动更新 `pyproject.toml` 和 `uv.lock`。
 
-## 总结
+## 📝 总结
 
 通过本教程，我们完成了一个完整的 Python 命令行工具开发流程：
 
@@ -382,7 +382,7 @@ Click 和 uv 都完美支持 Windows。如果遇到路径问题，确保在命�
 
 现在，你已经掌握了使用 uv 构建 Python 命令行工具的全部技巧。快去创建属于你自己的命令行工具吧！
 
-## 检验标准与进阶方向
+## 🎯 检验标准与进阶方向
 
 ### 自我检验清单
 
@@ -411,7 +411,7 @@ Click 和 uv 都完美支持 Windows。如果遇到路径问题，确保在命�
 | 测试 CLI | 使用 Click 的 `CliRunner` 或 `pytest` 编写命令行工具的自动化测试 | [Click Testing](https://click.palletsprojects.com/en/stable/testing/) |
 | 跨平台分发 | 使用 PyInstaller 或 Nuitka 将 Python CLI 打包为独立可执行文件 | [PyInstaller 文档](https://pyinstaller.org/) |
 
-## 参考资料
+## 📚 参考资料
 
 - [uv 官方文档](https://docs.astral.sh/uv/)
 - [Click 官方文档](https://click.palletsprojects.com/)

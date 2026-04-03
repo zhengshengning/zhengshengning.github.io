@@ -10,7 +10,7 @@ Nsight Compute 是 NVIDIA 提供的 CUDA Kernel 级深度分析工具，能够�
 
 <!-- more -->
 
-## 目录
+## 📑 目录
 
 - [1. 工具定位与分析流程](#1-工具定位与分析流程)
 - [2. 安装与环境配置](#2-安装与环境配置)
@@ -889,7 +889,7 @@ Kernel 在 Roofline 的位置       优化策略
 
 ---
 
-## 检验标准与进阶方向
+## 🎯 检验标准与进阶方向
 
 ### 自我检验清单
 
@@ -916,7 +916,7 @@ Kernel 在 Roofline 的位置       优化策略
 
 ---
 
-## 参考资料
+## 📚 参考资料
 
 - [Nsight Compute Documentation](https://docs.nvidia.com/nsight-compute/)
 - [Nsight Compute CLI User Guide](https://docs.nvidia.com/nsight-compute/NsightComputeCli/index.html)

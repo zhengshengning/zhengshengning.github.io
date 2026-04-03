@@ -10,7 +10,7 @@ Claude Code 是 Anthropic 推出的**命令行 AI 编程助手**——你可以�
 
 <!-- more -->
 
-## 安装
+## ⚙️ 安装
 
 Claude Code 以 npm 包的形式分发，需要 Node.js 18+ 环境：
 
@@ -24,7 +24,7 @@ claude --version
 
 安装后在终端进入你的项目目录，直接运行 `claude` 即可启动交互式对话。
 
-## 配置
+## ⚙️ 配置
 
 ### API 密钥
 
@@ -52,17 +52,17 @@ export ANTHROPIC_API_KEY="your-anthropic-api-key"
 
 这是一个 Python 后端项目，使用 Flask 框架。
 
-## 代码规范
+## 💻 代码规范
 - 使用 type hints
 - 函数必须有 docstring
 - 测试使用 pytest
 
-## 项目结构
+## 🏗️ 项目结构
 - src/ - 源代码
 - tests/ - 测试代码
 ```
 
-## 核心功能
+## ✨ 核心功能
 
 ### 代码生成与编辑
 
@@ -110,7 +110,7 @@ Claude Code 可以直接帮你完成 Git 工作流：
 > 帮我 review 一下 PR #42 的代码
 ```
 
-## 常用命令
+## ⌨️ 常用命令
 
 | 命令 | 功能 |
 |------|------|
@@ -124,7 +124,7 @@ Claude Code 可以直接帮你完成 Git 工作流：
 | `/help` | 查看所有可用命令 |
 | `Esc` | 中断当前操作 |
 
-## MCP：给 AI 插上"外挂"
+## 🔌 MCP：给 AI 插上"外挂"
 
 **MCP（Model Context Protocol）** 是让 AI 能"插上各种外挂"的标准接口——就像 USB 让电脑能连接各种外设一样，MCP 让 Claude Code 能连接数据库、调用 API、操作第三方服务。
 
@@ -148,7 +148,7 @@ Claude Code 可以直接帮你完成 Git 工作流：
 }
 ```
 
-## Hooks：自动化你的工作流
+## 🪝 Hooks：自动化你的工作流
 
 **Hooks** 是在特定事件发生时自动执行的脚本——就像"门铃响了自动开灯"一样，当 Claude Code 执行某些操作时会自动触发你预设的脚本。
 
@@ -173,13 +173,13 @@ Claude Code 可以直接帮你完成 Git 工作流：
 }
 ```
 
-## Skills：教 Claude 新本领
+## 🎓 Skills：教 Claude 新本领
 
 **Skills** 是教 Claude Code 新本领的"技能卡"——装上就能解锁新能力。Skills 本质上是 Markdown 文件，定义了 Claude Code 在特定场景下应该如何操作。
 
 你可以通过斜杠命令 `/` 来触发已安装的 Skill，比如 `/commit` 会按照预定义的规范帮你生成提交信息。
 
-## IDE 集成
+## 🖥️ IDE 集成
 
 Claude Code 除了在终端独立使用，还可以集成到 VS Code 和 JetBrains IDE 中：
 
@@ -191,7 +191,7 @@ Claude Code 除了在终端独立使用，还可以集成到 VS Code 和 JetBrai
 
 JetBrains 插件同样提供了集成体验，支持 IntelliJ IDEA、PyCharm、WebStorm 等全系列 IDE。
 
-## 实用技巧
+## 💡 实用技巧
 
 1. **善用 CLAUDE.md**：把项目的关键信息写在 `CLAUDE.md` 里，Claude Code 每次启动都会自动读取，省去反复解释项目背景的麻烦。
 
@@ -207,7 +207,7 @@ JetBrains 插件同样提供了集成体验，支持 IntelliJ IDEA、PyCharm、W
 
 5. **多文件操作**：Claude Code 可以同时理解和修改多个文件，适合跨模块的重构任务。
 
-## 检验标准与进阶方向
+## 🎯 检验标准与进阶方向
 
 ### 自我检验清单
 
@@ -232,7 +232,7 @@ JetBrains 插件同样提供了集成体验，支持 IntelliJ IDEA、PyCharm、W
 | Hooks 高级用法 | 结合 Pre/Post Hook 实现复杂的自动化质量保障流程 | [Claude Code Hooks 文档](https://docs.anthropic.com/en/docs/claude-code/hooks) |
 | 多 Agent 协作 | 使用 Claude Code 的 sub-agent 能力并行处理复杂任务 | [Claude Code Agent 文档](https://docs.anthropic.com/en/docs/claude-code/sub-agents) |
 
-## 参考资料
+## 📚 参考资料
 
 - [Claude Code 官方文档](https://docs.anthropic.com/en/docs/claude-code/overview) - 最权威的使用指南，涵盖安装、配置、功能详解
 - [Claude Code GitHub 仓库](https://github.com/anthropics/claude-code) - 源码、Issue 讨论与最新更新

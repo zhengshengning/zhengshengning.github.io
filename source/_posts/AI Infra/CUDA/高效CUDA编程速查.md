@@ -10,7 +10,7 @@ tags: [CUDA, GPU, 性能优化, Tensor Core, Nsight]
 
 <!-- more -->
 
-## 目录
+## 📑 目录
 
 - [1. 硬件性能基准测试](#1-硬件性能基准测试)
 - [2. 算法设计](#2-算法设计)
@@ -424,7 +424,7 @@ float value = __shfl_down_sync(0xffffffff, var, delta);
 float sum = __reduce_add_sync(0xffffffff, var);  // Volta+
 ```
 
-## 5. 延迟隐藏
+## 5. ⏱️ 延迟隐藏
 
 ### 5.1 异步操作
 
@@ -860,7 +860,7 @@ __shared__ float tile[256];
 | 混合精度与量化推理 | FP8/INT4 量化策略与精度-性能权衡 | [TensorRT 开发者指南](https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/) |
 | CUDA Graph 与动态并行 | 减少 launch 开销，支持动态工作负载 | [CUDA Programming Guide - Graphs](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-graphs) |
 
-## 参考资料
+## 📚 参考资料
 
 - [CUDA C Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/)
 - [CUDA Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/)

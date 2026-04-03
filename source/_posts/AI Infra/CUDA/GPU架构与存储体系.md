@@ -10,7 +10,7 @@ tags: [GPU, NVIDIA, Tensor Core, HBM, Memory Wall]
 
 <!-- more -->
 
-## 目录
+## 📑 目录
 
 - [1. GPU 计算单元：SM、CUDA Core 与 Tensor Core](#1-gpu-计算单元smcuda-core-与-tensor-core)
 - [2. 存储层次结构](#2-存储层次结构)
@@ -284,7 +284,7 @@ GPU 硬件知识对 AI Infra 工程师来说不是"nice to have"，而是分析�
 
 ---
 
-## 检验标准与进阶方向
+## 🎯 检验标准与进阶方向
 
 ### 自我检验清单
 
@@ -306,7 +306,7 @@ GPU 硬件知识对 AI Infra 工程师来说不是"nice to have"，而是分析�
 | 性能分析 | Nsight Systems + Nsight Compute 定位 kernel 瓶颈 | [Nsight Systems](https://docs.nvidia.com/nsight-systems/UserGuide/) / [Nsight Compute](https://docs.nvidia.com/nsight-compute/) |
 | 新架构特性 | Hopper 的 Thread Block Cluster、TMA、Warp Specialization | [H100 Architecture Whitepaper](https://resources.nvidia.com/en-us-tensor-core/gtc22-whitepaper-hopper) |
 
-## 参考资料
+## 📚 参考资料
 
 - [NVIDIA A100 Tensor Core GPU Architecture Whitepaper](https://images.nvidia.com/aem-dam/en-zz/Solutions/data-center/nvidia-ampere-architecture-whitepaper.pdf)
 - [NVIDIA H100 Tensor Core GPU Architecture Whitepaper](https://resources.nvidia.com/en-us-tensor-core/gtc22-whitepaper-hopper)

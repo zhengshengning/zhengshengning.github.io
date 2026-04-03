@@ -10,7 +10,7 @@ tags: [Python, PyPI, 包管理, GitHub Actions, CI/CD, uv, hatch]
 
 <!-- more -->
 
-## 目录
+## 📑 目录
 
 1. [项目结构规划](#一、项目结构规划)
 2. [编写 pyproject.toml](#二、编写-pyproject-toml)
@@ -476,7 +476,7 @@ OIDC 认证
 
 ---
 
-## 附录：常用命令速查
+## 📋 附录：常用命令速查
 
 ```bash
 # 安装 uv
@@ -501,7 +501,7 @@ pip install my-package-demo
 
 ---
 
-## 检验标准与进阶方向
+## 🎯 检验标准与进阶方向
 
 ### 自我检验清单
 
@@ -529,7 +529,7 @@ pip install my-package-demo
 
 ---
 
-## 参考资源
+## 📚 参考资源
 
 - [Python Packaging User Guide](https://packaging.python.org/)
 - [PyPI Trusted Publishers](https://docs.pypi.org/trusted-publishers/)

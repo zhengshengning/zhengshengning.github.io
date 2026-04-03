@@ -10,7 +10,7 @@ tags: [AI Agent, LangChain, 智能体, 自动化]
 
 <!-- more -->
 
-## Agent核心概念
+## 🤖 Agent核心概念
 
 AI Agent是能够感知环境、做出决策并执行动作的智能系统。
 
@@ -25,7 +25,7 @@ AI Agent是能够感知环境、做出决策并执行动作的智能系统。
 4. **记忆层**：上下文管理
    > **白话理解**：记忆层就像人的笔记本——短期记忆让 Agent 记住当前对话的上下文，长期记忆让它能回忆起之前学到的知识和经验，不至于"转头就忘"。
 
-## 实现示例
+## 🛠️ 实现示例
 
 ```python
 from langchain.agents import AgentExecutor, create_openai_functions_agent
@@ -48,7 +48,7 @@ agent_executor = AgentExecutor(agent=agent, tools=tools)
 result = agent_executor.invoke({"input": "计算 25 * 4 + 10"})
 ```
 
-## 设计模式
+## 📊 设计模式
 
 - **ReAct模式**：推理-行动循环
   > **白话理解**：就像人解决问题的过程——先想一想（Reasoning），再动手试一试（Acting），看看结果，再想再做，循环往复直到搞定。
@@ -59,7 +59,7 @@ result = agent_executor.invoke({"input": "计算 25 * 4 + 10"})
 
 ---
 
-## 检验标准与进阶方向
+## 🎯 检验标准与进阶方向
 
 ### 自我检验清单
 
@@ -86,7 +86,7 @@ result = agent_executor.invoke({"input": "计算 25 * 4 + 10"})
 
 ---
 
-## 参考资料
+## 📚 参考资料
 
 ### 官方文档
 

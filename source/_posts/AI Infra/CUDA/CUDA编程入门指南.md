@@ -10,7 +10,7 @@ CUDA 是连接 AI 算法与 GPU 硬件的桥梁，负责把高层的数学计算
 
 <!-- more -->
 
-## 目录
+## 📑 目录
 
 - [1. 环境配置](#1-环境配置)
 - [2. CUDA 编程模型](#2-cuda-编程模型)
@@ -1146,7 +1146,7 @@ cuobjdump -sass kernel
 | 推理引擎算子 | PagedAttention、Continuous Batching 的底层实现 | [vLLM - GitHub](https://github.com/vllm-project/vllm) |
 | AI 编译器与自动代码生成 | Triton 编译器内部原理、torch.compile 全链路、TVM 调度优化 | [Triton Tutorials](https://triton-lang.org/main/getting-started/tutorials/) |
 
-## 参考资料
+## 📚 参考资料
 
 - [NVIDIA CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/)
 - [NVIDIA CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/)

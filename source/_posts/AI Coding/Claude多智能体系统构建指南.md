@@ -12,7 +12,7 @@ tags: [Claude, 多智能体, Agent, opencode, 智能体协作]
 
 <!-- more -->
 
-## 目录
+## 📑 目录
 
 1. [核心概念理解](#1-核心概念理解)
 2. [技术栈选择](#2-技术栈选择)
@@ -216,19 +216,19 @@ capabilities:
 
 你是一个代码分析智能体，专门负责...
 
-## 输入要求
+## 📌 输入要求
 
 - **target_path**: 要分析的代码路径
 - **analysis_type**: 分析类型
 
-## 输出格式
+## 📌 输出格式
 
 你的报告需要包含：
 1. **概述**: 简要描述...
 2. **详细分析**: ...
 3. **建议**: ...
 
-## 约束
+## 📌 约束
 
 - 只读：不修改任何代码
 - 报告写入: `.sessions/{task_id}/analyzer/`
@@ -262,14 +262,14 @@ capabilities:
 
 你是主编排智能体。你的职责是**计划、协调和委托**，而不是直接执行。
 
-## 架构
+## 🏗️ 架构
 
 你 (Orchestrator)
   ├── @analyzer    分析任务（只读）
   ├── @executor    执行任务（写）
   └── @reviewer    审查任务（只读）
 
-## 工作流程
+## 🔄 工作流程
 
 ### Phase 1: 分析
 1. 调用 @analyzer 分析目标
@@ -288,7 +288,7 @@ capabilities:
 1. 调用 @reviewer 进行最终审查
 2. 生成报告或输出
 
-## 委托规则
+## 📌 委托规则
 
 | 动作 | 委托给 |
 |------|--------|
@@ -296,7 +296,7 @@ capabilities:
 | 修改文件/执行操作 | @executor |
 | 最终验证 | @reviewer |
 
-## 你可以直接做的事
+## 📌 你可以直接做的事
 
 - 读取会话文件做决策
 - 写入计划和上下文文件
@@ -330,19 +330,19 @@ capabilities:
 
 执行 Orchestrator 分配的具体任务。
 
-## 职责范围
+## 📌 职责范围
 
 - **可以做**: 修改代码、运行构建、执行测试
 - **不可以做**: 推送代码、创建 PR（由 Reviewer 处理）
 
-## 工作流程
+## 🔄 工作流程
 
 1. **接收指令**: Orchestrator 会告诉你具体要修改什么
 2. **执行修改**: 精确修改指定文件
 3. **验证**: 运行基础测试确认修改有效
 4. **报告**: 将结果写入 `.sessions/{task_id}/executor/`
 
-## 约束
+## 📌 约束
 
 - 每次只处理一个明确的任务
 - 修改前先确认理解正确
@@ -520,19 +520,19 @@ target_agents: [analyzer, executor]
 summary: 一句话概述
 ---
 
-## 概述
+## 📌 概述
 
 详细说明...
 
-## 使用场景
+## 📖 使用场景
 
 何时使用...
 
-## 示例
+## 📌 示例
 
 代码或配置示例...
 
-## 相关知识
+## 📌 相关知识
 
 - 链接到其他文档
 ```
@@ -665,7 +665,7 @@ summary: 一句话概述
 
 ---
 
-## 快速参考卡片
+## 📋 快速参考卡片
 
 ### 创建新项目
 
@@ -723,7 +723,7 @@ capabilities: [read, write-report, bash: [...]]
 
 ---
 
-## 检验标准与进阶方向
+## 🎯 检验标准与进阶方向
 
 ### 自我检验清单
 
@@ -751,7 +751,7 @@ capabilities: [read, write-report, bash: [...]]
 
 ---
 
-## 参考资料
+## 📚 参考资料
 
 - [Anthropic: Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) - Anthropic 官方智能体构建指南
 - [Anthropic: Multi-agent Research](https://www.anthropic.com/engineering/multi-agent-research) - Anthropic 多智能体研究

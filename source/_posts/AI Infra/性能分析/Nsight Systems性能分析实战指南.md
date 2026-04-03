@@ -10,7 +10,7 @@ Nsight Systems 是 NVIDIA 提供的系统级性能分析工具，能够从全局
 
 <!-- more -->
 
-## 目录
+## 📑 目录
 
 - [1. 工具定位与适用场景](#1-工具定位与适用场景)
 - [2. 安装与环境配置](#2-安装与环境配置)
@@ -831,7 +831,7 @@ nsys profile --trace=cuda,nvtx ...                  # 只采必要 trace
 
 ---
 
-## 参考资料
+## 📚 参考资料
 
 - [Nsight Systems Documentation](https://docs.nvidia.com/nsight-systems/)
 - [Nsight Systems User Guide](https://docs.nvidia.com/nsight-systems/UserGuide/index.html)

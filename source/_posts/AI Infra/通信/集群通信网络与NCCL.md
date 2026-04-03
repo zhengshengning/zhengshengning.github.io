@@ -10,7 +10,7 @@ tags: [NVLink, InfiniBand, NCCL, 集合通信, 分布式训练]
 
 <!-- more -->
 
-## 目录
+## 📑 目录
 
 - [1. 单机卡间通信：NVLink 与 NVSwitch](#1-单机卡间通信nvlink-与-nvswitch)
 - [2. 多机间通信：InfiniBand 与 RoCE](#2-多机间通信infiniband-与-roce)
@@ -481,7 +481,7 @@ GPU3: [  ][  ][  ][F1][F2][F3][B3][B2][B1][  ][  ][  ]
 
 ---
 
-## 检验标准与进阶方向
+## 🎯 检验标准与进阶方向
 
 ### 自我检验清单
 
@@ -505,7 +505,7 @@ GPU3: [  ][  ][  ][F1][F2][F3][B3][B2][B1][  ][  ][  ]
 | 网络拓扑优化 | Fat-tree、Rail-optimized 拓扑与 NCCL 调优 | [NCCL Documentation](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/) |
 | 通信-计算重叠 | 异步通信与流水线通信隐藏延迟 | [PyTorch Distributed Overview](https://pytorch.org/docs/stable/distributed.html) |
 
-## 参考资料
+## 📚 参考资料
 
 - [NVIDIA NCCL Documentation](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/)
 - [NCCL Tests - GitHub](https://github.com/NVIDIA/nccl-tests)

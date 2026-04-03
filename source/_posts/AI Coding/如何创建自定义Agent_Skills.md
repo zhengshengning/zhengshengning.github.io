@@ -20,7 +20,7 @@ Skills 可以简单到只有几行指令，也可以复杂到包含可执行代�
 *   定义了何时应该使用它们
 *   专注于一个工作流，而不是试图做所有事情
 
-## 创建 Skill.md 文件
+## 📄 创建 Skill.md 文件
 
 每个 Skill 由一个目录组成，其中至少包含一个 `Skill.md` 文件，这是 Skill 的核心。该文件必须以 YAML frontmatter 开头，以保存 `name` 和 `description` 字段，这是必需的元数据。它还可以包含其他元数据、给 Claude 的指令或参考文件、可执行脚本或工具。
 
@@ -56,43 +56,43 @@ Markdown body 是元数据之后的第二层细节，因此如果需要在读取
 Brand Guidelines Skill
 
 ```markdown
-## Metadata
+## 📌 Metadata
 name: Brand Guidelines
 description: Apply Acme Corp brand guidelines to all presentations and documents
-## Overview
+## 📌 Overview
 This Skill provides Acme Corp's official brand guidelines for creating consistent, professional materials. When creating presentations, documents, or marketing materials, apply these standards to ensure all outputs match Acme's visual identity. Claude should reference these guidelines whenever creating external-facing materials or documents that represent Acme Corp.
-## Brand Colors
+## 📌 Brand Colors
 Our official brand colors are:
 - Primary: #FF6B35 (Coral)
 - Secondary: #004E89 (Navy Blue)
 - Accent: #F7B801 (Gold)
 - Neutral: #2E2E2E (Charcoal)
-## Typography
+## 📌 Typography
 Headers: Montserrat Bold
 Body text: Open Sans Regular
 Size guidelines:
 - H1: 32pt
 - H2: 24pt
 - Body: 11pt
-## Logo Usage
+## 📌 Logo Usage
 Always use the full-color logo on light backgrounds. Use the white logo on dark backgrounds. Maintain minimum spacing of 0.5 inches around the logo.
-## When to Apply
+## 📌 When to Apply
 Apply these guidelines whenever creating:
 - PowerPoint presentations
 - Word documents for external sharing
 - Marketing materials
 - Reports for clients
-## Resources
+## 📌 Resources
 See the resources folder for logo files and font downloads.
 ```
 
-## 添加 Resources
+## 📌 添加 Resources
 
 > **白话理解**: Resources 就像教科书的"附录"。正文放核心知识，附录放补充材料（参考数据、模板、图片等）。当 Skill.md 一个文件装不下所有内容时，就把额外的资料放进同目录的其他文件里，让 Claude 按需查阅。
 
 如果你有太多信息无法添加到单个 [Skill.md](http://skill.md) 文件中（例如，仅适用于特定场景的部分），你可以通过在你的 Skill 目录中添加文件来添加更多内容。例如，将包含补充和参考信息的 `REFERENCE.md` 文件添加到你的 Skill 目录。在 [Skill.md](http://skill.md) 中引用它将帮助 Claude 决定在执行 Skill 时是否需要访问该资源。
 
-## 添加 Scripts
+## 📌 添加 Scripts
 
 > **白话理解**: 如果说 Skill.md 是"操作手册"，那 Scripts 就是手册里附带的"自动化工具箱"。有了它，Claude 不仅知道该怎么做，还能直接运行代码来完成任务——比如自动生成图表、处理数据等。
 
@@ -105,7 +105,7 @@ See the resources folder for logo files and font downloads.
 
 注意: Claude 和 Claude Code 在加载 Skills 时可以从标准存储库（Python PyPI, JavaScript npm）安装包。使用 API Skills 时无法在运行时安装额外的包——所有依赖项必须预先安装在容器中。
 
-## 打包你的 Skill
+## 📦 打包你的 Skill
 
 一旦你的 Skill 文件夹完成：
 
@@ -129,7 +129,7 @@ my-Skill.zip
 └── (files directly in ZIP root)
 ```
 
-## 测试你的 Skill
+## 🧪 测试你的 Skill
 
 ### 上传之前
 
@@ -147,7 +147,7 @@ my-Skill.zip
 
 Team 和 Enterprise 计划的注意事项: 要使 skill 对你组织中的所有用户可用，请参阅 Provisioning and managing Skills for your organization。
 
-## 最佳实践
+## ✅ 最佳实践
 
 **保持专注**: 为不同的工作流创建单独的 Skills。多个专注的 Skills 比一个大型 Skill 组合得更好。
 
@@ -165,7 +165,7 @@ Team 和 Enterprise 计划的注意事项: 要使 skill 对你组织中的所有
 
 有关 skill 创建的更深入指南，请参阅我们 Claude Docs 中的 [Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)。
 
-## 安全考虑
+## 🔒 安全考虑
 
 *   在向你的 `Skill.md` 文件添加 scripts 时要谨慎。
 *   不要硬编码敏感信息（API 密钥，密码）。
@@ -174,11 +174,11 @@ Team 和 Enterprise 计划的注意事项: 要使 skill 对你组织中的所有
 
 > **白话理解**: MCP（Model Context Protocol）可以理解为 Claude 和外部服务之间的"安全通道"。就像银行 APP 通过加密通道连接银行服务器，Skill 也应该通过 MCP 来安全地访问外部 API，而不是把密钥直接写在文件里。
 
-## 参考示例 Skills
+## 🎓 参考示例 Skills
 
 访问我们在 GitHub 上的存储库以获取可以用作模板的示例 Skills: [https://github.com/anthropics/skills/tree/main/skills](https://github.com/anthropics/skills/tree/main/skills)。
 
-## 检验标准与进阶方向
+## 🎯 检验标准与进阶方向
 
 ### 自我检验清单
 
@@ -204,7 +204,7 @@ Team 和 Enterprise 计划的注意事项: 要使 skill 对你组织中的所有
 | 通过对话创建 Skill | 学习如何在与 Claude 的对话中直接生成 Skill，无需手动编写 | [How to create a skill with Claude through conversation](https://support.claude.com/en/articles/12599426-how-to-create-a-skill-with-claude-through-conversation) |
 | 社区示例 Skills | 参考官方和社区贡献的 Skill 模板，快速上手 | [GitHub Skills 仓库](https://github.com/anthropics/skills/tree/main/skills) |
 
-## 参考资料
+## 📚 参考资料
 
 *   [What are Skills?](https://support.claude.com/en/articles/12512176-what-are-skills)
 *   [Using Skills in Claude](https://support.claude.com/en/articles/12512180-using-skills-in-claude)

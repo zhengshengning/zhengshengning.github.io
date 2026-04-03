@@ -10,7 +10,7 @@ C++ 是一门功能强大的通用编程语言，广泛应用于系统软件、�
 
 <!-- more -->
 
-## 什么是 C++？
+## ❓ 什么是 C++？
 
 C++ 由 Bjarne Stroustrup 于 1979 年在贝尔实验室开发，是 C 语言的扩展。如果把编程语言比作工具，C 就是一把精密的手术刀，而 C++ 则是在这把手术刀的基础上加了瑞士军刀的多功能性。它支持：
 
@@ -19,7 +19,7 @@ C++ 由 Bjarne Stroustrup 于 1979 年在贝尔实验室开发，是 C 语言的
 - **泛型编程**：模板（Templates）
 - **函数式编程**：Lambda 表达式（C++11）
 
-## 环境配置
+## ⚙️ 环境配置
 
 ### 1. 安装编译器
 
@@ -44,7 +44,7 @@ xcode-select --install
 g++ --version
 ```
 
-## 第一个 C++ 程序
+## 💻 第一个 C++ 程序
 
 创建文件 `hello.cpp`：
 
@@ -64,7 +64,7 @@ g++ hello.cpp -o hello
 ./hello
 ```
 
-## 基本语法
+## 💻 基本语法
 
 ### 变量与数据类型
 
@@ -155,7 +155,7 @@ void greet(std::string name) {
 }
 ```
 
-## 面向对象编程
+## 💻 面向对象编程
 
 ### 类与对象
 
@@ -244,7 +244,7 @@ int main() {
 }
 ```
 
-## 现代 C++ 特性 (C++11/14/17/20)
+## ⚙️ 现代 C++ 特性 (C++11/14/17/20)
 
 ### 智能指针
 
@@ -311,7 +311,7 @@ for (auto& num : vec) {
 }
 ```
 
-## 常用标准库
+## 📚 常用标准库
 
 C++ 的标准库中最核心的部分叫 **STL（Standard Template Library，标准模板库）**——你可以把它理解为 C++ 的"标准工具箱"，里面有各种现成的数据结构和算法，拿来直接用，不用自己从零造轮子。
 
@@ -326,7 +326,7 @@ C++ 的标准库中最核心的部分叫 **STL（Standard Template Library，标
 | `<thread>` | 多线程 |
 | `<fstream>` | 文件操作 |
 
-## 编译选项建议
+## 🔧 编译选项建议
 
 ```bash
 # 启用 C++17 标准，开启所有警告
@@ -336,7 +336,7 @@ g++ -std=c++17 -Wall -Wextra -o program source.cpp
 g++ -std=c++17 -O2 -o program source.cpp
 ```
 
-## 检验标准与进阶方向
+## 🎯 检验标准与进阶方向
 
 ### 自我检验清单
 
@@ -365,7 +365,7 @@ g++ -std=c++17 -O2 -o program source.cpp
 | 嵌入式开发 | 裸机编程、RTOS、硬件抽象层 | 《Embedded C++》 |
 | 工程实践 | CMake 构建系统、单元测试、代码规范、CI/CD | 《Professional CMake》、Google C++ Style Guide |
 
-## 参考资料
+## 📚 参考资料
 
 - [cppreference.com](https://en.cppreference.com/) - C++ 权威参考手册，涵盖标准库和语言特性的完整文档
 - [LearnCpp](https://www.learncpp.com/) - 免费在线教程，从零开始系统学习 C++，内容详尽且持续更新
@@ -375,7 +375,7 @@ g++ -std=c++17 -O2 -o program source.cpp
 - 《Effective C++》- Scott Meyers 著，55 条改善程序与设计的具体做法
 - 《Effective Modern C++》- Scott Meyers 著，聚焦 C++11/14 的最佳实践
 
-## 总结
+## 📝 总结
 
 C++ 是一门功能强大但学习曲线较陡的语言。建议学习路线：
 
