@@ -958,6 +958,46 @@ html[data-theme="dark"]
       border-radius: 11px
       flex-shrink: 0
 
+  // 三级分类树节点
+  .category-tree-grandchildren
+    list-style: none
+    margin: 4px 0 0 0
+    padding: 0 0 0 20px
+
+  .category-tree-grandchild
+    display: flex
+    align-items: center
+    gap: 6px
+    padding: 5px 8px
+    margin: 1px 0
+    border-radius: 5px
+    transition: all 0.25s ease
+    font-size: 13px
+
+    &:hover
+      background: rgba(8, 145, 178, 0.06)
+      transform: translateX(3px)
+
+      .category-tree-link
+        color: var(--link-color)
+
+    .category-tree-branch
+      font-family: 'Fira Code', 'Cascadia Code', monospace
+      color: var(--blockquote-color)
+      font-size: 12px
+      flex-shrink: 0
+      user-select: none
+      opacity: 0.4
+
+    .category-tree-link
+      font-size: 13px
+
+    .category-tree-child-count
+      font-size: 11px
+      min-width: 20px
+      height: 20px
+      line-height: 20px
+
   @media (max-width: 768px)
     .category-tree
       grid-template-columns: 1fr
@@ -1099,6 +1139,29 @@ html[data-theme="dark"]
 
           .category-landing-article-title
             flex: 1
+
+  // 三级分类子分组（分类着陆页内容区）
+  .category-landing-sub-section
+    margin: 12px 0 8px 12px
+    padding-left: 12px
+    border-left: 2px solid $light-border
+
+    .category-landing-sub-section-header
+      display: flex
+      align-items: center
+      gap: 8px
+      padding-bottom: 8px
+      margin-bottom: 8px
+      font-size: 15px
+      font-weight: 600
+      color: var(--text-color)
+
+      i
+        font-size: 13px
+        color: var(--blockquote-color)
+
+      .category-landing-section-count
+        margin-left: auto
 
 @media (max-width: 768px)
   .category-landing-page
@@ -1304,6 +1367,63 @@ html[data-theme="dark"]
         .category-landing-date
           color: var(--link-color)
           opacity: 0.85
+
+  // 三级分类折叠组件
+  .category-landing-sub-l3
+    margin: 2px 0 2px 12px
+
+    > summary
+      list-style: none
+      &::-webkit-details-marker
+        display: none
+
+  .category-landing-sub-title-l3
+    display: flex
+    align-items: center
+    gap: 6px
+    padding: 7px 16px 4px 5px
+    font-size: 14px
+    font-weight: 600
+    letter-spacing: 0.3px
+    color: var(--blockquote-color)
+    cursor: pointer
+    user-select: none
+    transition: color 0.2s ease
+
+    &:hover
+      color: var(--link-color)
+
+    i
+      font-size: 11px
+      opacity: 0.6
+
+    .category-landing-sub-count
+      margin-left: auto
+      font-size: 10px
+      font-weight: 600
+      padding: 1px 6px
+      border-radius: 8px
+      background: rgba(8, 145, 178, 0.08)
+      color: var(--blockquote-color)
+
+    .category-landing-chevron
+      margin-left: 4px
+      font-size: 9px
+      opacity: 0.5
+      transition: transform 0.25s ease
+      flex-shrink: 0
+
+  .category-landing-sub-l3[open]
+    > .category-landing-sub-title-l3
+      color: var(--text-color)
+
+      .category-landing-chevron
+        transform: rotate(180deg)
+
+  .category-landing-post-list-l3
+    li a
+      padding: 6px 16px 6px 32px
+      font-size: 13.5px
 
 // 右侧 TOC 侧边栏优化（文章详情页 & 分类介绍页共用）
 .main:has(.main-inner.post) .sidebar,
@@ -1583,6 +1703,40 @@ html[data-theme="dark"]
     background: rgba(0, 212, 255, 0.12)
     color: $cyber-neon-cyan
     border-left-color: $cyber-neon-cyan
+
+  // 三级分类侧边栏暗色模式
+  .category-landing-sub-title-l3
+    color: $cyber-text-secondary
+
+    .category-landing-sub-count
+      background: rgba(0, 255, 136, 0.08)
+      color: $cyber-neon-green
+
+  .category-landing-post-list-l3 li a
+    &:hover
+      background: rgba(0, 212, 255, 0.08)
+      color: $cyber-neon-cyan
+      border-left-color: $cyber-neon-cyan
+
+  // 三级分类树节点暗色模式
+  .category-tree-grandchild
+    &:hover
+      background: rgba(0, 212, 255, 0.08)
+
+    .category-tree-branch
+      color: $cyber-neon-green
+      opacity: 0.35
+
+    .category-tree-child-count
+      background: rgba(0, 212, 255, 0.12)
+      color: $cyber-neon-cyan
+
+  // 三级分类着陆页子分组暗色模式
+  .category-landing-sub-section
+    border-left-color: $cyber-border
+
+    .category-landing-sub-section-header i
+      color: $cyber-neon-green
 
   // 文章页侧边栏滚动条
   .post-cat-sidebar

@@ -2,7 +2,7 @@
 title: 1.2 集群通信网络与NCCL
 date: 2026-03-30 10:30:00
 categories:
-  - [AI Infra, 前置知识]
+  - [AI Infra, 前置知识, 编程基础]
 tags: [NVLink, InfiniBand, NCCL, 集合通信, 分布式训练]
 ---
 

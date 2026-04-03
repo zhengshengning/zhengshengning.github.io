@@ -31,22 +31,61 @@
       </div>
       <nav class="category-landing-nav">
         {% for child in catData.children %}
-        <details class="category-landing-sub">
-          <summary class="category-landing-sub-title">
-            <i class="fa fa-folder"></i> {{ child.name }}
-            <span class="category-landing-sub-count">{{ child.posts.length }}</span>
-            <i class="fa fa-chevron-down category-landing-chevron"></i>
-          </summary>
-          <ul class="category-landing-post-list">
-            {% for post in child.posts %}
-            <li>
-              <a href="{{ url_for(post.path) }}">
-                <span>{{ post.title }}</span>
-              </a>
-            </li>
+        {% if child.hasSubGroups %}
+          <details class="category-landing-sub">
+            <summary class="category-landing-sub-title">
+              <i class="fa fa-folder"></i> {{ child.name }}
+              <span class="category-landing-sub-count">{{ child.totalPosts }}</span>
+              <i class="fa fa-chevron-down category-landing-chevron"></i>
+            </summary>
+            {% if child.directPosts.length > 0 %}
+            <ul class="category-landing-post-list">
+              {% for post in child.directPosts %}
+              <li>
+                <a href="{{ url_for(post.path) }}">
+                  <span>{{ post.title }}</span>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            {% for sg in child.subGroups %}
+            <details class="category-landing-sub-l3">
+              <summary class="category-landing-sub-title-l3">
+                <i class="fa fa-folder-o"></i> {{ sg.name }}
+                <span class="category-landing-sub-count">{{ sg.posts.length }}</span>
+                <i class="fa fa-chevron-down category-landing-chevron"></i>
+              </summary>
+              <ul class="category-landing-post-list category-landing-post-list-l3">
+                {% for post in sg.posts %}
+                <li>
+                  <a href="{{ url_for(post.path) }}">
+                    <span>{{ post.title }}</span>
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
+            </details>
             {% endfor %}
-          </ul>
-        </details>
+          </details>
+        {% else %}
+          <details class="category-landing-sub">
+            <summary class="category-landing-sub-title">
+              <i class="fa fa-folder"></i> {{ child.name }}
+              <span class="category-landing-sub-count">{{ child.posts.length }}</span>
+              <i class="fa fa-chevron-down category-landing-chevron"></i>
+            </summary>
+            <ul class="category-landing-post-list">
+              {% for post in child.posts %}
+              <li>
+                <a href="{{ url_for(post.path) }}">
+                  <span>{{ post.title }}</span>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </details>
+        {% endif %}
         {% endfor %}
       </nav>
     </aside>
@@ -95,8 +134,41 @@
                 <div class="category-landing-section-header">
                   <i class="fa fa-folder"></i>
                   <span>{{ child.name }}</span>
-                  <span class="category-landing-section-count">{{ child.posts.length }} 篇</span>
+                  <span class="category-landing-section-count">{{ child.totalPosts }} 篇</span>
                 </div>
+                {% if child.hasSubGroups %}
+                  {% if child.directPosts.length > 0 %}
+                  <ul class="category-landing-section-list">
+                    {% for post in child.directPosts %}
+                    <li>
+                      <a href="{{ url_for(post.path) }}">
+                        <span class="category-landing-article-date">{{ date(post.date, 'YYYY-MM-DD') }}</span>
+                        <span class="category-landing-article-title">{{ post.title }}</span>
+                      </a>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                  {% endif %}
+                  {% for sg in child.subGroups %}
+                  <div class="category-landing-sub-section">
+                    <div class="category-landing-sub-section-header">
+                      <i class="fa fa-folder-o"></i>
+                      <span>{{ sg.name }}</span>
+                      <span class="category-landing-section-count">{{ sg.posts.length }} 篇</span>
+                    </div>
+                    <ul class="category-landing-section-list">
+                      {% for post in sg.posts %}
+                      <li>
+                        <a href="{{ url_for(post.path) }}">
+                          <span class="category-landing-article-date">{{ date(post.date, 'YYYY-MM-DD') }}</span>
+                          <span class="category-landing-article-title">{{ post.title }}</span>
+                        </a>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                  {% endfor %}
+                {% else %}
                 <ul class="category-landing-section-list">
                   {% for post in child.posts %}
                   <li>
@@ -107,6 +179,7 @@
                   </li>
                   {% endfor %}
                 </ul>
+                {% endif %}
               </div>
               {% endfor %}
             </div>

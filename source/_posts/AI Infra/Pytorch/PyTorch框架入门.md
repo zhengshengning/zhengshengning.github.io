@@ -2,7 +2,7 @@
 title: 3.0 PyTorch框架入门
 date: 2026-03-30 12:00:00
 categories:
-  - [AI Infra, 前置知识]
+  - [AI Infra, 前置知识, PyTorch]
 tags: [PyTorch, 深度学习, 训练循环, autograd]
 ---
 

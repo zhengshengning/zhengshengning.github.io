@@ -39,7 +39,7 @@
               <span class="readme-category-count">({{ child.length }})</span>
             </div>
             <ul class="readme-article-list">
-              {% for post in child.posts.toArray() %}
+              {% for post in child.sortedPosts %}
               <li class="readme-article-item">
                 <a href="{{ url_for(post.path) }}">
                   <span class="readme-article-date">{{ date(post.date, 'YYYY-MM-DD') }}</span>

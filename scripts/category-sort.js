@@ -15,6 +15,11 @@ const subCategoryOrder = {
   '编程技能包': ['Python', 'C++基础', 'Web开发']
 };
 
+// 三级分类的展示顺序（按二级分类分组）
+const level3CategoryOrder = {
+  '前置知识': ['编程基础', 'Transformer', 'Pytorch']
+};
+
 // 二级分类排序函数
 function sortSubCategories(children, parentName) {
   const order = subCategoryOrder[parentName] || [];
@@ -26,6 +31,46 @@ function sortSubCategories(children, parentName) {
     if (idxB !== -1) return 1;
     return a.name.localeCompare(b.name, 'zh-CN');
   });
+}
+
+// 三级分类排序函数
+function sortLevel3Categories(children, parentName) {
+  const order = level3CategoryOrder[parentName] || [];
+  children.sort((a, b) => {
+    const idxA = order.indexOf(a.name);
+    const idxB = order.indexOf(b.name);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return a.name.localeCompare(b.name, 'zh-CN');
+  });
+}
+
+// 构建二级分类数据（支持三级子分类）
+// 返回 { hasSubGroups, subGroups?, directPosts?, posts? }
+function buildLevel2Data(level2Cat, allCategories) {
+  const level3Children = allCategories.filter(c => c.parent === level2Cat._id);
+  sortLevel3Categories(level3Children, level2Cat.name);
+
+  if (level3Children.length > 0) {
+    // 有三级子分类：分离直接文章和子分组文章
+    const level3PostIds = new Set();
+    const subGroups = level3Children.map(l3 => {
+      const posts = l3.posts.toArray().sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
+      posts.forEach(p => level3PostIds.add(p._id));
+      return { name: l3.name, posts };
+    });
+    // 直接挂在二级分类下、不属于任何三级的文章
+    const directPosts = level2Cat.posts.toArray()
+      .filter(p => !level3PostIds.has(p._id))
+      .sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
+    const totalPosts = directPosts.length + subGroups.reduce((sum, sg) => sum + sg.posts.length, 0);
+    return { hasSubGroups: true, name: level2Cat.name, path: level2Cat.path, subGroups, directPosts, totalPosts };
+  } else {
+    // 无三级子分类：与现有结构兼容
+    const posts = level2Cat.posts.toArray().sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
+    return { hasSubGroups: false, name: level2Cat.name, path: level2Cat.path, posts, totalPosts: posts.length };
+  }
 }
 
 // 一级分类的图标映射
@@ -72,7 +117,22 @@ hexo.extend.helper.register('sorted_categories_tree', function() {
       totalPosts: children.length > 0
         ? children.reduce((sum, c) => sum + c.length, 0)
         : parent.length,
-      children: children
+      children: children.map(child => {
+        // 收集该二级分类下的所有文章（含三级子分类），按标题排序
+        const level3Children = categories.filter(c => c.parent === child._id);
+        const level3PostIds = new Set();
+        level3Children.forEach(l3 => {
+          l3.posts.forEach(p => level3PostIds.add(p._id));
+        });
+        // 所有文章 = 直接文章 + 三级子分类文章（去重）
+        const allPosts = child.posts.toArray().sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
+        return {
+          name: child.name,
+          length: child.length,
+          path: child.path,
+          sortedPosts: allPosts
+        };
+      })
     };
   });
 });
@@ -117,6 +177,7 @@ hexo.extend.helper.register('get_post_category_sidebar', function(post) {
   const postCats = post.categories.toArray();
 
   // 找到该文章所属的一级分类（无 parent 的分类）
+  // 三级文章需要向上遍历到根
   let topCat = null;
   for (const cat of postCats) {
     if (!cat.parent) {
@@ -124,33 +185,47 @@ hexo.extend.helper.register('get_post_category_sidebar', function(post) {
       break;
     }
   }
-  // 如果没有直接的一级分类，通过子分类的 parent 找到
+  // 如果没有直接的一级分类，通过子分类的 parent 向上遍历到根
   if (!topCat) {
     for (const cat of postCats) {
-      if (cat.parent) {
-        topCat = allCategories.find(c => c._id === cat.parent);
-        if (topCat) break;
+      let current = cat;
+      while (current && current.parent) {
+        current = allCategories.find(c => c._id === current.parent);
+      }
+      if (current && !current.parent) {
+        topCat = current;
+        break;
       }
     }
   }
   if (!topCat) return null;
 
-  // 复用 get_category_landing 的逻辑
+  // 构建二级分类数据（支持三级）
   const children = allCategories.filter(c => c.parent === topCat._id);
   sortSubCategories(children, topCat.name);
 
-  const childrenData = children.map(c => ({
-    name: c.name,
-    path: c.path,
-    posts: c.posts.toArray().sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'))
-  }));
+  const childrenData = children.map(c => buildLevel2Data(c, allCategories));
 
   // 取第一个子分类的第一篇文章作为分类入口
   let landingPath = categoryLandingPaths[topCat.name] || '/categories/';
   for (const child of childrenData) {
-    if (child.posts.length > 0) {
-      landingPath = this.url_for(child.posts[0].path);
-      break;
+    if (child.hasSubGroups) {
+      if (child.directPosts.length > 0) {
+        landingPath = this.url_for(child.directPosts[0].path);
+        break;
+      }
+      for (const sg of child.subGroups) {
+        if (sg.posts.length > 0) {
+          landingPath = this.url_for(sg.posts[0].path);
+          break;
+        }
+      }
+      if (landingPath !== (categoryLandingPaths[topCat.name] || '/categories/')) break;
+    } else {
+      if (child.posts.length > 0) {
+        landingPath = this.url_for(child.posts[0].path);
+        break;
+      }
     }
   }
 
@@ -164,7 +239,7 @@ hexo.extend.helper.register('get_post_category_sidebar', function(post) {
 });
 
 // 获取一级分类下的所有文章（含子分类），按时间倒序
-// 返回 { name, icon, description, children: [{ name, posts }], allPosts }
+// 返回 { name, icon, description, children: [{ name, posts, hasSubGroups?, ... }], allPosts }
 hexo.extend.helper.register('get_category_landing', function(categoryName) {
   const categories = this.site.categories.toArray();
 
@@ -175,6 +250,9 @@ hexo.extend.helper.register('get_category_landing', function(categoryName) {
   // 找到所有子分类
   const children = categories.filter(c => c.parent === parent._id);
   sortSubCategories(children, parent.name);
+
+  // 构建支持三级的子分类数据
+  const childrenData = children.map(c => buildLevel2Data(c, categories));
 
   // 收集所有文章并去重
   const postMap = new Map();
@@ -200,11 +278,7 @@ hexo.extend.helper.register('get_category_landing', function(categoryName) {
     name: parent.name,
     icon: categoryIcons[parent.name] || 'fa-folder-open',
     description: categoryDescriptions[parent.name] || '',
-    children: children.map(c => ({
-      name: c.name,
-      path: c.path,
-      posts: c.posts.toArray().sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'))
-    })),
+    children: childrenData,
     allPosts: allPosts
   };
 });
@@ -265,10 +339,25 @@ hexo.extend.helper.register('list_categories_sorted', function() {
       children.forEach((child, idx) => {
         const isLast = idx === children.length - 1;
         const url = this.url_for(child.path);
+        const level3Children = categories.filter(c => c.parent === child._id);
+        sortLevel3Categories(level3Children, child.name);
         result += `<li class="category-tree-child${isLast ? ' last' : ''}">`;
         result += `<span class="category-tree-branch">${isLast ? '└──' : '├──'}</span>`;
         result += `<a href="${url}" class="category-tree-link">${child.name}</a>`;
         result += `<span class="category-tree-child-count">${child.length}</span>`;
+        if (level3Children.length > 0) {
+          result += '<ul class="category-tree-grandchildren">';
+          level3Children.forEach((grandchild, gIdx) => {
+            const isGLast = gIdx === level3Children.length - 1;
+            const gUrl = this.url_for(grandchild.path);
+            result += `<li class="category-tree-grandchild${isGLast ? ' last' : ''}">`;
+            result += `<span class="category-tree-branch">${isGLast ? '└──' : '├──'}</span>`;
+            result += `<a href="${gUrl}" class="category-tree-link">${grandchild.name}</a>`;
+            result += `<span class="category-tree-child-count">${grandchild.length}</span>`;
+            result += '</li>';
+          });
+          result += '</ul>';
+        }
         result += '</li>';
       });
       result += '</ul>';
