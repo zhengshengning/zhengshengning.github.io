@@ -198,9 +198,7 @@ export default async function Posts() {
 
 希望这篇指南能帮你快速开启 Next.js 开发之旅！
 
-## 8. 检验标准与进阶方向
-
-### 自我检验清单
+## 8. 自我检验清单
 
 完成本文学习后，你应该能做到以下几点：
 
@@ -212,19 +210,6 @@ export default async function Posts() {
 - [ ] 能区分 Server Components 和 Client Components，知道何时需要添加 `'use client'`
 - [ ] 能使用 `<Link>` 组件实现页面间的客户端导航
 - [ ] 能描述 Next.js 相比纯 React SPA 在 SEO 和首屏性能上的优势
-
-### 进阶方向
-
-掌握基础后，你可以根据自己的需求选择以下方向深入学习：
-
-| 方向 | 关键内容 | 推荐资源 |
-|------|---------|---------|
-| API 开发 | Route Handlers、Server Actions、数据库集成 | [Next.js 官方文档 - Route Handlers](https://nextjs.org/docs/app/building-your-application/routing/route-handlers) |
-| 认证与授权 | NextAuth.js / Auth.js、JWT、Session 管理 | [Auth.js 官方文档](https://authjs.dev/) |
-| 样式与 UI | Tailwind CSS 进阶、shadcn/ui 组件库、CSS Modules | [shadcn/ui](https://ui.shadcn.com/) |
-| 部署与运维 | Vercel 部署、Docker 容器化、CI/CD 流水线 | [Next.js 官方文档 - Deploying](https://nextjs.org/docs/app/building-your-application/deploying) |
-| 性能优化 | Image 组件、字体优化、Bundle 分析、缓存策略 | [Next.js 官方文档 - Optimizing](https://nextjs.org/docs/app/building-your-application/optimizing) |
-| 测试 | Jest、React Testing Library、Playwright E2E 测试 | [Next.js 官方文档 - Testing](https://nextjs.org/docs/app/building-your-application/testing) |
 
 ## 9. 参考资料
 

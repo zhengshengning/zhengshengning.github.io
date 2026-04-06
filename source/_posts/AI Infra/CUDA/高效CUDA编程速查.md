@@ -16,13 +16,14 @@ tags: [CUDA, GPU, 性能优化, Tensor Core, Nsight]
 - [2. 算法设计](#2-算法设计)
 - [3. Kernel设计](#3-Kernel设计)
 - [4. 存储优化](#4-存储优化)
-- [5. 延迟隐藏](#5-延迟隐藏)
+- [5. 延迟隐藏](#5-⏱️-延迟隐藏)
 - [6. 指令级优化](#6-指令级优化)
 - [7. 性能分析工具链](#7-性能分析工具链)
 - [8. 常见误区与最佳实践](#8-常见误区与最佳实践)
 - [9. 快速检查清单](#9-快速检查清单)
 - [10. 实战优化流程](#10-实战优化流程)
-- [11. 检验标准与进阶方向](#11-检验标准与进阶方向)
+- [11. 自我检验清单](#11-自我检验清单)
+- [参考资料](#📚-参考资料)
 
 ## 1. 硬件性能基准测试
 
@@ -836,9 +837,7 @@ __shared__ float tile[256];
 - 使用内联PTX
 - 考虑混合精度和量化
 
-## 11. 检验标准与进阶方向
-
-### 自我检验清单
+## 11. 自我检验清单
 
 学完本手册后，试试能否做到以下几点：
 
@@ -849,16 +848,6 @@ __shared__ float tile[256];
 - [ ] 能使用 Nsight Compute 定位 kernel 的性能瓶颈（occupancy、cache hit rate、bank conflict 等）
 - [ ] 能将多个逐元素操作融合为单个 kernel，减少 global memory 往返
 - [ ] 能设计 multi-stream pipeline，实现计算与数据传输的重叠
-
-### 进阶方向
-
-| 方向 | 简介 | 推荐资料 |
-|------|------|----------|
-| Tensor Core 编程 | 使用 WMMA/CUTLASS 手写高性能矩阵运算 | [CUTLASS 官方文档与示例](https://github.com/NVIDIA/cutlass) |
-| 算子融合与代码生成 | 自动或手动融合算子链，减少访存开销 | [Triton Language](https://triton-lang.org/) |
-| 多 GPU 通信优化 | NCCL、NVLink、跨节点通信的性能调优 | [NCCL 官方文档](https://docs.nvidia.com/deeplearning/nccl/) |
-| 混合精度与量化推理 | FP8/INT4 量化策略与精度-性能权衡 | [TensorRT 开发者指南](https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/) |
-| CUDA Graph 与动态并行 | 减少 launch 开销，支持动态工作负载 | [CUDA Programming Guide - Graphs](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-graphs) |
 
 ## 📚 参考资料
 

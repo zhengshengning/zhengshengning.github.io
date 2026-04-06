@@ -12,13 +12,13 @@ tags: [GPU, NVIDIA, Tensor Core, HBM, Memory Wall]
 
 ## 📑 目录
 
-- [1. GPU 计算单元：SM、CUDA Core 与 Tensor Core](#1-gpu-计算单元smcuda-core-与-tensor-core)
+- [1. GPU 计算单元：SM、CUDA Core 与 Tensor Core](#1-GPU-计算单元：SM、CUDA-Core-与-Tensor-Core)
 - [2. 存储层次结构](#2-存储层次结构)
-- [3. Memory Wall：为什么带宽往往比算力先成为瓶颈](#3-memory-wall为什么带宽往往比算力先成为瓶颈)
-- [4. 数据中心 GPU 规格对比与选型](#4-数据中心-gpu-规格对比与选型)
+- [3. Memory Wall：为什么带宽往往比算力先成为瓶颈](#3-Memory-Wall：为什么带宽往往比算力先成为瓶颈)
+- [4. 数据中心 GPU 规格对比与选型](#4-数据中心-GPU-规格对比与选型)
 - [5. 总结](#5-总结)
-- [检验标准与进阶方向](#检验标准与进阶方向)
-- [参考资料](#参考资料)
+- [自我检验清单](#🎯-自我检验清单)
+- [参考资料](#📚-参考资料)
 
 ---
 
@@ -284,9 +284,7 @@ GPU 硬件知识对 AI Infra 工程师来说不是"nice to have"，而是分析�
 
 ---
 
-## 🎯 检验标准与进阶方向
-
-### 自我检验清单
+## 🎯 自我检验清单
 
 - 能画出 GPU 的存储层次金字塔（寄存器 → 共享内存 → L1 → L2 → HBM → CPU DRAM），标注每一级的容量和带宽量级
 - 能解释 SM、CUDA Core、Tensor Core 三者的关系与分工，说出 Tensor Core 在 AI 计算中的主导地位
@@ -295,16 +293,6 @@ GPU 硬件知识对 AI Infra 工程师来说不是"nice to have"，而是分析�
 - 能解释"为什么 FP8 训练比 FP16 快"——不只是数据量减半，Tensor Core 的 FP8 吞吐量也是 FP16 的 2 倍
 - 能对比 A100、H100、H200、B200 的核心规格差异，并针对不同场景给出选型建议
 - 能解释 FlashAttention 和算子融合"为什么有效"——不是算法魔法，而是减少了对 HBM 的读写次数
-
-### 进阶方向
-
-| 方向 | 内容 | 推荐资料 |
-|------|------|---------|
-| CUDA 编程入门 | 手写 Grid/Block/Thread 层级的 kernel，理解 Warp、共享内存、Coalesced Access | [NVIDIA CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/) |
-| 算子优化实战 | Reduce / GEMM / Softmax kernel 的分步优化 | [从啥也不会到CUDA GEMM优化](https://zhuanlan.zhihu.com/p/584236348) |
-| FlashAttention | 理解 Tiling 如何将 HBM 访问从 O(N^2) 降到 O(N) | [FlashAttention V1](https://arxiv.org/abs/2205.14135) / [V2](https://arxiv.org/abs/2307.08691) |
-| 性能分析 | Nsight Systems + Nsight Compute 定位 kernel 瓶颈 | [Nsight Systems](https://docs.nvidia.com/nsight-systems/UserGuide/) / [Nsight Compute](https://docs.nvidia.com/nsight-compute/) |
-| 新架构特性 | Hopper 的 Thread Block Cluster、TMA、Warp Specialization | [H100 Architecture Whitepaper](https://resources.nvidia.com/en-us-tensor-core/gtc22-whitepaper-hopper) |
 
 ## 📚 参考资料
 

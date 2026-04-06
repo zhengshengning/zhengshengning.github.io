@@ -501,9 +501,7 @@ pip install my-package-demo
 
 ---
 
-## 🎯 检验标准与进阶方向
-
-### 自我检验清单
+## 🎯 自我检验清单
 
 读完本文后，你应该能做到以下几点：
 
@@ -515,19 +513,6 @@ pip install my-package-demo
 - [ ] 能在 PyPI 上配置 Trusted Publisher，用 OIDC 替代 API Token 认证
 - [ ] 能使用 `hatch-vcs` 从 git tag 自动生成版本号，不再手动维护版本
 - [ ] 能区分 sdist 与 wheel 两种分发格式的适用场景
-
-### 进阶方向
-
-| 方向 | 说明 | 推荐资源 |
-|------|------|----------|
-| 多平台 wheel 构建 | 为不同操作系统和 Python 版本构建 C 扩展 wheel | [cibuildwheel](https://cibuildwheel.pypa.io/) |
-| 私有 PyPI 仓库 | 企业内部搭建私有包索引 | [devpi](https://devpi.net/)、[Artifactory](https://jfrog.com/artifactory/) |
-| 包安全与签名 | 对发布的包进行数字签名，防止篡改 | [Sigstore](https://www.sigstore.dev/) |
-| Monorepo 多包管理 | 在同一仓库中管理多个 Python 包的构建与发布 | [uv workspaces](https://docs.astral.sh/uv/concepts/workspaces/) |
-| 发布前自动化测试 | 在 CI 中集成 lint、类型检查、单元测试后再发布 | [nox](https://nox.thea.codes/)、[tox](https://tox.wiki/) |
-| 条件依赖与可选特性 | 使用 `[project.optional-dependencies]` 提供额外功能 | [PEP 631](https://peps.python.org/pep-0631/) |
-
----
 
 ## 📚 参考资源
 

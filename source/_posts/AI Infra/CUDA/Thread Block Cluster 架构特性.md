@@ -142,9 +142,7 @@ conv2d_cluster() {
 
 Thread Block Cluster是Hopper架构的重要创新，为大规模协作并行计算提供了更高效的硬件支持。其核心价值在于通过Distributed Shared Memory实现低延迟的跨Block数据共享，特别适合需要大量Block间数据交换的算法（如大型矩阵运算、3D卷积等）。
 
-## 🎯 检验标准与进阶方向
-
-### 自我检验清单
+## 🎯 自我检验清单
 
 学完本文后，你应该能做到以下几点：
 
@@ -155,15 +153,6 @@ Thread Block Cluster是Hopper架构的重要创新，为大规模协作并行计
 - [ ] 能使用 `cooperative_groups` API 获取 Cluster 信息（`block_rank()`、`num_blocks()`）并进行 Cluster 级别同步
 - [ ] 能通过 `cluster.map_shared_rank()` 访问 Cluster 内其他 Block 的 Shared Memory 数据
 - [ ] 能结合实际场景（矩阵乘法、卷积等）分析 Thread Block Cluster 带来的性能收益
-
-### 进阶方向
-
-| 方向 | 说明 | 推荐资料 |
-|------|------|---------|
-| TMA（Tensor Memory Accelerator） | Hopper 架构的异步数据搬运引擎，与 Cluster 配合可实现高效的多 Block 数据预取 | [CUDA PTX - TMA](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#data-movement-and-conversion-instructions-cp-async-bulk-tensor) |
-| Warp Specialization | 在 Cluster 内对不同 Warp 分工（生产者/消费者模式），最大化流水线并行 | [CUTLASS Warp Specialization](https://github.com/NVIDIA/cutlass/blob/main/media/docs/efficient_gemm.md) |
-| CUTLASS 3.x Cluster 支持 | CUTLASS 3.x 原生支持 Cluster 级别的 GEMM 分块策略，可直接参考工业级实现 | [CUTLASS 3.x](https://github.com/NVIDIA/cutlass/tree/main/examples/cute) |
-| Hopper 架构深度分析 | 全面理解 Hopper 架构的硬件特性（SM 结构、内存层次、互连拓扑），为 Cluster 编程打下硬件基础 | [H100 Architecture Whitepaper](https://resources.nvidia.com/en-us-tensor-core) |
 
 ## 📚 参考资料
 

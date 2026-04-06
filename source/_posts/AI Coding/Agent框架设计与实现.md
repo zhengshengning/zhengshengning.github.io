@@ -59,9 +59,7 @@ result = agent_executor.invoke({"input": "计算 25 * 4 + 10"})
 
 ---
 
-## 🎯 检验标准与进阶方向
-
-### 自我检验清单
+## 🎯 自我检验清单
 
 学完本文后，你可以用以下问题检验自己的掌握程度：
 
@@ -72,19 +70,6 @@ result = agent_executor.invoke({"input": "计算 25 * 4 + 10"})
 - [ ] 能设计 Agent 的记忆机制，实现短期对话上下文保持与长期知识检索
 - [ ] 能识别 Agent 执行中的常见问题（幻觉、死循环、工具调用失败）并给出应对策略
 - [ ] 能根据业务需求选择合适的 Agent 架构，并评估其可扩展性和可靠性
-
-### 进阶方向
-
-| 方向 | 说明 | 推荐资源 |
-|------|------|----------|
-| **高级 Prompt Engineering** | 掌握 System Prompt 设计、Few-shot、Chain-of-Thought 等技巧以提升 Agent 推理质量 | [Anthropic Prompt Engineering Guide](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview) |
-| **多智能体系统（Multi-Agent）** | 学习多个 Agent 如何分工协作、消息传递、冲突解决 | [CrewAI](https://github.com/crewAIInc/crewAI)、[AutoGen](https://github.com/microsoft/autogen) |
-| **工具与 MCP 协议** | 深入理解 Model Context Protocol，实现标准化的工具注册与调用 | [MCP 规范](https://modelcontextprotocol.io/) |
-| **Agent 评估与可观测性** | 建立 Agent 质量评估体系，追踪执行轨迹、成功率和延迟 | [LangSmith](https://smith.langchain.com/)、[Braintrust](https://www.braintrust.dev/) |
-| **RAG + Agent** | 结合检索增强生成，让 Agent 基于私有知识库进行推理和回答 | [LlamaIndex](https://github.com/run-llama/llama_index) |
-| **Agent 安全与对齐** | 研究 Agent 的权限控制、输出安全过滤、防止 Prompt 注入攻击 | [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/) |
-
----
 
 ## 📚 参考资料
 

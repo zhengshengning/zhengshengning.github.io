@@ -14,16 +14,16 @@ Nsight Systems 是 NVIDIA 提供的系统级性能分析工具，能够从全局
 
 - [1. 工具定位与适用场景](#1-工具定位与适用场景)
 - [2. 安装与环境配置](#2-安装与环境配置)
-- [3. 命令行采集（nsys profile）](#3-命令行采集nsys-profile)
-- [4. GUI 界面分析](#4-gui-界面分析)
+- [3. 命令行采集（nsys profile）](#3-命令行采集（nsys-profile）)
+- [4. GUI 界面分析](#4-GUI-界面分析)
 - [5. 核心概念与视图](#5-核心概念与视图)
 - [6. 典型分析场景](#6-典型分析场景)
 - [7. 深度学习场景实战](#7-深度学习场景实战)
-- [8. 多机多卡与 NCCL 分析](#8-多机多卡与-nccl-分析)
+- [8. 多机多卡与 NCCL 分析](#8-多机多卡与-NCCL-分析)
 - [9. 高级用法](#9-高级用法)
 - [10. 常见问题与最佳实践](#10-常见问题与最佳实践)
-- [11. 检验标准与进阶方向](#11-检验标准与进阶方向)
-- [参考资料](#参考资料)
+- [11. 自我检验清单](#11-自我检验清单)
+- [参考资料](#📚-参考资料)
 
 ---
 
@@ -803,9 +803,7 @@ nsys profile --trace=cuda,nvtx ...                  # 只采必要 trace
   └ 是 → 使用 torch.compile / CUDA Graph 融合
 ```
 
-## 11. 检验标准与进阶方向
-
-### 11.1 自我检验清单
+## 11. 自我检验清单
 
 学完本文后，你应该能做到以下几点：
 
@@ -817,19 +815,6 @@ nsys profile --trace=cuda,nvtx ...                  # 只采必要 trace
 - [ ] 能使用 `nsys stats` 导出 kernel 统计报告，快速定位最耗时的 Top-N kernel
 - [ ] 能根据 nsys 分析结果判断下一步应该用 ncu（Nsight Compute）深入分析哪个 kernel
 - [ ] 能通过 `--delay` + `--duration` 或 `cudaProfilerApi` 控制采集范围，避免报告文件过大
-
-### 11.2 进阶方向
-
-| 进阶方向 | 内容 | 推荐资源 |
-|---------|------|---------|
-| Nsight Compute 深入 | 学习 SM 利用率、Occupancy、内存带宽等 kernel 级指标分析 | [Nsight Compute Docs](https://docs.nvidia.com/nsight-compute/) |
-| CUDA Graph | 掌握 CUDA Graph 录制回放机制，消除 kernel launch 开销 | [CUDA Graph Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-graphs) |
-| torch.compile 性能分析 | 分析 torch.compile 编译后的融合 kernel，对比编译前后的性能差异 | [PyTorch torch.compile Tutorial](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html) |
-| 大规模分布式 Profiling | 多机多卡场景下的 NCCL 通信调优、流水线并行分析 | [PyTorch Distributed Overview](https://pytorch.org/tutorials/beginner/dist_overview.html) |
-| 自动化性能回归检测 | 将 nsys stats 集成到 CI/CD，自动检测性能回归 | 结合 `nsys export --type=sqlite` + 自定义脚本 |
-| 推理引擎 Profiling | 使用 nsys 分析 TensorRT / vLLM / TGI 等推理引擎的性能瓶颈 | [TensorRT Best Practices](https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/) |
-
----
 
 ## 📚 参考资料
 

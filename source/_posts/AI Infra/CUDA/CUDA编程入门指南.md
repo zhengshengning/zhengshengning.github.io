@@ -13,16 +13,16 @@ CUDA 是连接 AI 算法与 GPU 硬件的桥梁，负责把高层的数学计算
 ## 📑 目录
 
 - [1. 环境配置](#1-环境配置)
-- [2. CUDA 编程模型](#2-cuda-编程模型)
+- [2. CUDA 编程模型](#2-CUDA-编程模型)
 - [3. 内存模型](#3-内存模型)
 - [4. 关键概念](#4-关键概念)
-- [5. 第一个完整程序：向量加法](#5-第一个完整程序向量加法)
+- [5. 第一个完整程序：向量加法](#5-第一个完整程序：向量加法)
 - [6. 常见算子实现与优化](#6-常见算子实现与优化)
-- [7. Attention 算子](#7-attention-算子)
-- [8. AI 编译器](#8-ai-编译器)
+- [7. Attention 算子](#7-Attention-算子)
+- [8. AI 编译器](#8-AI-编译器)
 - [9. 性能分析工具](#9-性能分析工具)
-- [10. 检验标准与进阶方向](#10-检验标准与进阶方向)
-- [参考资料](#参考资料)
+- [10. 自我检验清单](#10-自我检验清单)
+- [参考资料](#📚-参考资料)
 
 ---
 
@@ -1119,9 +1119,7 @@ cuobjdump -sass kernel
 
 ---
 
-## 10. 检验标准与进阶方向
-
-### 10.1 自我检验清单
+## 10. 自我检验清单
 
 完成本文学习后，你应该能够：
 
@@ -1135,16 +1133,6 @@ cuobjdump -sass kernel
 - 能解释 FlashAttention 的核心思想（Tiling + Online Softmax + 不存中间矩阵）
 - 能使用 Triton 编写一个简单的 kernel（如向量加法或 Softmax），并与 PyTorch 结果对比
 - 能用 Nsight Compute 分析自己写的 kernel，判断是 memory bound 还是 compute bound
-
-### 10.2 进阶方向
-
-| 方向 | 内容 | 推荐资料 |
-|------|------|---------|
-| CUDA 极致优化 | Tensor Core 编程、双缓冲、TMA | [高效CUDA编程速查](/AI%20Infra/高效CUDA编程速查/) |
-| GEMM 深度优化 | CUTLASS 模板库、Tensor Core GEMM、寄存器分块 | [CUTLASS - GitHub](https://github.com/NVIDIA/cutlass) |
-| FlashAttention 源码 | 理解 Tiling + Online Softmax 的工程实现 | [FlashAttention - GitHub](https://github.com/Dao-AILab/flash-attention) |
-| 推理引擎算子 | PagedAttention、Continuous Batching 的底层实现 | [vLLM - GitHub](https://github.com/vllm-project/vllm) |
-| AI 编译器与自动代码生成 | Triton 编译器内部原理、torch.compile 全链路、TVM 调度优化 | [Triton Tutorials](https://triton-lang.org/main/getting-started/tutorials/) |
 
 ## 📚 参考资料
 

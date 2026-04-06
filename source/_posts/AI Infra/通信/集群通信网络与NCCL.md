@@ -18,7 +18,7 @@ tags: [NVLink, InfiniBand, NCCL, 集合通信, 分布式训练]
 - [4. NCCL：GPU 集合通信库](#4-ncclgpu-集合通信库)
 - [5. 从通信视角理解分布式并行策略](#5-从通信视角理解分布式并行策略)
 - [6. 总结](#6-总结)
-- [检验标准与进阶方向](#检验标准与进阶方向)
+- [自我检验清单](#自我检验清单)
 - [参考资料](#参考资料)
 
 ---
@@ -481,9 +481,7 @@ GPU3: [  ][  ][  ][F1][F2][F3][B3][B2][B1][  ][  ][  ]
 
 ---
 
-## 🎯 检验标准与进阶方向
-
-### 自我检验清单
+## 🎯 自我检验清单
 
 - 能说出 NVLink 4.0 与 PCIe 5.0 的带宽对比（900 GB/s vs 64 GB/s，约 14 倍），并解释这对张量并行的影响
 - 能在 8 卡机器上用 `nvidia-smi topo -m` 读懂拓扑输出，判断哪些卡走 NVLink、哪些走 PCIe
@@ -494,16 +492,6 @@ GPU3: [  ][  ][  ][F1][F2][F3][B3][B2][B1][  ][  ][  ]
 - 能用 `nccl-tests` 测量 8 卡 AllReduce 带宽，并判断结果是否正常（H100 SXM busbw 应接近 850 GB/s）
 - 能从通信视角解释"为什么 TP 限制在机内而 PP 可以跨机"
 - 能用 `NCCL_DEBUG=INFO` 排查多卡训练中的通信问题
-
-### 进阶方向
-
-| 方向 | 内容 | 推荐资料 |
-|------|------|---------|
-| 分布式训练实战 | DDP / FSDP / 3D 并行的代码实现 | [PyTorch DDP 教程](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html) / [FSDP 教程](https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html) |
-| Megatron-LM 源码 | TP 和 PP 中的通信模式实现细节 | [Megatron-LM Paper](https://arxiv.org/abs/1909.08053) / [GitHub](https://github.com/NVIDIA/Megatron-LM) |
-| ZeRO 系列 | 理解 ZeRO-1/2/3 的通信量差异与切分策略 | [ZeRO Paper](https://arxiv.org/abs/1910.02054) / [DeepSpeed](https://www.deepspeed.ai/) |
-| 网络拓扑优化 | Fat-tree、Rail-optimized 拓扑与 NCCL 调优 | [NCCL Documentation](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/) |
-| 通信-计算重叠 | 异步通信与流水线通信隐藏延迟 | [PyTorch Distributed Overview](https://pytorch.org/docs/stable/distributed.html) |
 
 ## 📚 参考资料
 

@@ -382,9 +382,7 @@ Click 和 uv 都完美支持 Windows。如果遇到路径问题，确保在命�
 
 现在，你已经掌握了使用 uv 构建 Python 命令行工具的全部技巧。快去创建属于你自己的命令行工具吧！
 
-## 🎯 检验标准与进阶方向
-
-### 自我检验清单
+## 🎯 自我检验清单
 
 完成本教程后，用以下清单检验自己的掌握程度：
 
@@ -396,20 +394,6 @@ Click 和 uv 都完美支持 Windows。如果遇到路径问题，确保在命�
 - [ ] 能使用 `uv run` 在未激活虚拟环境的情况下运行项目命令
 - [ ] 能使用 `uv build` 构建分发包，并理解 `.tar.gz` 和 `.whl` 的区别
 - [ ] 能独立排查"命令找不到"等常见问题，知道从虚拟环境、入口点配置等方面定位原因
-
-### 进阶方向
-
-掌握基础之后，可以沿以下方向继续深入：
-
-| 方向 | 说明 | 推荐资源 |
-|------|------|----------|
-| Click 高级用法 | 自定义类型、回调函数、命令组嵌套、插件机制 | [Click 高级模式](https://click.palletsprojects.com/en/stable/advanced/) |
-| Typer 框架 | 基于 Click 的更现代封装，利用类型注解自动生成 CLI | [Typer 官方文档](https://typer.tiangolo.com/) |
-| Rich 终端美化 | 为 CLI 工具添加进度条、表格、Markdown 渲染等丰富输出 | [Rich 官方文档](https://rich.readthedocs.io/) |
-| 自动补全 | 为命令行工具添加 Tab 自动补全支持（Bash/Zsh/Fish） | [Click Shell Completion](https://click.palletsprojects.com/en/stable/shell-completion/) |
-| 配置管理 | 使用 `pydantic-settings` 或 `dynaconf` 管理多层级配置 | [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) |
-| 测试 CLI | 使用 Click 的 `CliRunner` 或 `pytest` 编写命令行工具的自动化测试 | [Click Testing](https://click.palletsprojects.com/en/stable/testing/) |
-| 跨平台分发 | 使用 PyInstaller 或 Nuitka 将 Python CLI 打包为独立可执行文件 | [PyInstaller 文档](https://pyinstaller.org/) |
 
 ## 📚 参考资料
 

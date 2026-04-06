@@ -14,16 +14,16 @@ Nsight Compute 是 NVIDIA 提供的 CUDA Kernel 级深度分析工具，能够�
 
 - [1. 工具定位与分析流程](#1-工具定位与分析流程)
 - [2. 安装与环境配置](#2-安装与环境配置)
-- [3. 命令行采集（ncu）](#3-命令行采集ncu)
-- [4. GUI 界面分析](#4-gui-界面分析)
+- [3. 命令行采集（ncu）](#3-命令行采集（ncu）)
+- [4. GUI 界面分析](#4-GUI-界面分析)
 - [5. 核心指标详解](#5-核心指标详解)
-- [6. Roofline 模型](#6-roofline-模型)
-- [7. 典型 Kernel 优化场景](#7-典型-kernel-优化场景)
-- [8. 深度学习 Kernel 分析](#8-深度学习-kernel-分析)
+- [6. Roofline 模型](#6-Roofline-模型)
+- [7. 典型 Kernel 优化场景](#7-典型-Kernel-优化场景)
+- [8. 深度学习 Kernel 分析](#8-深度学习-Kernel-分析)
 - [9. 高级用法](#9-高级用法)
 - [10. 常见问题与最佳实践](#10-常见问题与最佳实践)
-- [检验标准与进阶方向](#检验标准与进阶方向)
-- [参考资料](#参考资料)
+- [自我检验清单](#🎯-自我检验清单)
+- [参考资料](#📚-参考资料)
 
 ---
 
@@ -889,9 +889,7 @@ Kernel 在 Roofline 的位置       优化策略
 
 ---
 
-## 🎯 检验标准与进阶方向
-
-### 自我检验清单
+## 🎯 自我检验清单
 
 学完本文后，你应该能够做到以下几点：
 
@@ -903,18 +901,6 @@ Kernel 在 Roofline 的位置       优化策略
 - [ ] 能使用 `--kernel-name` 和 `--launch-skip` 精确采集目标 kernel，避免分析所有 kernel 导致的性能开销
 - [ ] 能对比优化前后的 ncu 报告，验证性能改善（命令行或 GUI 对比）
 - [ ] 能根据 ncu 的 Rules 自动建议，快速定位 kernel 的优化切入点
-
-### 进阶方向
-
-| 方向 | 内容 | 推荐资源 |
-|------|------|---------|
-| SASS 级指令分析 | 学习 GPU 汇编（SASS），在 ncu Source 页面分析指令级瓶颈 | [CUDA Binary Utilities](https://docs.nvidia.com/cuda/cuda-binary-utilities/) |
-| 自定义 Section / Rule | 编写 `.section` 和 `.py` 规则文件，定制 ncu 的分析面板和优化建议 | [Nsight Compute Customization Guide](https://docs.nvidia.com/nsight-compute/CustomizationGuide/) |
-| Tensor Core 深度分析 | 分析 wmma/mma 指令利用率，判断 Tensor Core 是否被充分使用 | [Tensor Core Programming](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#wmma) |
-| 多 Kernel 联合优化 | 结合 nsys 的时间线视图和 ncu 的 kernel 级数据，做全局优化决策 | [Nsight Systems + Compute Workflow](https://developer.nvidia.com/nsight-systems) |
-| Kernel 自动调优 | 使用 ncu 的 CSV 导出 + 脚本自动化，构建 kernel 参数搜索和性能回归检测 | [Triton Autotuner](https://triton-lang.org/) |
-
----
 
 ## 📚 参考资料
 

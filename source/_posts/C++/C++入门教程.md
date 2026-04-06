@@ -336,9 +336,7 @@ g++ -std=c++17 -Wall -Wextra -o program source.cpp
 g++ -std=c++17 -O2 -o program source.cpp
 ```
 
-## 🎯 检验标准与进阶方向
-
-### 自我检验清单
+## 🎯 自我检验清单
 
 学完本文后，你可以用以下清单检验自己的掌握程度：
 
@@ -350,20 +348,6 @@ g++ -std=c++17 -O2 -o program source.cpp
 - [ ] 能使用继承和 `virtual`/`override` 实现多态
 - [ ] 能使用 `std::unique_ptr` 和 `std::shared_ptr` 管理动态内存，理解 RAII 思想
 - [ ] 能使用 STL 容器（`vector`、`map`）和算法（`sort`、`for_each`），配合 Lambda 表达式完成常见任务
-
-### 进阶方向
-
-掌握基础后，可以根据自己的兴趣和目标选择进阶方向：
-
-| 方向 | 核心内容 | 推荐资源 |
-|------|----------|----------|
-| 深入语言特性 | 模板元编程、移动语义、完美转发、`constexpr` | 《Effective Modern C++》 |
-| 并发与多线程 | `std::thread`、`std::mutex`、`std::async`、原子操作 | 《C++ Concurrency in Action》 |
-| 系统编程 | 操作系统接口、网络编程、文件系统 | 《UNIX 环境高级编程》 |
-| 游戏开发 | 游戏引擎架构、图形学、物理引擎 | Unreal Engine 官方文档 |
-| 高性能计算 | SIMD、内存对齐、缓存优化、GPU 编程 | 《Performance Analysis and Tuning on Modern CPUs》 |
-| 嵌入式开发 | 裸机编程、RTOS、硬件抽象层 | 《Embedded C++》 |
-| 工程实践 | CMake 构建系统、单元测试、代码规范、CI/CD | 《Professional CMake》、Google C++ Style Guide |
 
 ## 📚 参考资料
 

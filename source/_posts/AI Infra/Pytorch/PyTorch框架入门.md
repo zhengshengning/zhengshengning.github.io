@@ -19,7 +19,7 @@ PyTorch 是当前大模型训练和推理的事实标准框架。本文聚焦于
 - [5. GPU 训练基础](#5-gpu-训练基础)
 - [6. 性能分析入门](#6-性能分析入门)
 - [总结](#总结)
-- [检验标准与进阶方向](#检验标准与进阶方向)
+- [自我检验清单](#自我检验清单)
 - [参考资料](#参考资料)
 
 ---
@@ -614,9 +614,7 @@ prof.export_chrome_trace("trace.json")   # 可在 chrome://tracing 中可视化
 
 ---
 
-## 🎯 检验标准与进阶方向
-
-### 自我检验清单
+## 🎯 自我检验清单
 
 完成本文学习后，你应该能够：
 
@@ -628,15 +626,6 @@ prof.export_chrome_trace("trace.json")   # 可在 chrome://tracing 中可视化
 - 能使用 `torch.autocast` 实现 bf16/fp16 混合精度训练，并解释 `GradScaler` 的作用
 - 能使用 `torch.profiler` 分析训练 step，读懂输出并识别数据加载和 CPU-GPU 传输瓶颈
 - 能解释 fp32、fp16、bf16 三种精度的区别及选择依据
-
-### 进阶方向
-
-| 方向 | 内容 | 推荐资料 |
-|------|------|---------|
-| 分布式训练 | DDP、FSDP、ZeRO 等多卡训练 | [PyTorch DDP Tutorial](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html) |
-| CUDA 编程 | 自定义 CUDA kernel、算子优化 | [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/) |
-| torch.compile | 图编译优化、TorchDynamo | [torch.compile Tutorial](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html) |
-| 推理优化 | TorchScript、ONNX 导出、量化 | [PyTorch Quantization Docs](https://pytorch.org/docs/stable/quantization.html) |
 
 ## 📚 参考资料
 

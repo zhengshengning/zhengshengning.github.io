@@ -207,9 +207,7 @@ JetBrains 插件同样提供了集成体验，支持 IntelliJ IDEA、PyCharm、W
 
 5. **多文件操作**：Claude Code 可以同时理解和修改多个文件，适合跨模块的重构任务。
 
-## 🎯 检验标准与进阶方向
-
-### 自我检验清单
+## 🎯 自我检验清单
 
 学完本文后，你应该能做到以下几点：
 
@@ -221,16 +219,6 @@ JetBrains 插件同样提供了集成体验，支持 IntelliJ IDEA、PyCharm、W
 - [ ] 能使用管道模式将 Claude Code 与其他命令行工具组合使用
 - [ ] 能通过 `/compact`、`/model` 等命令管理对话上下文和模型选择
 - [ ] 能使用 Claude Code 完成 Git 提交、PR 创建等版本控制操作
-
-### 进阶方向
-
-| 方向 | 说明 | 推荐资料 |
-|------|------|----------|
-| MCP Server 开发 | 自己编写 MCP Server，让 Claude Code 连接内部系统 | [MCP 官方文档](https://modelcontextprotocol.io/introduction) |
-| 自定义 Slash Commands | 创建团队专属的 Skills，标准化工作流 | [Claude Code Skills 文档](https://docs.anthropic.com/en/docs/claude-code/skills) |
-| CI/CD 集成 | 在 GitHub Actions 等流水线中使用 Claude Code 做自动化 code review | [Claude Code GitHub Actions](https://docs.anthropic.com/en/docs/claude-code/github-actions) |
-| Hooks 高级用法 | 结合 Pre/Post Hook 实现复杂的自动化质量保障流程 | [Claude Code Hooks 文档](https://docs.anthropic.com/en/docs/claude-code/hooks) |
-| 多 Agent 协作 | 使用 Claude Code 的 sub-agent 能力并行处理复杂任务 | [Claude Code Agent 文档](https://docs.anthropic.com/en/docs/claude-code/sub-agents) |
 
 ## 📚 参考资料
 

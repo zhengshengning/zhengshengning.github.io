@@ -346,9 +346,7 @@ Can you refactor the function in @packages/functions/src/api/index.ts?
 
 为了让它更适合你，我们建议 [选择一个主题](/docs/themes)、[自定义键绑定](/docs/keybinds)、[配置代码格式化程序](/docs/formatters)、[创建自定义命令](/docs/commands)，或者摆弄 [OpenCode 配置](/docs/config)。
 
-## 🎯 检验标准与进阶方向
-
-### 自我检验清单
+## 🎯 自我检验清单
 
 学完本文后，你可以用以下问题检验自己的掌握程度：
 
@@ -360,17 +358,6 @@ Can you refactor the function in @packages/functions/src/api/index.ts?
 - [ ] 能使用 `/undo` 和 `/redo` 命令管理 OpenCode 所做的代码变更
 - [ ] 能使用 `/share` 命令将对话分享给团队成员
 - [ ] 能编写足够详细的自然语言提示，使 OpenCode 准确理解需求并生成正确的代码
-
-### 进阶方向
-
-| 方向 | 说明 | 推荐资源 |
-|------|------|----------|
-| 提供商配置 | 学习对接更多 LLM 提供商（OpenAI、Anthropic、本地模型等），根据任务类型选择最合适的模型 | [OpenCode Providers 文档](https://opencode.ai/docs/providers) |
-| 主题与键绑定 | 自定义 OpenCode 的外观和快捷键，打造个性化的开发环境 | [Themes 文档](https://opencode.ai/docs/themes)、[Keybinds 文档](https://opencode.ai/docs/keybinds) |
-| 自定义命令 | 创建可复用的自定义命令，将常用操作封装为一键触发的工作流 | [Commands 文档](https://opencode.ai/docs/commands) |
-| 代码格式化 | 配置代码格式化程序，确保 OpenCode 生成的代码符合项目规范 | [Formatters 文档](https://opencode.ai/docs/formatters) |
-| MCP 集成 | 通过 Model Context Protocol 扩展 OpenCode 的能力，接入数据库、API 等外部工具 | [MCP 文档](https://opencode.ai/docs/mcp) |
-| 提示工程 | 学习如何编写更精准的提示词，提升 AI 生成代码的质量和准确性 | [OpenCode 最佳实践](https://opencode.ai/docs/) |
 
 ## 📚 参考资料
 

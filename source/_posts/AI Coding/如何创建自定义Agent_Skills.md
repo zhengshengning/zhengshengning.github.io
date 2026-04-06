@@ -178,9 +178,7 @@ Team 和 Enterprise 计划的注意事项: 要使 skill 对你组织中的所有
 
 访问我们在 GitHub 上的存储库以获取可以用作模板的示例 Skills: [https://github.com/anthropics/skills/tree/main/skills](https://github.com/anthropics/skills/tree/main/skills)。
 
-## 🎯 检验标准与进阶方向
-
-### 自我检验清单
+## 🎯 自我检验清单
 
 学完本文后，你应该能做到以下几点：
 
@@ -192,17 +190,6 @@ Team 和 Enterprise 计划的注意事项: 要使 skill 对你组织中的所有
 - [ ] 能按照测试清单在上传前后分别验证 Skill 的正确性
 - [ ] 能遵循安全最佳实践，避免硬编码敏感信息，使用 MCP 连接外部服务
 - [ ] 能设计多个专注的 Skills 并让它们协同工作，而不是创建一个"万能 Skill"
-
-### 进阶方向
-
-| 方向 | 说明 | 推荐资源 |
-|------|------|----------|
-| Skill 编写最佳实践 | 深入了解高质量 Skill 的编写模式与反模式 | [Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices) |
-| 开放 Agent Skills 规范 | 学习跨平台通用的 Skill 标准，让你的 Skill 可移植 | [agentskills.io](http://agentskills.io) |
-| MCP 协议 | 掌握 Model Context Protocol，安全连接外部工具和服务 | [MCP 官方文档](https://modelcontextprotocol.io/) |
-| 组织级 Skill 管理 | 了解如何在 Team/Enterprise 计划中为整个组织部署和管理 Skills | [Claude 企业管理文档](https://support.claude.com/en/articles/12512180-using-skills-in-claude) |
-| 通过对话创建 Skill | 学习如何在与 Claude 的对话中直接生成 Skill，无需手动编写 | [How to create a skill with Claude through conversation](https://support.claude.com/en/articles/12599426-how-to-create-a-skill-with-claude-through-conversation) |
-| 社区示例 Skills | 参考官方和社区贡献的 Skill 模板，快速上手 | [GitHub Skills 仓库](https://github.com/anthropics/skills/tree/main/skills) |
 
 ## 📚 参考资料
 
