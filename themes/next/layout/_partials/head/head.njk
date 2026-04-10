@@ -12,8 +12,6 @@
 
 {%- if theme.preconnect %}
   <link rel="preload" href="{{ url_for(theme.css) }}/main.css" as="style">
-  <link rel="dns-prefetch" href="https://fonts.googleapis.cn">
-  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 {%- endif %}
 {{ next_pre() }}
 

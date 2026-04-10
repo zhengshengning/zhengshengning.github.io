@@ -3,6 +3,14 @@
 // 覆盖 NexT base.styl 变量，在 _colors.styl 之前生效
 // ===================================
 
+// 系统字体栈优化（避免加载外部字体，提升首屏速度）
+$font-family-chinese      = "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif
+$font-family-base         = -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, $font-family-chinese
+$font-family-logo         = $font-family-base
+$font-family-headings     = $font-family-base
+$font-family-posts        = $font-family-base
+$font-family-monospace    = "SFMono-Regular", Consolas, "Liberation Mono", Menlo, "Courier New", monospace, $font-family-chinese
+
 // Light mode colors (default)
 $body-bg-color                = #fafafa
 $content-bg-color             = #ffffff

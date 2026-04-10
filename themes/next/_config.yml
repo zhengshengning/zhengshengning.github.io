@@ -435,7 +435,7 @@ github_banner:
 # ---------------------------------------------------------------
 
 font:
-  enable: true
+  enable: false
 
   # Uri of fonts host, e.g. https://fonts.googleapis.com (Default).
   host: https://fonts.googleapis.cn
@@ -446,32 +446,34 @@ font:
   # `size: x.x`. Use `em` as unit. Default: 1 (16px)
 
   # Global font settings used for all elements inside <body>.
+  # 性能优化：关闭外部字体加载，使用 NexT 内置的系统中文字体栈
+  # NexT 默认使用 PingFang SC + Microsoft YaHei，覆盖 macOS/Windows/Linux
   global:
-    external: true
-    family: Inter, Noto Sans SC
+    external: false
+    family:
     size:
 
   # Font settings for site title (.site-title).
   title:
-    external: true
-    family: Inter, Noto Sans SC
+    external: false
+    family:
     size:
 
   # Font settings for headlines (<h1> to <h6>).
   headings:
-    external: true
-    family: Inter, Noto Sans SC
+    external: false
+    family:
     size:
 
   # Font settings for posts (.post-body).
   posts:
-    external: true
-    family: Inter, Noto Sans SC
+    external: false
+    family:
 
   # Font settings for <code> and code blocks.
   codes:
-    external: true
-    family: Fira Code
+    external: false
+    family:
 
 
 # ---------------------------------------------------------------
@@ -900,7 +902,8 @@ vendors:
   # The default CDN provider of third-party plugins.
   # Available values: local | jsdelivr | unpkg | cdnjs | custom
   # Dependencies for `plugins: local`: https://github.com/next-theme/plugins
-  plugins: cdnjs
+  # 使用 jsdelivr（国内有加速节点，比 cdnjs.cloudflare.com 更快）
+  plugins: jsdelivr
   # Custom CDN URL
   # For example:
   # custom_cdn_url: https://cdn.jsdelivr.net/npm/${npm_name}@${version}/${minified}
