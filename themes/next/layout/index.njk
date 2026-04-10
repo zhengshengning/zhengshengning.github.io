@@ -34,7 +34,7 @@
           {% for child in group.children %}
           <div class="readme-category-item">
             <div class="readme-category-name">
-              <i class="fa fa-folder"></i>
+              <i>✈️</i>
               <span>{{ child.name }}</span>
               <span class="readme-category-count">({{ child.length }})</span>
             </div>
@@ -42,7 +42,6 @@
               {% for post in child.sortedPosts %}
               <li class="readme-article-item">
                 <a href="{{ url_for(post.path) }}">
-                  <span class="readme-article-date">{{ date(post.date, 'YYYY-MM-DD') }}</span>
                   <span class="readme-article-title">{{ post.title }}</span>
                 </a>
               </li>

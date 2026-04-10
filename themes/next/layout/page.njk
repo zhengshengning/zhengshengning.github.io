@@ -142,7 +142,6 @@
                     {% for post in child.directPosts %}
                     <li>
                       <a href="{{ url_for(post.path) }}">
-                        <span class="category-landing-article-date">{{ date(post.date, 'YYYY-MM-DD') }}</span>
                         <span class="category-landing-article-title">{{ post.title }}</span>
                       </a>
                     </li>
@@ -152,7 +151,7 @@
                   {% for sg in child.subGroups %}
                   <div class="category-landing-sub-section">
                     <div class="category-landing-sub-section-header">
-                      <i class="fa fa-folder-o"></i>
+                      <i>✈️</i>
                       <span>{{ sg.name }}</span>
                       <span class="category-landing-section-count">{{ sg.posts.length }} 篇</span>
                     </div>
@@ -160,7 +159,6 @@
                       {% for post in sg.posts %}
                       <li>
                         <a href="{{ url_for(post.path) }}">
-                          <span class="category-landing-article-date">{{ date(post.date, 'YYYY-MM-DD') }}</span>
                           <span class="category-landing-article-title">{{ post.title }}</span>
                         </a>
                       </li>
@@ -173,7 +171,6 @@
                   {% for post in child.posts %}
                   <li>
                     <a href="{{ url_for(post.path) }}">
-                      <span class="category-landing-article-date">{{ date(post.date, 'YYYY-MM-DD') }}</span>
                       <span class="category-landing-article-title">{{ post.title }}</span>
                     </a>
                   </li>
