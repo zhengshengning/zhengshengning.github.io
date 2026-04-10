@@ -17,7 +17,7 @@ const subCategoryOrder = {
 
 // 三级分类的展示顺序（按二级分类分组）
 const level3CategoryOrder = {
-  '前置知识': ['编程基础', 'Transformer', 'Pytorch']
+  '前置知识': ['编程基础', '深度学习基础', 'Transformer', 'Pytorch']
 };
 
 // 二级分类排序函数

@@ -1847,3 +1847,26 @@ html:not([data-theme="dark"])
     opacity: 0
 
 // （主题切换按钮已移入顶部导航栏）
+
+// Mermaid 图表：去除左侧代码块边框，重置背景
+.code-container:has(.mermaid)
+  border: none !important
+  background: transparent !important
+  box-shadow: none !important
+  padding: 0 !important
+
+  // 隐藏复制按钮
+  .copy-btn
+    display: none !important
+
+// Mermaid SVG 紧贴容器上下边框
+.mermaid svg
+  display: block !important
+  margin: 0 auto !important
+
+// Mermaid 图表字体大小（v11 使用 foreignObject + HTML 渲染节点文字）
+.mermaid p,
+.mermaid span,
+.mermaid .nodeLabel,
+.mermaid .edgeLabel
+  font-size: 14px !important

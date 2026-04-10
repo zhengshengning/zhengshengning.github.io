@@ -22,7 +22,7 @@ document.addEventListener('page:loaded', async () => {
     mermaid.initialize({
       theme    : CONFIG.darkmode && window.matchMedia('(prefers-color-scheme: dark)').matches ? CONFIG.mermaid.theme.dark : CONFIG.mermaid.theme.light,
       logLevel : 4,
-      flowchart: { curve: 'linear' },
+      flowchart: { curve: 'linear', nodeSpacing: 30, rankSpacing: 30, padding: 8 },
       gantt    : { axisFormat: '%m/%d/%Y' },
       sequence : { actorMargin: 50 }
     });
