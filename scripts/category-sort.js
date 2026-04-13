@@ -6,18 +6,20 @@
  */
 
 // 一级分类的展示顺序
-const topLevelOrder = ['AI Infra', '路飞玩AI', '编程技能包'];
+const topLevelOrder = ['AI Infra', '求职面试', '路飞玩AI', '编程技能包'];
 
 // 二级分类的展示顺序（按一级分类分组，顺序与 categories.md 一致）
 const subCategoryOrder = {
   'AI Infra': ['学习路线', '前置知识', 'CUDA编程与算子优化', '分布式训练', '推理与部署', '性能分析'],
+  '求职面试': ['AI Infra'],
   '路飞玩AI': ['AI编程', 'Agent开发'],
   '编程技能包': ['Python', 'C++基础', 'Web开发']
 };
 
 // 三级分类的展示顺序（按二级分类分组）
 const level3CategoryOrder = {
-  '前置知识': ['编程基础', '深度学习基础', 'Transformer', 'Pytorch']
+  '前置知识': ['编程基础', '深度学习基础', 'Transformer', 'Pytorch'],
+  'AI Infra': ['大厂真题', 'AI Infra面经', '高性能计算面经', '推理优化面经']
 };
 
 // 二级分类排序函数
@@ -73,9 +75,13 @@ function buildLevel2Data(level2Cat, allCategories) {
   }
 }
 
+// 首页不逐篇展开的分类（只显示分类名和文章数）
+const homepageCollapsedCategories = ['求职面试'];
+
 // 一级分类的图标映射
 const categoryIcons = {
   'AI Infra': 'fa-server',
+  '求职面试': 'fa-briefcase',
   '路飞玩AI': 'fa-robot',
   '编程技能包': 'fa-code'
 };
@@ -111,9 +117,13 @@ hexo.extend.helper.register('sorted_categories_tree', function() {
   return topLevel.map(parent => {
     const children = childrenMap[parent._id] || [];
     sortSubCategories(children, parent.name);
+    // 不在首页逐篇展开的分类，只显示分类名和文章数
+    const collapsed = homepageCollapsedCategories.includes(parent.name);
     return {
       name: parent.name,
       icon: categoryIcons[parent.name] || 'fa-folder-open',
+      collapsed: collapsed,
+      landingPath: categoryLandingPaths[parent.name] || '/categories/',
       totalPosts: children.length > 0
         ? children.reduce((sum, c) => sum + c.length, 0)
         : parent.length,
@@ -140,6 +150,7 @@ hexo.extend.helper.register('sorted_categories_tree', function() {
 // 一级分类的介绍文案
 const categoryDescriptions = {
   'AI Infra': '涵盖计算机底层基础、大模型训练部署和 CUDA GPU 编程等基础设施技术。',
+  '求职面试': '汇总 AI Infra 方向的大厂面经、常见面试题和求职经验分享。',
   '路飞玩AI': '探索 AI 编程工具的最佳实践与 Agent 智能体的设计开发。',
   '编程技能包': '实用编程技能：Web 开发、Python 生态、工具链与工程实践。'
 };
@@ -147,6 +158,7 @@ const categoryDescriptions = {
 // 一级分类对应的着陆页路径
 const categoryLandingPaths = {
   'AI Infra': '/ai-infra/',
+  '求职面试': '/interview/',
   '路飞玩AI': '/play-ai/',
   '编程技能包': '/coding-skills/'
 };
@@ -368,4 +380,31 @@ hexo.extend.helper.register('list_categories_sorted', function() {
 
   result += '</div>';
   return result;
+});
+
+// 自定义首页 generator：排除折叠分类的文章，覆盖 hexo-generator-index
+const pagination = require('hexo-pagination');
+
+hexo.extend.generator.register('index', function(locals) {
+  const config = this.config;
+  const posts = locals.posts.sort(config.index_generator.order_by).filter(post => {
+    if (!post.categories || !post.categories.length) return true;
+    return !post.categories.toArray().some(cat =>
+      homepageCollapsedCategories.includes(cat.name)
+    );
+  });
+
+  posts.data.sort((a, b) => (b.sticky || 0) - (a.sticky || 0));
+
+  const paginationDir = config.pagination_dir || 'page';
+  const path = config.index_generator.path || '';
+
+  return pagination(path, posts, {
+    perPage: config.index_generator.per_page,
+    layout: ['index', 'archive'],
+    format: paginationDir + '/%d/',
+    data: {
+      __index: true
+    }
+  });
 });

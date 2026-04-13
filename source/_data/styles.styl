@@ -402,6 +402,8 @@ html[data-theme="dark"]
     border: 1px solid $light-border
 
   .readme-category-group-header
+    display: flex
+    align-items: center
     font-size: 16px
     font-weight: 700
     color: var(--text-color)
@@ -419,6 +421,15 @@ html[data-theme="dark"]
       color: var(--blockquote-color)
       font-weight: normal
       margin-left: 5px
+
+    .readme-category-enter
+      font-size: 13px
+      font-weight: normal
+      margin-left: auto
+      color: $light-accent-green
+      text-decoration: none
+      &:hover
+        text-decoration: underline
 
   .readme-category-item
     margin-bottom: 12px

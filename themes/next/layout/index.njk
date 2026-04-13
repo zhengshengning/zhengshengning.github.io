@@ -27,10 +27,18 @@
         <div class="readme-category-group">
           <div class="readme-category-group-header">
             <i class="fa {{ group.icon }}"></i>
-            <span>{{ group.name }}</span>
+            {% if group.collapsed %}
+              <a href="{{ group.landingPath }}" style="color: inherit; text-decoration: none;">{{ group.name }}</a>
+            {% else %}
+              <span>{{ group.name }}</span>
+            {% endif %}
             <span class="readme-category-count">({{ group.totalPosts }})</span>
+            {% if group.collapsed %}
+              <a href="{{ group.landingPath }}" class="readme-category-enter">进入 →</a>
+            {% endif %}
           </div>
 
+          {% if not group.collapsed %}
           {% for child in group.children %}
           <div class="readme-category-item">
             <div class="readme-category-name">
@@ -49,6 +57,7 @@
             </ul>
           </div>
           {% endfor %}
+          {% endif %}
         </div>
         {% endfor %}
         
