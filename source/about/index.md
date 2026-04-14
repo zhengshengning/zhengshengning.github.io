@@ -7,7 +7,7 @@ comments: false
 
 ## 👋 关于我
 
-你好！我是 **zhengshengning**，一名专注于 GPU 编程和深度学习的技术开发者。
+你好！我是 **草帽路飞**，一名专注于 GPU 编程和深度学习的技术开发者。
 
 ## 🎯 技术方向
 
@@ -31,7 +31,7 @@ comments: false
 - 公众号：[《AI炼金炉》](https://mp.weixin.qq.com/s/oxUBDTd-b1aZnh0jGR5tqw)
 - 知乎: [草帽路飞](zhihu.com/people/zi-you-zi-zai-de-zhan-sheng)
 - 小红书: [草帽路飞](https://www.xiaohongshu.com/user/profile/621228ae00000000100042fc)
-- Email: ningzhengsheng@163.com
+- Email: caomaolufei2026@163.com
 
 ---
 
