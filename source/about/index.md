@@ -27,7 +27,7 @@ comments: false
 ## 📫 联系方式
 
 欢迎通过以下方式与我交流：
-- GitHub: [https://github.com/zhengshengning](https://github.com/zhengshengning)
+- GitHub: [https://github.com/caomaolufei](https://github.com/caomaolufei)
 - 公众号：[《AI炼金炉》](https://mp.weixin.qq.com/s/oxUBDTd-b1aZnh0jGR5tqw)
 - 知乎: [草帽路飞](zhihu.com/people/zi-you-zi-zai-de-zhan-sheng)
 - 小红书: [草帽路飞](https://www.xiaohongshu.com/user/profile/621228ae00000000100042fc)
