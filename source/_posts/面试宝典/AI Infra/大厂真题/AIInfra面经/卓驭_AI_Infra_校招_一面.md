@@ -1,0 +1,27 @@
+---
+title: '卓驭 AI Infra 校招 一面'
+date: 2026-04-15 12:00:00
+categories:
+  - [求职面试, AI Infra, 大厂真题]
+tags: [AIInfra, 推理优化, 算子优化, 高性能计算, 面经, 牛客]
+---
+
+# 卓驭 AI Infra 校招 一面
+
+<!-- more -->
+
+> 原文链接: https://www.nowcoder.com/feed/main/detail/923b45322aad46a7b0e0442f01f41dfe
+> 来源: 牛客网
+
+---
+
+1. 项目深挖
+2. 算子优化从 profiling 到落地的完整流程？如何判断一个算子是 memory-bound 还是 compute-bound？
+3. 用过哪些 profiling 工具？Nsight Systems 能看到指令级流水吗？
+4. 优化时，Warp利用率低怎么归因？负载不均衡怎么解决？
+5. 昇腾NPU和 NVIDIA GPU架构差异，内存层级设计
+6. 多进程和多线程的性能区别
+7. 还了解哪些模型级优化手段？比如 KV Cache / 算子融合 / 量化
+8. 模型输出和预期不符，怎么 debug？误差累积怎么解决
+9. 对第一份工作最看重什么？
+10. 为什么投卓驭？了解我们技术路线吗？

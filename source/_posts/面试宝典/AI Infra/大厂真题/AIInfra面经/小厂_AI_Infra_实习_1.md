@@ -1,0 +1,26 @@
+---
+title: '小厂 AI Infra 实习 (1)'
+date: 2026-04-16 12:07:04
+categories:
+  - [求职面试, AI Infra, 大厂真题]
+tags: [AIInfra, 推理优化, 面经, 牛客]
+---
+
+# 小厂 AI Infra 实习 (1)
+
+<!-- more -->
+
+> 原文链接: https://www.nowcoder.com/feed/main/detail/c7eee5b04fb8424aa4847f0e21fab875
+> 来源: 牛客网
+
+---
+
+给我面没招了，感觉自己好菜、面试很难，还是要多多练习，感觉自己说不明白业务逻辑
+1.说一下vllm里schedule的过程；
+2.说一下vllm请求被抢占后续会怎么样；
+3.说一下投机采样推理时草稿模型和主模型交互流程，vllm和sglang中的实现有什么区别；
+4.说一下gptq量化、smooth quant原理；
+5.介绍一下DeepSeek V3 eplb推理；
+6.mla在prefill和decode时的计算复杂度区别，听说过mla矩阵吸收优化吗；
+7.dsv3.2有什么创新点；
+8.sglang里多模态如果开了tp，vit的image embedding在多个进程里是怎么高效复用的

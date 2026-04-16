@@ -1,0 +1,24 @@
+---
+title: '小马智行 AI Infra 实习'
+date: 2026-04-16 12:08:48
+categories:
+  - [求职面试, AI Infra, 大厂真题]
+tags: [AIInfra, 算子优化, 高性能计算, 面经, 牛客]
+---
+
+# 小马智行 AI Infra 实习
+
+<!-- more -->
+
+> 原文链接: https://www.nowcoder.com/feed/main/detail/0e543b8a02b84b05950e55851687450f
+> 来源: 牛客网
+
+---
+
+被狠狠拷打了，发点面经攒攒人品
+1.什么是cudagraph。为什么cudagraph会用到更多的显存。推理的什么阶段更适合cudagrapho
+2.讲跨block的内部通信，warp原语。举一些warp原语的例子，讲讲都是什么。
+3.讲一下对nv芯片的ptx机器模型的认识。
+4.讲讲对cuda代码编译流程的认识。
+5.讲讲MLIR，以及为什么要设计MLIR出来
+6.手撕:归并排序

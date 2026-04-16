@@ -1,0 +1,29 @@
+---
+title: '百度 AI Infra (1)'
+date: 2026-04-16 12:06:49
+categories:
+  - [求职面试, AI Infra, 大厂真题]
+tags: [AIInfra, 大厂面经, 面经, 牛客]
+---
+
+# 百度 AI Infra (1)
+
+<!-- more -->
+
+> 原文链接: https://www.nowcoder.com/feed/main/detail/9c4940f8c9ac4f21b5107eef45ed98c1
+> 来源: 牛客网
+
+---
+
+1.Go 的 tag 映射如何实现的
+2.反射
+3.Slice 和 array 扩容机制
+4.Map 实现机制，遍历无序，如何实现一个有序的 map
+5.介绍 gmp  能说多少说多少
+6.Tcp udp http https
+7.输入一个网址的访问流程
+8.Send write mmap sendfile 内核缓冲区和用户缓冲区磁盘读缓冲区？
+9.进程协程线程
+10.Informer 的原理
+11.Docker 实现原理
+12.容器如何做到 pid 隔离的如何关闭

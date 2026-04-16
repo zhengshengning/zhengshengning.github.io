@@ -1,0 +1,38 @@
+---
+title: '南湖研究院 AI Infra 一面'
+date: 2026-04-15 12:00:00
+categories:
+  - [求职面试, AI Infra, 大厂真题]
+tags: [AIInfra, 算子优化, 面经, 牛客]
+---
+
+# 南湖研究院 AI Infra 一面
+
+<!-- more -->
+
+> 原文链接: https://www.nowcoder.com/feed/main/detail/217f2b642e154c1ca85e846c2bb0b36c
+> 来源: 牛客网
+
+---
+
+偶尔面一面
+
+面试时长：60min
+
+面试内容：
+* 自我介绍
+* python垃圾回收算法
+* python垃圾回收会循环引用吗（标记清除）
+* 内联什么时候影响性能
+* inline对作用域的影响
+* 除了inline还有啥会内联（模板）
+* 完美转发
+* 右值引用
+* ft框架
+* AI框架
+* 线程同步
+* git协作流程
+* cuda stream有什么要求（设备重叠）
+* cuda算子优化
+* 手撕：智能指针
+* 手撕：前k个元素
