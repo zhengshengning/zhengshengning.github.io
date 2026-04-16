@@ -11,15 +11,14 @@ const topLevelOrder = ['AI Infra', '求职面试', '路飞玩AI', '编程技能�
 // 二级分类的展示顺序（按一级分类分组，顺序与 categories.md 一致）
 const subCategoryOrder = {
   'AI Infra': ['学习路线', '前置知识', 'CUDA编程与算子优化', '分布式训练', '推理与部署', '性能分析'],
-  '求职面试': ['AI Infra'],
+  '求职面试': ['大厂面经', '知名科技公司面经', '车企/自驾面经', 'AI 创业公司面经', '芯片/研究院面经', '其他公司面经', '综合面经'],
   '路飞玩AI': ['AI编程', 'Agent开发'],
   '编程技能包': ['Python', 'C++基础', 'Web开发']
 };
 
 // 三级分类的展示顺序（按二级分类分组）
 const level3CategoryOrder = {
-  '前置知识': ['编程基础', '深度学习基础', 'Transformer', 'Pytorch'],
-  'AI Infra': ['大厂真题', 'AI Infra面经', '高性能计算面经', '推理优化面经']
+  '前置知识': ['编程基础', '深度学习基础', 'Transformer', 'Pytorch']
 };
 
 // 二级分类排序函数
