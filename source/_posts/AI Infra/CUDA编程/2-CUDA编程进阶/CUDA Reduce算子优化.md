@@ -3,7 +3,7 @@ title: CUDA Reduce算子优化
 date: 2026-04-13 10:00:00
 mathjax: true
 categories:
-  - [AI Infra, CUDA编程与算子优化]
+  - [AI Infra, CUDA编程与算子优化, CUDA编程进阶]
 tags: [CUDA, GPU, Reduce, 并行计算, 算子优化]
 ---
 

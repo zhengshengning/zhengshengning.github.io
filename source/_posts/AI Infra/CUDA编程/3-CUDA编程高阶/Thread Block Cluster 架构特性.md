@@ -2,7 +2,7 @@
 title: Thread Block Cluster 架构特性
 date: 2026-03-25 16:00:00
 categories:
-  - [AI Infra, CUDA编程与算子优化]
+  - [AI Infra, CUDA编程与算子优化, CUDA编程高阶]
 tags: [CUDA, Hopper, Thread Block Cluster, GPU, 并行计算]
 ---
 

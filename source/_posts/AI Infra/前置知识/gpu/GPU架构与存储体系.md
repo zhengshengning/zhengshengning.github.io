@@ -2,7 +2,9 @@
 title: GPU架构与存储体系
 date: 2026-03-30 10:00:00
 categories:
-  - [AI Infra, CUDA编程与算子优化]
+  - [AI Infra, 前置知识, GPU硬件概述]
+order: 502
+chapter: 5
 tags: [GPU, NVIDIA, Tensor Core, HBM, Memory Wall]
 ---
 
