@@ -245,13 +245,13 @@ GPU3: [D]     GPU3: [A,B,C,D]
 
 核心用途：ZeRO-3 在前向传播前用 AllGather 收集完整的模型参数。
 
-**ReduceScatter（归约-分发）**：先聚合再切片分配
+**ReduceScatter（归约-分发）**：每个人拿到其中一个分片的聚合结果
 
 ```
 操作前:            ReduceScatter(sum) 后:
 GPU0: [1,2,3,4]    GPU0: [10]   (第 0 片归约结果)
-GPU1: [2,3,4,5]    GPU1: [13]   (第 1 片归约结果)
-GPU2: [3,4,5,6]    GPU2: [16]   (第 2 片归约结果)
+GPU1: [2,3,4,5]    GPU1: [14]   (第 1 片归约结果)
+GPU2: [3,4,5,6]    GPU2: [18]   (第 2 片归约结果)
 GPU3: [4,5,6,7]    GPU3: [22]   (第 3 片归约结果)
 ```
 
@@ -266,7 +266,7 @@ GPU3: [4,5,6,7]    GPU3: [22]   (第 3 片归约结果)
 | Broadcast | $M$（root）/ 0 | 0（root）/ $M$ | 参数初始化广播 |
 | Reduce | $M$ | $M$（root）/ 0 | Loss 汇总 |
 | AllReduce | $\approx 2M$ | $\approx 2M$ | DDP 梯度同步 |
-| AllGather | $M/N$ | $(N-1)M/N$ | ZeRO-3 参数收集 |
+| AllGather | $(N-1)M/N$ | $(N-1)M/N$ | ZeRO-3 参数收集 |
 | ReduceScatter | $(N-1)M/N$ | $(N-1)M/N$ | ZeRO 梯度分片 |
 
 其中 $M$ 为总数据量，$N$ 为参与节点数。

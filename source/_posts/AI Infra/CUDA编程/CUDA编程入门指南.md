@@ -4,6 +4,7 @@ date: 2026-03-26 16:00:00
 categories:
   - [AI Infra, CUDA编程与算子优化]
 tags: [CUDA, GPU编程, 算子优化, FlashAttention, Triton]
+mathjax: true
 ---
 
 CUDA 是连接 AI 算法与 GPU 硬件的桥梁，负责把高层的数学计算翻译成 GPU 能最高效执行的机器指令。本文从编程模型、内存模型讲起，到 Reduce/GEMM/Softmax 三大经典算子的实现与优化，再到 FlashAttention 系列 Attention 算子和 Triton 编译器，系统覆盖 AI Infra 从业者需要掌握的 CUDA 编程基础。
@@ -107,18 +108,7 @@ CUDA 有三种函数修饰符：
 
 CUDA 将线程组织为三层结构，这是理解并行编程的关键。可以把它比喻为"学校 / 班级 / 学生"——Grid 是整个学校，Block 是一个班级，Thread 是班里的每个学生，每个学生独立做自己那份作业，但同一个班级的学生可以通过"黑板"（Shared Memory）互相交流。
 
-```
-Grid（网格）—— 一次 kernel 启动的所有线程
-├── Block (0,0)  ─── 一组线程，共享 Shared Memory，可以同步
-│   ├── Thread (0,0)
-│   ├── Thread (1,0)
-│   ├── ...
-│   └── Thread (255,0)
-├── Block (1,0)
-├── Block (2,0)
-├── ...
-└── Block (N,0)
-```
+<img src="/images/CUDA programming model.png" alt="CUDA programming model" style="max-width: 60%; display: block; margin: 0 auto;" />
 
 **维度与索引**
 
@@ -239,7 +229,7 @@ CUDA_CHECK(cudaDeviceSynchronize());      // 检查执行错误
 
 ## 3. 内存模型
 
-CUDA 的内存层次是性能优化的核心。**"内存访问模式决定运行速度"**——这是 CUDA 编程最重要的直觉。
+CUDA 的内存层次是性能优化的核心。**\"内存访问模式决定运行速度\"**——这是 CUDA 编程最重要的直觉。
 
 ### 3.1 存储层次总览
 
@@ -434,7 +424,7 @@ float sum = __reduce_add_sync(0xFFFFFFFF, myVal);
 
 ### 4.2 Bank Conflict
 
-共享内存被分为 **32 个 Bank**，每个 Bank 宽度为 4 字节。同一 Warp 内的不同线程如果访问同一 Bank 的不同地址，就会产生 Bank Conflict，访问变为串行。可以把 Shared Memory 的 32 个 Bank 想象成银行的 32 个柜台，如果多个线程同时排到同一个柜台，就得排队等候；理想情况是每个线程各去一个柜台，大家同时办完。
+共享内存被分为 **32 个 Bank**，每个 Bank 宽度为 4 字节。**同一 Warp 内的不同线程如果访问同一 Bank 的不同地址，就会产生 Bank Conflict，访问变为串行**。可以把 Shared Memory 的 32 个 Bank 想象成银行的 32 个柜台，如果多个线程同时排到同一个柜台，就得排队等候；理想情况是每个线程各去一个柜台，大家同时办完。
 
 ```cpp
 __shared__ float smem[32][32];
@@ -571,55 +561,54 @@ nvcc -arch=sm_80 vector_add.cu -o vector_add && ./vector_add
 
 Reduce 是将一组数据聚合为一个值（如求和、求最大值）的操作。它是理解 CUDA 并行思维的最佳入门。
 
+**基本思路：树形规约**
+
+想象 1024 个人各持一个数，两两配对相加，每轮人数减半——仅需 10 轮就能得到总和。GPU 上的实现就是让每个 Block 内的线程协作完成这个过程：
+
+```
+初始：[1, 2, 3, 4, 5, 6, 7, 8]
+第1轮(step=4)：tid 0~3 各与 tid+4 相加 → [6, 8, 10, 12, ...]
+第2轮(step=2)：tid 0~1 各与 tid+2 相加 → [16, 20, ...]
+第3轮(step=1)：tid 0 与 tid+1 相加     → [36, ...]
+```
+
 **朴素实现**
 
-```cpp
-// 树形归约：每轮一半线程退出
-__global__ void reduceV1(float* input, float* output, int n) {
-    __shared__ float smem[256];
+```cuda
+// 树形归约：步长从 blockDim/2 开始缩小，保证低编号线程连续工作
+__global__ void reduce_base(float* input, float* output, int n) {
+    extern __shared__ float smem[];
     int tid = threadIdx.x;
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int gid = blockIdx.x * blockDim.x + threadIdx.x;
 
-    // 加载到共享内存
-    smem[tid] = (idx < n) ? input[idx] : 0.0f;
+    // 将全局内存数据加载到共享内存
+    smem[tid] = (gid < n) ? input[gid] : 0.0f;
     __syncthreads();
 
-    // 树形归约
-    for (int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
-        if (tid < stride) {
-            smem[tid] += smem[tid + stride];
+    // 步长从大到小：保证同一 Warp 内线程要么全部工作，要么全部空闲
+    for (int step = blockDim.x / 2; step > 0; step >>= 1) {
+        if (tid < step) {
+            smem[tid] += smem[tid + step];
         }
         __syncthreads();
     }
 
-    // Block 结果写出
+    // 每个 Block 的结果写回全局内存
     if (tid == 0) output[blockIdx.x] = smem[0];
 }
 ```
 
-**优化 1：消除 Bank Conflict**
+> 💡 步长从大到小（而非从小到大）是关键：这保证活跃线程编号连续，同一 Warp 内不会出现"一半工作一半空闲"的 **Warp Divergence**，硬件调度效率大幅提升。
 
-朴素版本中，前半部分线程在低地址，后半部分在高地址，不同步长下访问模式不同。可以改为交错访问：
+**优化 1：展开最后一个 Warp**
 
-```cpp
-// 交错归约：减少 Bank Conflict
-for (int stride = 1; stride < blockDim.x; stride *= 2) {
-    int index = 2 * stride * tid;
-    if (index + stride < blockDim.x) {
-        smem[index] += smem[index + stride];
-    }
-    __syncthreads();
-}
-```
+当 `step <= 32` 时，只有 1 个 Warp（32 线程）在工作。Warp 内线程天然 SIMT 锁步执行，不需要 `__syncthreads()`。直接展开这几轮循环可以省去多余的同步屏障开销：
 
-**优化 2：Warp Shuffle 避免最后几轮同步**
-
-当归约到最后 32 个元素（1 个 Warp）时，不需要 `__syncthreads()`：
-
-```cpp
-// 最后 Warp 用 Shuffle 归约
+```cuda
+// 最后 Warp 内规约：用 Warp Shuffle 替代 Shared Memory
 if (tid < 32) {
     float val = smem[tid];
+    // __shfl_down_sync：直接从寄存器读取其他线程的值，无需经过 Shared Memory
     val += __shfl_down_sync(0xFFFFFFFF, val, 16);
     val += __shfl_down_sync(0xFFFFFFFF, val, 8);
     val += __shfl_down_sync(0xFFFFFFFF, val, 4);
@@ -629,26 +618,42 @@ if (tid < 32) {
 }
 ```
 
-**优化 3：每个线程先做一轮累加**
+> `__shfl_down_sync(mask, val, delta)` 让每个线程直接读取 `lane_id + delta` 的寄存器值，比 Shared Memory 访问更快（无地址计算、无 Bank Conflict、延迟更低）。
 
-让每个线程加载并累加多个元素，减少 Block 数量和全局内存写回次数：
+**优化 2：每线程处理多个元素**
 
-```cpp
-__global__ void reduceV3(float* input, float* output, int n) {
-    __shared__ float smem[256];
+在基础版本中，每个线程只加载 1 个元素。通过让每个线程在加载阶段就先做一次加法（负责 2 个元素），可以在不增加 Block 数量的前提下翻倍处理数据量，提升线程利用率：
+
+```cuda
+__global__ void reduce_opt(float* input, float* output, int n) {
+    extern __shared__ float smem[];
     int tid = threadIdx.x;
-    int idx = blockIdx.x * blockDim.x * 2 + threadIdx.x;
+    int gid = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
 
-    // 每个线程加载 2 个元素并求和
-    float sum = 0.0f;
-    if (idx < n) sum += input[idx];
-    if (idx + blockDim.x < n) sum += input[idx + blockDim.x];
-    smem[tid] = sum;
+    // 每个线程加载并累加 2 个元素
+    float val = 0.0f;
+    if (gid < n)              val += input[gid];
+    if (gid + blockDim.x < n) val += input[gid + blockDim.x];
+    smem[tid] = val;
     __syncthreads();
 
-    // 后续树形归约同上...
+    // 树形归约（step > 32 部分）
+    for (int step = blockDim.x / 2; step > 32; step >>= 1) {
+        if (tid < step) smem[tid] += smem[tid + step];
+        __syncthreads();
+    }
+
+    // 最后 Warp 用 Shuffle 规约
+    if (tid < 32) {
+        val = smem[tid];
+        for (int offset = 16; offset > 0; offset >>= 1)
+            val += __shfl_down_sync(0xFFFFFFFF, val, offset);
+        if (tid == 0) output[blockIdx.x] = val;
+    }
 }
 ```
+
+> 📌 Reduce 是典型的 **Memory-Bound** 操作（算术强度仅 0.25 FLOP/Byte），优化核心在于提升内存带宽利用率。更多进阶优化（向量化加载 `float4`、Grid Stride Loop、模板展开等）可参考 [CUDA Reduce 算子优化](/AI%20Infra/CUDA编程与算子优化/CUDA编程进阶/CUDA-Reduce算子优化/) 一文。
 
 ### 6.2 GEMM（矩阵乘法）
 
@@ -755,16 +760,15 @@ Softmax 是 Attention 中的核心操作。高效的 Softmax 实现需要解决�
 
 **数学公式**
 
-```
-softmax(x_i) = exp(x_i - max(x)) / sum(exp(x_j - max(x)))
-```
+$$
+\text{softmax}(x_i) = \frac{e^{x_i - \max(\mathbf{x})}}{\sum_{j} e^{x_j - \max(\mathbf{x})}}
+$$
 
 减去 max(x) 是为了数值稳定性，防止 exp 溢出。
 
 **朴素实现（两趟）**
 
 ```cpp
-// 第一趟：求 max 和 sum
 __global__ void softmaxNaive(float* input, float* output, int N) {
     // 假设一个 Block 处理一行
     __shared__ float smem[256];
@@ -849,9 +853,9 @@ Attention 是 Transformer 的核心操作，也是大模型计算量和显存占
 
 标准 Attention 的计算公式：
 
-```
-Attention(Q, K, V) = softmax(Q @ K^T / sqrt(d)) @ V
-```
+$$
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right) V
+$$
 
 计算流程中需要存储完整的 QK^T 矩阵（大小为 seq_len x seq_len），对于长序列场景，这个矩阵巨大。以 seq_len = 8192、batch = 32 为例：
 
