@@ -1,5 +1,5 @@
 ---
-title: CUDA编程入门指南
+title: 🔥 CUDA编程入门指南
 date: 2026-03-26 16:00:00
 categories:
   - [AI Infra, CUDA编程与算子优化]

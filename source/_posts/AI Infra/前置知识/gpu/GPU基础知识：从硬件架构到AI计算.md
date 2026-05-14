@@ -181,6 +181,15 @@ $$
 
 这意味着：如果你的 Kernel 每从显存读取 1 Byte 数据，需要执行至少 295 次 FP16 浮点运算才能让算力充分跑满。否则 GPU 会"闲着等数据"。
 
+Roofline 模型是一张对数坐标图，横轴是算术强度（Arithmetic Intensity），纵轴是性能（FLOP/s），用来判断一个程序是"内存瓶颈"还是"计算瓶颈"。看懂它只需要理解三条线和一个点。
+
+<img src="/images/roofline.png" alt="GPU hardware architecture diagram" style="max-width: 100%; display: block; margin: 0 auto;" />
+
+怎么看这张图（三个核心要素）
+- 斜坡（蓝色）= 内存带宽上限，斜率 = 峰值带宽（GB/s）。在斜坡区域，性能由内存带宽决定：数据读不够快，计算单元在等待。
+- 平顶（红色）= 算力上限，水平线 = 峰值算力（TFLOP/s）。在平顶区域，内存够快，但计算单元已跑满。
+- 脊点（Ridge point）= 分界线，斜坡与平顶的交叉点，对应的算术强度 = 峰值算力 ÷ 峰值带宽。左边内存瓶颈，右边计算瓶颈。
+
 📌 **关键点**：大多数深度学习算子（尤其是 Attention、LayerNorm、激活函数等）的算术强度远低于 295，这就是为什么 FlashAttention、Kernel Fusion 等优化技术如此重要——它们的核心思路就是减少显存访问、提升算术强度。
 
 ---
