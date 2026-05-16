@@ -11,16 +11,75 @@ tags: [AIInfra, 推理优化, 算子优化, 高性能计算, 面经]
 
 ---
 
-中电信人工智能公司 大模型推理加速工程师实习生
+### Q: vLLM和SGLang有什么区别？SGLang相对于vLLM有什么优势？
 
-1. vllm sglang 有什么区别？sglang相对于vllm有什么好的？sglang为什么更适配推理这类的llm？dpskr1了解吗？和基座llm有什么区别？假如要魔改vllm，可以怎么做？
-2. Cuda算子开发经验，性能对比过吗？
-3. 大模型量化算法原理没问（感觉默认我懂）问有没有实际部署过？有没有看过autoawq的git库？
-4. Clip原理，clip推理流程了解吗？（简历里写了解过一些cv mllm方向）
-5. 实习经历介绍，实现的算子性能如何？常见大模型算子优化思路有哪些？（访存优化，并行优化）
-6. Ascend CANN MindIE框架有哪些组成？
-7. 场景1：V100显存多少，Dpsk Qwen 32B int8量化能部署吗？怎么部署？（紧张了，int8说2比特位…）
-8. 场景2：并发场景下怎么测试最大并发数，需要关注哪些指标？（答的不好）（bsz，latency 我回答的gpu利用率显存这些……面试官提示了从用户角度，我脑子没转过来）（指标含义没问，默认我懂）
-9. 场景3: vllm怎么去支持自研模型？
+**vLLM**：以PagedAttention为核心，虚拟内存管理KV Cache减少碎片，Continuous Batching动态调度。
 
-面试官的建议：LLM有训练有推理，我们这个路子更偏向实现算法，加速算法。同样是attn，后端如何实现，如何更快。需要对算法有一定了解，对工程能力要求也挺高。我了解但是不够深入，实践经验较少。更深入去看vllm源码，应用层面怎么去调用算子，底层层面算子怎么实现的，怎么去实现更高性能算子（还提到可以从汇编层面出发）。
+**SGLang**：在vLLM基础上的优化：
+- **RadixAttention**：前缀共享的KV Cache管理，相同前缀的请求自动复用KV Cache。
+- **更高效的调度**：基于Radix Tree的前缀感知调度策略。
+- **编程接口**：提供结构化生成的高效原语（fork/join）。
+- **推理模型更适配**：对需要长上下文和多轮推理的场景（如DeepSeek-R1）更优，因前缀复用收益大。
+
+### Q: 大模型量化算法有哪些？有没有实际部署经验？
+
+**主要算法**：
+- **GPTQ**：逐层权重量化，用Hessian矩阵信息补偿量化误差。
+- **AWQ**：激活感知权重量化，保护对输出影响大的权重通道。
+- **SmoothQuant**：将激活的量化难度迁移到权重上（乘以平滑因子）。
+- **AutoAWQ**：AWQ的自动化实现，支持4-bit量化打包。
+
+部署时关注：量化前后精度对比（perplexity/任务指标）、推理速度提升比例、显存节省量。
+
+### Q: CLIP的原理和推理流程？
+
+**原理**：对比学习框架，同时训练图像编码器（ViT/ResNet）和文本编码器（Transformer），使匹配的图文对在嵌入空间中距离最近（InfoNCE loss）。
+
+**推理流程**：输入图片通过图像编码器得到图像embedding → 输入文本通过文本编码器得到文本embedding → 计算cosine similarity → 用于零样本分类/检索。
+
+### Q: 常见大模型算子优化思路有哪些？
+
+**访存优化**：
+- 合并访存（coalesced access）、向量化加载（float4）。
+- 使用共享内存减少全局内存访问次数。
+- 算子融合减少中间结果写回全局内存。
+
+**并行优化**：
+- 提高occupancy（调整block size、减少寄存器）。
+- 利用Tensor Core加速矩阵运算。
+- Warp-level原语（shuffle）减少共享内存依赖。
+
+### Q: Ascend CANN MindIE框架有哪些组成？
+
+CANN（Compute Architecture for Neural Networks）是华为昇腾AI处理器的计算架构：
+- **AscendCL**：底层算子开发接口（类似CUDA Runtime API）。
+- **CANN算子库**：预实现的高性能算子。
+- **图编译器**：将计算图优化编译为昇腾硬件指令。
+- **MindIE**：推理引擎，包含模型转换、量化、调度等功能。支持大模型高效推理（类似TensorRT-LLM for Ascend）。
+
+### Q: V100显存多少？DeepSeek/Qwen 32B INT8量化能部署吗？怎么部署？
+
+V100有16GB和32GB两个版本。32B模型INT8量化后约32GB（32B * 1字节），单张V100(32GB)勉强放下参数但无KV Cache空间。
+
+**部署方案**：使用2-4张V100(32GB)做张量并行；或使用A100/H100等更大显存卡。部署工具：vLLM + AutoAWQ/GPTQ量化，设置`--tensor-parallel-size`配置多卡。
+
+### Q: 并发场景下怎么测试最大并发数？需要关注哪些指标？
+
+**测试方法**：逐步增加并发请求数，直到系统指标达到瓶颈。
+
+**关注指标**：
+- **TTFT（Time To First Token）**：首token延迟，反映用户等待。
+- **TPOT（Time Per Output Token）**：每token生成延迟。
+- **Throughput（tokens/s）**：系统总吞吐。
+- **P50/P90/P99延迟**：关注长尾。
+- **显存使用率**：是否OOM。
+- **请求排队长度**：调度器压力。
+
+### Q: vLLM怎么去支持自研模型？
+
+1. 在`vllm/model_executor/models/`下新增模型文件，实现模型前向逻辑。
+2. 继承vLLM的模型基类，实现`forward()`和权重加载方法。
+3. 在模型注册表中注册新模型。
+4. 确保attention层使用vLLM的PagedAttention实现。
+5. 处理好权重名称映射（HuggingFace权重到vLLM格式）。
+6. 如有自定义算子需以插件形式集成。
