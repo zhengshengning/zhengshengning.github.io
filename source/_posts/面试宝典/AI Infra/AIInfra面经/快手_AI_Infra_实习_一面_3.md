@@ -38,6 +38,8 @@ KV Cache 是 LLM 推理的显存瓶颈（长序列/大 batch 时可占总显存�
 - 不同层对 KV 精度的敏感度不同
 - 浅层保留更多 token（捕获局部模式），深层可以更激进压缩（已经是高层语义）
 
+---
+
 ### Q: MHA、MQA、GQA 的概念？MLA 与 GQA 的关系？
 
 **三种注意力机制的演进**：
@@ -71,6 +73,8 @@ MLA：    cache 尺寸 = latent_dim × seq_len（如 512 dim/token）
 - MLA 等效压缩比 = 1024/512 = 2x（相对于已经很高效的 GQA！）
 - 相对于 MHA（128×128=16384 维），MLA 压缩比高达 32x
 
+---
+
 ### Q: DeepSpeed ZeRO 1/2/3 分别做了什么？ZeRO-1 在 N 参数 P 卡下如何分配？
 
 **核心问题**：DDP 中每张卡冗余存储完整的优化器状态 + 梯度 + 参数，8B 模型 Adam 训练每卡需要 ~100+ GB 显存。
@@ -102,6 +106,8 @@ MLA：    cache 尺寸 = latent_dim × seq_len（如 512 dim/token）
 - ZeRO-1：4×8 + 12×8/8 = 32 + 12 = 44 GB/卡（可以放下！）
 
 **通信模式**：ZeRO-1/2 通信量与 DDP 相同（梯度 AllReduce），因为参数更新时各卡只更新自己负责的 1/P 优化器状态，然后通过 AllGather 广播更新后的参数。
+
+---
 
 ### Q: SmoothQuant 的原理？为什么要 Smooth？如何判断模型是否适合？
 
@@ -135,6 +141,8 @@ s_j = max(|X_j|)^α / max(|W_j|)^(1-α)
 2. Outlier 应该是 channel-wise 的（而非 token-wise），因为 smooth 是 per-channel 操作
 3. 适合的模型：OPT、BLOOM、LLaMA 等主流 LLM（它们都有明显的 channel-wise outlier）
 4. 不适合的情况：outlier 是 token-wise 的（每个 token 不同位置出现 outlier）
+
+---
 
 ### Q: AWQ 和 GPTQ 的原理和区别？
 
@@ -177,6 +185,8 @@ s_j = max(|X_j|)^α / max(|W_j|)^(1-α)
 | 精度（W4） | 好 | 略优（尤其极低比特） |
 | 适用场景 | 快速部署，工程友好 | 对精度要求极高的场景 |
 | 代表工具 | AutoAWQ | AutoGPTQ |
+
+---
 
 ### Q: 分布式 GPU 通信原语有哪些？
 

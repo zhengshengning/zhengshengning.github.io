@@ -75,6 +75,8 @@ micro-batch 1: [      ]    [→计算→]    [      ]    [→计算→]
 
 典型配置（LLaMA-70B训练）：TP=8（节点内8卡NVLink），PP=4（4个节点间），DP=16（16组副本），总GPU=8×4×16=512。
 
+---
+
 ### Q: DeepSpeed各stage的特点？
 
 DeepSpeed ZeRO（Zero Redundancy Optimizer）通过逐步分片消除数据并行中的显存冗余：
@@ -131,6 +133,8 @@ DeepSpeed ZeRO（Zero Redundancy Optimizer）通过逐步分片消除数据并�
 | 模型参数放不下 | ZeRO-3或TP | 选择取决于互联带宽 |
 | GPU极有限 | ZeRO-Offload | 用CPU/NVMe扩展容量 |
 
+---
+
 ### Q: 给定200B模型，16张GPU如何设计分布式训练？
 
 **问题分析**：
@@ -182,6 +186,8 @@ DeepSpeed ZeRO（Zero Redundancy Optimizer）通过逐步分片消除数据并�
 - 有效MFU（Model FLOPs Utilization）：约40-50%（受PP bubble和通信影响）
 - PP bubble比例：(2-1)/(32+2-1) ≈ 3%（micro-batch数足够时可忽略）
 - TP通信占比：约10-15%（NVLink下较小）
+
+---
 
 ### Q: 混合精度训练的原理？
 
@@ -257,6 +263,8 @@ BF16优势：与FP32相同的数值范围，梯度几乎不会下溢，简化训
 
 实际节省主要在激活值（占比大），总显存约为纯FP32的60-70%。
 
+---
+
 ### Q: 如何加速大模型推理？
 
 大模型推理面临的核心矛盾：Decode阶段每步只生成1个token但需读取全部模型权重，导致GPU算力严重浪费（计算利用率<5%）。加速技术从多个层面解决：
@@ -323,6 +331,8 @@ Decode阶段是memory-bound，权重量化直接减少带宽需求从而加速�
 - Decode节点：多个高带宽GPU，服务大量并发decode请求。
 - 效果：整体资源利用率提升30-50%。
 
+---
+
 ### Q: KV Cache如何优化？
 
 KV Cache是LLM推理的最大显存消费者，直接决定了系统能服务的并发数和最大序列长度：
@@ -387,6 +397,8 @@ GQA实测：64Q头配8KV头，KV Cache减少8倍，精度损失<0.5%。
 - 请求重新激活时加载回GPU。
 - 适合：请求间隔较长的交互式场景。
 - 局限：加载延迟约1-5ms，不适合低延迟要求。
+
+---
 
 ### Q: 算子融合是什么？有什么好处？
 

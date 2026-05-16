@@ -35,6 +35,8 @@ GEMM 计算 C[M,N] = A[M,K] * B[K,N]，当 K >> M 或 K >> N 时：
 - 好处：增加并行度（更多 block），解决 M*N 很小时 block 数不足的问题
 - 代价：额外的 reduction kernel 和全局内存写入
 
+---
+
 ### Q: CUDA调试工具有哪些？
 
 GPU 程序调试的工具链（按场景分类）：

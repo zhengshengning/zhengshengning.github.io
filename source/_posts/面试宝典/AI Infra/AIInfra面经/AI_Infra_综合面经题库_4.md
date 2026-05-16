@@ -22,6 +22,8 @@ tags: [AIInfra, 算子优化, 高性能计算, 大厂面经, 面经]
 
 **解决方案**：增大`NCCL_TIMEOUT`；修复网络问题；替换故障卡；检查代码中rank不一致的分支逻辑。
 
+---
+
 ### Q: RL中MOE模型的优化有哪些？
 
 - **专家负载均衡**：RL训练中策略变化大导致路由不稳定，需要动态调节auxiliary loss或使用无辅助损失的bias方法。
@@ -29,6 +31,8 @@ tags: [AIInfra, 算子优化, 高性能计算, 大厂面经, 面经]
 - **显存优化**：非激活专家可offload到CPU/NVMe。
 - **计算优化**：Group Gemm合并不同专家的小batch计算。
 - **采样效率**：MoE推理快可加速RL中的采样阶段。
+
+---
 
 ### Q: 大模型推理有哪些优化方法？
 
@@ -40,6 +44,8 @@ tags: [AIInfra, 算子优化, 高性能计算, 大厂面经, 面经]
 - **算子融合**：减少kernel launch和中间存储。
 - **PagedAttention**：虚拟内存管理KV Cache减少碎片。
 
+---
+
 ### Q: 有没有做过kernel级别的优化？比如用CuTe DSL或手写CUDA做算子融合？
 
 kernel级优化常见方式：
@@ -49,6 +55,8 @@ kernel级优化常见方式：
 
 融合优化的关键：识别连续的memory-bound算子，将它们合并为一个kernel减少全局内存读写次数。
 
+---
+
 ### Q: 做kernel fusion时倾向于用什么方式？
 
 选择取决于场景：
@@ -57,6 +65,8 @@ kernel级优化常见方式：
 - **复杂融合**（如Flash Attention）：手写CUDA + 共享内存管理。
 - **图级别自动融合**：TVM/XLA/TensorRT的算子编排优化。
 
+---
+
 ### Q: 有没有做fusion结果性能反而下降的情况？原因是什么？
 
 **可能的原因**：
@@ -64,6 +74,8 @@ kernel级优化常见方式：
 - **Tile size不适配**：融合后不同操作的最优tile大小不同，妥协导致两者都不高效。
 - **失去异步并行**：原本两个独立kernel可以用不同stream并发，融合后变成串行。
 - **指令cache压力**：kernel过大导致指令cache miss增加。
+
+---
 
 ### Q: Hopper架构中Warp Specialization是什么？底层怎么实现的？
 
@@ -74,6 +86,8 @@ Warp Specialization是将不同warp分配不同职责（生产者warp负责数�
 - 消费者warp wait mbarrier确认数据就绪后开始计算。
 - 双/多缓冲实现流水线：消费者处理当前buffer时，生产者加载下一个buffer。
 - 通过`setmaxnreg`指令为不同warp group分配不同寄存器数量（计算warp需要更多寄存器）。
+
+---
 
 ### Q: 如何用Agent生成CUDA内核？
 

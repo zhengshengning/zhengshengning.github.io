@@ -49,6 +49,8 @@ Profiling 是性能优化的第一步，"不测量就不优化"。需要从系�
 - 流水线气泡率 = (P-1)/(P-1+M)，其中 P=stage 数，M=micro-batch 数
 - 气泡率应 <10%（如 P=8, M≥64）
 
+---
+
 ### Q: Matmul 分块策略？
 
 矩阵乘 C[M,N] = A[M,K] × B[K,N] 的高效 GPU 实现需要多级分块：
@@ -91,9 +93,13 @@ Shared Memory = (BM×BK + BK×BN) × sizeof(half) × 2(双缓冲)
 - Tile 越大 → Shared Memory 用量越大 → 每 SM 能驻留的 block 越少（occupancy 下降）
 - 最优点通常在 occupancy 50-75% 时达到（通过 benchmark 确定）
 
+---
+
 ### Q: 手撕：n! 中尾随 0 的个数？
 
 （编程题）
+
+---
 
 ### Q: 手撕：买卖股票的最大利润？
 

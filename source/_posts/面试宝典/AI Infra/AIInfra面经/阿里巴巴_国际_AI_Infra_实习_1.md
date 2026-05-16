@@ -23,6 +23,8 @@ tags: [AIInfra, 推理优化, 算子优化, 大厂面经, 面经]
 - **V3**：利用Hopper架构（TMA、Warp Specialization、FP8）。
 - **FlashDecoding**：针对decode阶段（batch小seq长），将KV序列维度split到多block并行，最后combine归约。
 
+---
+
 ### Q: 推理优化的方法有哪些？
 
 - KV Cache（避免重复计算）。
@@ -35,23 +37,33 @@ tags: [AIInfra, 推理优化, 算子优化, 大厂面经, 面经]
 - CUDA Graph（减少CPU开销）。
 - Prefix Caching（前缀KV复用）。
 
+---
+
 ### Q: vLLM/SGLang的原理？
 
 **vLLM**：核心是PagedAttention，将KV Cache按page管理（类似OS虚拟内存），解决KV Cache碎片问题。配合Continuous Batching实现高效调度。
 
 **SGLang**：在vLLM基础上引入RadixAttention，用Radix Tree管理KV Cache前缀。相同前缀的请求自动共享KV Cache，减少重复计算。还提供高级编程接口（fork/join）支持复杂推理模式。
 
+---
+
 ### Q: 什么是Dynamic Batching？
 
 Dynamic Batching是推理服务中动态组batch的策略：不同请求到达时间不同、序列长度不同，系统在满足延迟约束的前提下，将多个请求组成一个batch一起计算以提高GPU利用率。与Continuous Batching结合：已完成的请求及时退出、新请求随时加入，无需等待batch内所有请求完成。
+
+---
 
 ### Q: 手撕：CUDA写一个reduce（用block实现），优化版用warp shuffle？
 
 （编程题）
 
+---
+
 ### Q: 加载数据到shared memory比直接从HBM取为什么更快？
 
 HBM（全局内存）延迟约400-800个时钟周期，带宽约2TB/s但被所有SM共享。Shared Memory位于SM片上，延迟仅约20-30个时钟周期（快约20倍），且每个SM有独立的带宽不互相竞争。关键场景：当同一数据被多个线程重复访问时，加载一次到shared memory后多次读取的总延迟远低于多次访问HBM。
+
+---
 
 ### Q: 什么是Shared Memory的Bank Conflict？
 

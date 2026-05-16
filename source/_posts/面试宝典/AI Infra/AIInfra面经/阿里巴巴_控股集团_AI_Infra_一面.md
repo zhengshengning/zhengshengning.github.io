@@ -65,6 +65,8 @@ Final (weighted sum by routing probabilities):
 4. **减少活跃专家数**：top-k越小，负载越集中，通信pattern越稀疏
 5. **Capacity Factor优化**：限制每个专家接收的最大token数，避免极端不均匀
 
+---
+
 ### Q: vLLM最近有什么好的新特性？
 
 vLLM作为最流行的开源LLM推理引擎，持续演进中的关键特性：
@@ -111,6 +113,8 @@ vLLM作为最流行的开源LLM推理引擎，持续演进中的关键特性：
   - Decode集群：高内存带宽，处理逐token生成
 - **通信**：Prefill计算完的KV Cache通过高速网络传输到Decode集群
 - **效果**：Prefill和Decode各自可独立扩缩容，资源利用率更高
+
+---
 
 ### Q: DeepSeek的整体结构是什么？
 
@@ -170,6 +174,8 @@ KV Cache只需存储latent c → 512维/token (vs 16K维)，压缩比32x
 | KV Cache效率 | 极高(MLA) | 中(GQA) | 未知 |
 | 训练成本 | $5.6M | $30M+(估) | $100M+(估) |
 
+---
+
 ### Q: Tensor Parallelism中AllReduce的次数？
 
 标准Transformer一层中，使用Megatron-LM风格的Tensor Parallelism：
@@ -225,6 +231,8 @@ Sequence Parallelism将LayerNorm和Dropout的计算也并行化（沿sequence维
   - 80层总计: ~40GB通信量/iteration
 - NVLink带宽450GB/s (A100) → 通信时间约90ms → 这就是为什么TP只在NVLink内使用
 
+---
+
 ### Q: KV Cache的大小如何计算？
 
 **通用公式**：
@@ -268,6 +276,8 @@ KV Cache Size = 2 × num_layers × num_kv_heads × head_dim × seq_len × batch_
 | MLA (DeepSeek) | ~0.3GB | 35x |
 
 这就是为什么GQA/MLA/量化/PagedAttention的组合优化对LLM推理部署如此关键——直接决定了可以服务多少并发用户。
+
+---
 
 ### Q: 手撕：实现MQA和GQA？
 

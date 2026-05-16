@@ -49,6 +49,8 @@ tags: [AIInfra, 算子优化, 面经]
 
 **EAGLE 的优势**：不直接预测 token，而是预测下一个 token 的**隐藏状态特征**，然后用 target model 的 LM head 得到 token，接受率更高（~90%+）。
 
+---
+
 ### Q: Dense 模型和 MoE 模型推理实现有什么区别？Expert Parallel 怎么做？
 
 **本质区别——FFN 层的计算路径**：

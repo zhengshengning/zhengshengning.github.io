@@ -48,6 +48,8 @@ MoE Model (47B参数, 8选2):  每个token只经过2个expert(各~5B) → FLOPs 
 - 47B MoE模型的权重显存 ≈ Dense 47B模型（无法通过稀疏性节省）
 - 解决方案：Expert offloading到CPU/NVMe，按需加载（增加延迟）
 
+---
+
 ### Q: MoE里的负载均衡怎么做？为什么loss正常但expert可能已经废了？
 
 **负载均衡方法：**
@@ -96,6 +98,8 @@ router_logits = x @ W_router + bias  # bias动态调整
 - Expert utilization（每个expert平均处理的token数/理论值）
 - 各expert的梯度范数（废弃expert梯度接近0）
 
+---
+
 ### Q: GQA、MQA和标准MHA的区别？为什么线上推理更关心GQA？
 
 **三种Attention变体的KV头数比较：**
@@ -134,6 +138,8 @@ MQA:  Q heads: 32    K heads: 1     V heads: 1   (所有Q共享1个KV)
    - MQA精度损失较明显（极端压缩）
    - GQA是精度与效率的最优平衡点
 
+---
+
 ### Q: RoPE为什么能做位置编码？长上下文外推为什么经常失真？
 
 **RoPE的数学原理：**
@@ -169,6 +175,8 @@ RoPE(x, m) = x × cos(m·θ) + rotate(x) × sin(m·θ)
 | YaRN | 分频率段做不同缩放+注意力温度修正 | 效果最好，需微调 |
 | Continual Pretraining | 在长序列上继续预训练 | 最可靠但成本高 |
 | ALiBi | 不用RoPE，用线性偏置做位置 | 外推性好但效果可能略差 |
+
+---
 
 ### Q: FlashAttention为什么快？优化的是算力还是访存？
 

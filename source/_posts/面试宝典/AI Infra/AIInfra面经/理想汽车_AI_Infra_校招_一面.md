@@ -35,6 +35,8 @@ DDP 是 PyTorch 的数据并行方案，核心思路是**模型复制 + 梯度�
 
 **局限**：模型必须放进单卡显存（包括参数+梯度+优化器状态+激活）。8B 模型 Adam 训练需要约 100+GB/卡——需要 ZeRO 配合。
 
+---
+
 ### Q: CV 的发展路径？
 
 **深度学习时代 CV 的演进主线**：
@@ -57,6 +59,8 @@ DDP 是 PyTorch 的数据并行方案，核心思路是**模型复制 + 梯度�
 | 2023 | SAM/DINO v2 | 大规模基础视觉模型，zero-shot 泛化 |
 
 **核心演进方向**：网络深度 → 连接方式创新 → 注意力机制引入 → 自监督大规模预训练 → 多模态统一。
+
+---
 
 ### Q: NLP 的发展路径？RNN 和 Transformer 的优缺点？
 
@@ -85,6 +89,8 @@ RNN → LSTM/GRU → Seq2Seq+Attention → Transformer → BERT/GPT → GPT-3/LL
 - FlashAttention 解决了 O(n²) 内存瓶颈
 - KV Cache 解决了推理效率
 
+---
+
 ### Q: 模型训练的并行方式有哪些？
 
 | 并行方式 | 切分维度 | 通信操作 | 适用场景 |
@@ -104,6 +110,8 @@ RNN → LSTM/GRU → Seq2Seq+Attention → Transformer → BERT/GPT → GPT-3/LL
 - TP 度 ≤ 单机 GPU 数（NVLink 内通信）
 - PP 跨机（通信量小，只传激活/梯度）
 - DP 度 = 总 GPU 数 / (TP × PP)
+
+---
 
 ### Q: Transformer 与 CV 的结合（ViT）？
 
@@ -130,6 +138,8 @@ RNN → LSTM/GRU → Seq2Seq+Attention → Transformer → BERT/GPT → GPT-3/LL
 - **DeiT**：无需大数据，通过知识蒸馏从 CNN 教 ViT
 - **Swin Transformer**：窗口注意力（局部性）+ Shifted Window（跨窗口信息交互）+ 层次化结构（类似 FPN）
 
+---
+
 ### Q: 模型轻量化部署方式有哪些？
 
 **七种主流轻量化方法及其权衡**：
@@ -150,6 +160,8 @@ RNN → LSTM/GRU → Seq2Seq+Attention → Transformer → BERT/GPT → GPT-3/LL
 - **端侧部署**：知识蒸馏小模型 + INT4 + llama.cpp
 - **灵活性优先**：ONNX Runtime + 动态量化
 
+---
+
 ### Q: TensorRT 的优缺点？
 
 **优点（为什么性能最强）**：
@@ -166,6 +178,8 @@ RNN → LSTM/GRU → Seq2Seq+Attention → Transformer → BERT/GPT → GPT-3/LL
 - **Build Engine 耗时长**：Auto-Tuning 需要实际运行 benchmark（大模型可能 30 分钟+）
 - **版本兼容性差**：不同 TRT 版本的 engine 不兼容，CUDA 版本也有耦合
 - **调试困难**：engine 是黑盒，精度问题定位困难（需要逐层对比）
+
+---
 
 ### Q: BatchNorm 的作用？
 
@@ -201,6 +215,8 @@ RNN → LSTM/GRU → Seq2Seq+Attention → Transformer → BERT/GPT → GPT-3/LL
 - 序列长度不固定，batch 维度语义不一致
 - 推理时 batch_size=1，BN 的 running stats 不可靠
 - LayerNorm 对每个 token 独立归一化，更适合生成任务
+
+---
 
 ### Q: 手撕：到右下角的最短路径（简单 DP）？
 

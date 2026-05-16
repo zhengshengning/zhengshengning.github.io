@@ -39,6 +39,8 @@ a[0].append(5)         # b[0] = [1,2,5]，c[0] = [1,2] 不受影响
 
 **常见陷阱**：NumPy数组的切片是视图（view），不是拷贝；需要 `.copy()` 方法获得独立副本。
 
+---
+
 ### Q: C++的三种智能指针及其用法？
 
 C++11引入的三种智能指针通过RAII机制自动管理堆内存生命周期，消除手动new/delete的内存泄漏风险。
@@ -74,6 +76,8 @@ std::shared_ptr<Widget> p2(new Widget()); // 2次分配（对象和控制块分�
 
 **常见陷阱**：避免从this创建shared_ptr（应继承 `enable_shared_from_this`）；避免循环引用（A持有B的shared_ptr，B持有A的shared_ptr）。
 
+---
+
 ### Q: 写时拷贝（COW）原理？
 
 写时拷贝（Copy-On-Write）是一种延迟复制的优化策略，核心思想：**只有在真正需要修改时才付出拷贝代价**。
@@ -90,6 +94,8 @@ std::shared_ptr<Widget> p2(new Widget()); // 2次分配（对象和控制块分�
 - **QEMU/虚拟化快照**：qcow2镜像格式基于COW实现快照链。
 
 **性能权衡**：COW在读多写少的场景收益大；如果写操作频繁，COW的引用计数检查和潜在的延迟拷贝反而增加开销。此外COW在多线程环境下需要原子操作保护引用计数，可能产生cache line争用。
+
+---
 
 ### Q: 零拷贝原理？
 
@@ -118,6 +124,8 @@ std::shared_ptr<Widget> p2(new Widget()); // 2次分配（对象和控制块分�
 
 **实际应用**：Kafka使用sendfile实现高吞吐消息投递；Nginx的sendfile指令；RDMA在GPU通信中实现真正的零拷贝（绕过CPU和OS内核）。
 
+---
+
 ### Q: 大模型分布式训练的流程和并行策略如何选择？
 
 **分布式训练完整流程**：
@@ -143,6 +151,8 @@ std::shared_ptr<Widget> p2(new Widget()); // 2次分配（对象和控制块分�
 - 节点内（NVLink 600GB/s）：TP = 4/8，利用高带宽做频繁通信。
 - 节点间（IB 400Gb/s ~ 50GB/s）：PP和DP，通信量相对小。
 - 典型配置举例：训练Llama-70B，TP=8（节点内），PP=4（4个节点），DP=4（32卡总共），global batch通过梯度累积扩大。
+
+---
 
 ### Q: 各种并行策略介绍？
 
@@ -174,6 +184,8 @@ std::shared_ptr<Widget> p2(new Widget()); // 2次分配（对象和控制块分�
 
 MoE模型中将不同expert分配到不同卡。Router决定token路由，通过All-to-All通信将token发送到对应expert所在卡。关键挑战是负载均衡。
 
+---
+
 ### Q: TP为什么有按行/列两种切分方式，分别对应什么？
 
 在Transformer的MLP层中，存在两个线性变换：第一层升维（h→4h），第二层降维（4h→h）。两种切分方式配合使用能**最小化通信次数**。
@@ -196,6 +208,8 @@ MoE模型中将不同expert分配到不同卡。Router决定token路由，通过
 - Attention层类似：QKV投影列并行，输出投影行并行，前向1次AllReduce。
 - 整体每个Transformer层：前向2次AllReduce（MLP + Attention），反向2次。
 
+---
+
 ### Q: Megatron-SP（序列并行）介绍？
 
 Megatron-SP是在张量并行基础上的进一步优化，核心目标是**减少非TP区域的激活内存占用**。
@@ -215,6 +229,8 @@ Megatron-SP是在张量并行基础上的进一步优化，核心目标是**减�
 - 激活内存节省：LayerNorm和Dropout的激活占比约30-40%，这部分降为1/TP。
 - 对于TP=8，非TP区域的激活内存减少8倍。
 - 通信量与标准TP完全相同（只是拆分了AllReduce的时机）。
+
+---
 
 ### Q: Transformer架构中有哪些层和算子？
 
@@ -245,6 +261,8 @@ Transformer由多个相同结构的层堆叠而成，每层包含以下核心组
 
 **计算量分布**（典型LLM如Llama-70B）：GEMM（MLP+Attention投影）占90%+，Softmax/Norm/激活占<10%。因此GEMM优化是核心。
 
+---
+
 ### Q: Encoder和Decoder的介绍与特点？
 
 **Encoder（双向注意力）**：
@@ -268,6 +286,8 @@ Transformer由多个相同结构的层堆叠而成，每层包含以下核心组
 - 特点：encoder处理输入不需要因果约束，decoder生成时有因果mask。
 
 **为什么Decoder-only成为主流**：训练效率高（每个token都贡献loss）、结构简单（易于并行和优化）、scaling law表现最好、统一了理解和生成（通过prompt工程）。
+
+---
 
 ### Q: FlashAttention介绍？
 
@@ -295,6 +315,8 @@ FlashAttention是一种**IO-aware**的精确注意力算法，核心创新在于
 - 精度：数学等价（不是近似），结果bit-wise相同（除浮点重排序误差）。
 
 **V2改进**：减少非matmul FLOPs、改进并行度（外循环在Q block上）、优化warp分工（4个warp各处理不同KV block而非reduce），速度比V1提升约2倍。
+
+---
 
 ### Q: Online Softmax介绍？
 
@@ -330,6 +352,8 @@ O_new = O_old × (d_old × exp(m_old - m_new) / d_new)  // 修正旧输出的权
 - 只需存储O、m、d这三个统计量（O(N)空间），无需存储完整的N x N注意力矩阵。
 - 数学上完全等价于标准softmax（不是近似），只是改变了计算顺序。
 
+---
+
 ### Q: CUDA中的Block是软件还是硬件概念？
 
 Block（Thread Block）是**软件（编程模型）**概念，是程序员定义的线程组织单位，用于表达哪些线程需要协作和共享数据。
@@ -354,6 +378,8 @@ Grid（软件，一个kernel的所有线程）
 ```
 
 **设计哲学**：这种软硬件解耦使得同一CUDA程序可以在不同代GPU（SM数量不同）上运行——运行时由硬件调度器决定Block到SM的映射，程序员无需关心具体硬件配置。
+
+---
 
 ### Q: CUDA有哪些优化方法？
 
@@ -383,6 +409,8 @@ CUDA优化是一个系统工程，需要根据Profiling结果确定瓶颈类型�
 - **算子融合**：多个kernel合并减少launch开销和中间tensor的HBM读写。
 - **异步执行**：多Stream实现计算与通信overlap。
 - **持久化Kernel**：kernel不退出，循环处理任务，减少launch开销。
+
+---
 
 ### Q: 访存优化方法有哪些？
 
@@ -431,6 +459,8 @@ cp.async.wait_group<0>;  // 等待搬运完成
 
 让数据尽量停留在寄存器中：每个线程处理多个元素（增加ILP），循环展开后中间值不溢出到local memory。
 
+---
+
 ### Q: 计算和访存如何overlap？
 
 计算和访存overlap的核心思想是**让GPU的不同硬件单元同时工作**——在计算单元执行运算的同时，内存子系统（DMA/TMA）执行数据搬运。
@@ -470,6 +500,8 @@ stream1: backward(layer_N)
 stream2: allreduce(grad_layer_N-1)  # 已完成层的梯度立即开始通信
 ```
 
+---
+
 ### Q: GPU中L1和L2缓存的区别？
 
 | 特性 | L1 Cache | L2 Cache |
@@ -497,6 +529,8 @@ stream2: allreduce(grad_layer_N-1)  # 已完成层的梯度立即开始通信
 ```
 Register → L1/Shared Memory（~30 cycles）→ L2 Cache（~200 cycles）→ HBM（~400 cycles）
 ```
+
+---
 
 ### Q: 共享内存和L1缓存的区别？
 
@@ -526,6 +560,8 @@ Register → L1/Shared Memory（~30 cycles）→ L2 Cache（~200 cycles）→ HB
 - 临时数据、不确定是否复用 → 依赖L1 Cache。
 - GEMM中的tile → Shared Memory；逐元素kernel → L1自动缓存。
 
+---
+
 ### Q: 为什么需要共享智能指针（shared_ptr）？
 
 当**多个对象需要共同拥有某个资源的所有权**，且无法确定谁最后使用完该资源时，unique_ptr的独占语义不适用，这正是shared_ptr的应用场景。
@@ -548,6 +584,8 @@ Register → L1/Shared Memory（~30 cycles）→ L2 Cache（~200 cycles）→ HB
 - 对象大小增加（16字节：对象指针 + 控制块指针）。
 
 **设计原则**：优先使用unique_ptr（零开销），只在确实需要共享所有权时才使用shared_ptr。用weak_ptr打破循环引用。
+
+---
 
 ### Q: AllReduce介绍及实现方式？
 
@@ -581,6 +619,8 @@ NCCL根据消息大小和网络拓扑自动选择算法：
 - 大消息（>256KB）：Ring算法（带宽优先）。
 - NVLink拓扑：使用NVLink的全连接特性优化，不严格遵循ring。
 - 跨节点：利用IB RDMA的特性做multi-rail优化。
+
+---
 
 ### Q: Ring AllReduce的通信容量分析？
 
@@ -616,6 +656,8 @@ NCCL根据消息大小和网络拓扑自动选择算法：
 - 14步 × alpha ≈ 14 × 5us = 70us。
 - 总时间 ≈ 10ms + 70us ≈ 10ms（大消息下alpha可忽略）。
 
+---
+
 ### Q: Tree AllReduce相比Ring有什么优点？
 
 **核心优势：延迟 O(log N) vs Ring的 O(N)**。
@@ -646,9 +688,13 @@ NCCL根据消息大小和网络拓扑自动选择算法：
 - 消息 > 256KB：使用Ring。
 - 实际阈值会根据拓扑和NIC数量动态调整。
 
+---
+
 ### Q: 手撕：反转矩阵？
 
 （编程题）
+
+---
 
 ### Q: 手撕：合并两个有序链表？
 

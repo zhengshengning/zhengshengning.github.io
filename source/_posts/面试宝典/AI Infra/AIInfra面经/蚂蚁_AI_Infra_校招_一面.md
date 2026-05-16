@@ -46,6 +46,8 @@ MLA 相比 MHA 压缩了约 **57 倍**，相比 GQA 还能再压缩 **3-4 倍**�
 - MLA：在特征空间做"软压缩"（continuous projection）
 - 类比：GQA 像把多张图片缩略为几张代表图，MLA 像对所有图片做 PCA 压缩
 
+---
+
 ### Q: MLA 中权重吸收会遇到什么问题？
 
 权重吸收是 MLA 实现高效推理的关键技巧，但实际工程中会遇到几个挑战：
@@ -88,6 +90,8 @@ K = [K_nope (压缩到 latent, 无 RoPE) | K_rope (不压缩, 施加 RoPE)]
 - 吸收后每个 head 的 Q_new 维度变为 latent_dim（可能比原始 head_dim 大）
 - 这改变了 GEMM 的形状，可能不是硬件最优的 tile 大小
 - 需要针对吸收后的矩阵形状重新调优 kernel
+
+---
 
 ### Q: KV Cache 的离线计算与不常用 KV Cache 的卸载加载？
 
@@ -147,6 +151,8 @@ Resume（显存释放）:
 - PCIe 4.0 带宽 ~32 GB/s（双向），单个请求的 KV Cache（如 256 MB）swap 耗时 ~8ms
 - 通过 CUDA Stream 异步传输，可以与其他请求的 decode 计算重叠
 - NVLink 连接的 CPU-GPU 环境（如 Grace Hopper）带宽更高（~900 GB/s），swap 成本极低
+
+---
 
 ### Q: 还有哪些 KV Cache 优化的 tricks？
 

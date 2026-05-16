@@ -58,6 +58,8 @@ aux_loss = alpha * N * sum(f_i * P_i)  # 惩罚f和P同时大的expert
 - 挑战：RL的不稳定性可能导致router崩溃（所有token路由到1-2个expert）。
 - 解决：更强的均衡约束、curriculum learning先稳定router再加RL signal。
 
+---
+
 ### Q: 有没有做过Kernel级别的优化？用CUTE DSL或手写CUDA做Fusion？
 
 **三种Kernel开发方式的定位和选择**：
@@ -95,6 +97,8 @@ CUTE的优势：将kernel分解为"数据搬运"和"计算"两个正交维度，
 | Element-wise chain | Add+Mul+Exp | Triton单kernel | 3-5x加速 |
 | Reduce+Element | LayerNorm+Add | 手写CUDA | 2x加速 |
 | Attention | QKV+Score+Softmax+O | FlashAttention | 2-4x加速 |
+
+---
 
 ### Q: 做Kernel Fusion时倾向用什么方式？
 
@@ -137,6 +141,8 @@ __global__ void fused_layernorm_add(float* out, float* input, float* residual,
 }
 ```
 
+---
+
 ### Q: 有没有做了Fusion性能反而下降的情况？原因是什么？
 
 **实际案例和原因分析**：
@@ -167,6 +173,8 @@ __global__ void fused_layernorm_add(float* out, float* input, float* residual,
 2. 融合后shared memory是否超过96KB（通常safe上限）？
 3. 两个op的最优block size是否兼容？
 4. **始终用benchmark验证**——不要假设融合一定更好。
+
+---
 
 ### Q: Hopper架构的Warp Specialization是什么？底层如何实现？
 
@@ -212,6 +220,8 @@ Warp Specialization:
 - Consumer Warp持续计算，不需要等数据加载→计算管线利用率更高。
 - 减少了全Block的`__syncthreads()`（只有producer-consumer间的细粒度barrier）。
 
+---
+
 ### Q: 如果去掉Warp Specialization，只保留Tile和Shared Memory优化，性能损失在哪？
 
 **性能损失来源的量化分析**：
@@ -250,6 +260,8 @@ GPU:  |  FMA持续100%  |
 - CUTLASS without Warp Specialization: ~550 TFLOPS（56%峰值）
 - 差距约30%，在大矩阵时更明显（小矩阵瓶颈在launch和occupancy上）。
 
+---
+
 ### Q: 怎么判断一个MoE模型是真的学到了分工，而不是只把Dense模型拆开了？
 
 **验证"有意义的分工"的多维度方法**：
@@ -287,6 +299,8 @@ for category in ["code", "math", "chinese", "english", "science"]:
 - 同等激活参数量的Dense模型 vs MoE模型在各任务上的对比。
 - 如果MoE只是"拆开"Dense，性能应该≈Dense（甚至因为路由噪声更差）。
 - 真的分工使得MoE在总参数量×的条件下超过Dense，说明容量被有效利用。
+
+---
 
 ### Q: RL+MoE中Reward把Routing学坏（所有token集中到少数Expert）怎么处理？
 

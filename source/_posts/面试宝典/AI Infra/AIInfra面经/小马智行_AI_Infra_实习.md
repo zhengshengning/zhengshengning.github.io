@@ -57,6 +57,8 @@ for (int step = 0; step < num_steps; step++) {
 - Decode时根据当前batch大小选择最接近的Graph执行
 - 输入数据通过`cudaGraphExecKernelNodeSetParams`更新（避免重新录制）
 
+---
+
 ### Q: 讲讲跨Block的通信方式和Warp原语？
 
 **跨Block通信——Block间没有共享内存，需要通过全局机制：**
@@ -123,6 +125,8 @@ cudaLaunchCooperativeKernel(kernel, gridDim, blockDim, args);
 - 延迟极低（1-2 cycles vs 共享内存~28 cycles）
 - 是实现高效reduce/scan/broadcast的基础
 
+---
+
 ### Q: NV芯片PTX机器模型的认识？
 
 PTX（Parallel Thread Execution）是NVIDIA的**虚拟ISA**，介于CUDA C++和实际硬件SASS指令之间。
@@ -156,6 +160,8 @@ CUDA C++ → (nvcc前端) → PTX (虚拟ISA, 设备无关)
 - 查看编译器生成的指令（`nvcc -ptx`或`cuobjdump --dump-ptx`）
 - 使用内联PTX汇编访问新硬件特性（如cp.async、mma指令）
 - 性能调优时分析指令级行为
+
+---
 
 ### Q: CUDA代码的编译流程？
 
@@ -202,6 +208,8 @@ nvcc -Xptxas -v  # 显示寄存器/共享内存使用情况
 - 首次运行某PTX在新架构上可能慢数秒（JIT编译）
 - 后续运行直接使用缓存的编译结果
 
+---
+
 ### Q: MLIR是什么？为什么要设计MLIR？
 
 **MLIR（Multi-Level Intermediate Representation）** 是LLVM的子项目，提供一个**可扩展的编译器基础设施框架**。
@@ -246,6 +254,8 @@ MLIR的解决方案：
 - **XLA/StableHLO**：Google的ML编译IR，基于MLIR
 - **torch-mlir**：PyTorch模型导入MLIR的桥梁
 - **各NPU厂商**：定义自己的后端Dialect适配专有硬件
+
+---
 
 ### Q: 手撕：归并排序？
 

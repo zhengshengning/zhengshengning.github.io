@@ -41,6 +41,8 @@ SIMT是NVIDIA GPU独有的执行模型，介于SIMD和MIMD之间，是理解GPU�
 - 虽然每线程有独立PC，但硬件强制同一Warp内串行执行不同路径。
 - Volta架构引入Independent Thread Scheduling：允许线程更灵活的收敛和发散，但基本代价不变。
 
+---
+
 ### Q: Occupancy和什么有关，怎么控制？
 
 Occupancy（占用率）= SM上活跃Warp数 / SM理论最大Warp数（如A100为64）。它反映了GPU隐藏延迟的能力。
@@ -73,6 +75,8 @@ Occupancy（占用率）= SM上活跃Warp数 / SM理论最大Warp数（如A100�
 - GEMM等计算密集kernel在50% occupancy下可能达到峰值性能（每线程有足够寄存器做大tile计算）。
 
 **工具**：CUDA Occupancy Calculator（Excel表或`cudaOccupancyMaxActiveBlocksPerMultiprocessor` API）、Nsight Compute的Occupancy面板。
+
+---
 
 ### Q: Bank Conflict的粒度是多少？
 
@@ -112,6 +116,8 @@ float val = s[threadIdx.x][0];  // 现在不同行的第0列落在不同bank
 **8字节Bank模式（Compute Capability 3.x+）**：
 可通过 `cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeEightByte)` 设置bank宽为8字节，对double类型操作有帮助。
 
+---
+
 ### Q: GEMM分块大小受什么影响？
 
 GEMM Tile Size的选择是一个多约束优化问题，需要平衡多个硬件资源限制：
@@ -148,6 +154,8 @@ GEMM Tile Size的选择是一个多约束优化问题，需要平衡多个硬件
 | H100 | 228KB | 65536 | 128×256, BK=64, multi-stage |
 
 **典型层次**：Grid tile(问题切分) → Block tile(128×128) → Warp tile(64×32) → Thread tile(8×8) → Tensor Core MMA(16×8×16)。
+
+---
 
 ### Q: 使用float4读写全局内存为什么更快？
 
@@ -186,6 +194,8 @@ float4 vec = reinterpret_cast<float4*>(data)[tid];
 - **维度对齐**：数组长度最好是4的倍数，否则尾部需要特殊处理。
 - **寄存器压力**：float4使每线程需要更多寄存器暂存数据。
 
+---
+
 ### Q: 一个Block能否被调度到不同的SM上？
 
 **不能**。一个Block在其整个生命周期内只运行在一个SM上，永远不会被迁移到另一个SM。
@@ -204,6 +214,8 @@ Block内线程共享的硬件资源都是SM-local的：
 - 一个SM可同时驻留多个Block（受资源限制），这些Block彼此独立执行。
 - Block间不能直接通信（只能通过全局内存+原子操作，且无顺序保证）。
 - 这种设计使得CUDA程序可以在不同配置的GPU（SM数量不同）上自动scaling。
+
+---
 
 ### Q: 常用GPU卡的缓存大小是多少？
 
@@ -224,6 +236,8 @@ Block内线程共享的硬件资源都是SM-local的：
 **配置建议**（A100为例）：
 - Shared Memory优先（需要大tile的GEMM kernel）：`cudaFuncSetAttribute(kernel, cudaFuncAttributePreferredSharedMemoryCarveout, 100)` → 最大164KB Shared + 28KB L1。
 - L1优先（大量全局内存随机访问的kernel）：配置更多给L1 cache。
+
+---
 
 ### Q: Warp Divergence对性能的影响？
 
@@ -255,6 +269,8 @@ Block内线程共享的硬件资源都是SM-local的：
    ```
 3. **Warp级投票函数**：`__ballot_sync(mask, pred)` 获取warp内条件分布，决定是否需要特殊处理。
 4. **分支粒度放大**：按warp或block粒度做条件判断而非线程级。
+
+---
 
 ### Q: NVIDIA GPU的指令级并行（ILP）是什么？
 
@@ -294,9 +310,13 @@ float total = sum0 + sum1 + sum2 + sum3;  // 最后合并
 
 **循环展开是增加ILP最简单的方法**：`#pragma unroll` 将循环体复制多份，暴露独立指令给调度器。
 
+---
+
 ### Q: 手撕：CUDA实现矩阵转置？
 
 （编程题）
+
+---
 
 ### Q: 手撕：CUDA实现向量外积？
 

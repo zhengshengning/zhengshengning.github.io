@@ -70,6 +70,8 @@ while not task_complete:
 - 幻觉控制：Agent可能"编造"工具参数或虚构执行结果
 - 安全边界：限制Agent的行动空间防止有害操作
 
+---
+
 ### Q: RAG的检索如何实现？
 
 **RAG（Retrieval-Augmented Generation）完整Pipeline**：
@@ -134,6 +136,8 @@ Retrieved Docs + Original Query → Prompt Construction → LLM → Answer
 | Contextual Compression | 从长文档中提取与问题相关的片段 | chunk太长 |
 | Parent Document Retrieval | 检索小chunk但返回其父文档 | 需要上下文 |
 
+---
+
 ### Q: 预训练数据清洗方法有哪些？
 
 预训练数据质量直接决定模型能力。数据清洗是一个多阶段的pipeline：
@@ -187,6 +191,8 @@ Retrieved Docs + Original Query → Prompt Construction → LLM → Answer
 - 在小模型上做消融实验验证清洗策略的效果
 - 监控模型训练指标（如特定benchmark的score）随数据调整的变化
 
+---
+
 ### Q: Group Query Attention的作用？
 
 GQA（Grouped Query Attention）是MHA和MQA之间的折中方案，将原始的多个query head分组，**每组共享一套KV head**。
@@ -238,9 +244,13 @@ MQA:  Q_heads: [h1,h2,h3,h4,h5,h6,h7,h8]
 - 从头训练（最佳质量）
 - 从MHA checkpoint继续训练为GQA：将同组内的KV head均值池化后合并，再微调少量steps恢复质量
 
+---
+
 ### Q: 手撕：实现LRU Cache？
 
 （编程题）
+
+---
 
 ### Q: MoE架构的专家路由是对每个token路由还是对每个序列路由？
 
@@ -272,6 +282,8 @@ topk_values, topk_indices = torch.topk(router_probs, k=top_k, dim=-1)
 **但也有变体**：
 - **Segment-level routing**：将序列分为固定大小的segment（如128 tokens），每个segment统一路由。是token级和序列级的折中
 - **Expert Choice**中每个专家选择token时是跨序列的（但仍是token粒度的选择）
+
+---
 
 ### Q: KV Cache的优化方法有哪些？
 

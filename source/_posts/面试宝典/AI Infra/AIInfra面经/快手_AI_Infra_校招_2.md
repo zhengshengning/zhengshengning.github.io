@@ -39,6 +39,8 @@ tags: [AIInfra, 训练优化, 算子优化, 高性能计算, 大厂面经, 面�
 
 3. **HBM3 带宽提升 67%**：对 memory-bound 的 LLM Decode 阶段直接转化为 1.67x 加速
 
+---
+
 ### Q: 介绍 Warp 这个概念？
 
 Warp 是 NVIDIA GPU 中**最小的调度和执行单位**，由 **32 个线程**组成，以 SIMT（Single Instruction, Multiple Threads）方式执行：
@@ -67,6 +69,8 @@ Warp 是 NVIDIA GPU 中**最小的调度和执行单位**，由 **32 个线程**
    - `__ballot_sync`：收集 warp 内所有线程的 predicate 为 32-bit mask
    - `__reduce_sync`：warp 内直接做 reduce（Hopper 新增）
    - 延迟仅 1 cycle，远快于 shared memory 中转
+
+---
 
 ### Q: DP、TP-SP 的计算通信重叠原理？具体是什么通信和什么计算重叠？
 
@@ -109,6 +113,8 @@ chunk_1 到达 → 开始计算 GEMM(chunk_1)
 
 **关键配置**：`CUDA_DEVICE_MAX_CONNECTIONS` 设为 1 确保通信和计算在同一 queue 中有序执行，避免乱序导致依赖错误。
 
+---
+
 ### Q: FlashAttention 深入知识点？
 
 **核心机制详解**：
@@ -145,6 +151,8 @@ chunk_1 到达 → 开始计算 GEMM(chunk_1)
 - FP8 Tensor Core 支持（吞吐再翻倍）
 - Pipeline overlap：多级流水掩盖所有延迟
 
+---
+
 ### Q: 使用流水线并行和不使用 PP 并行，显存峰值一样吗？
 
 **不一样**，两者的显存构成有本质区别：
@@ -172,6 +180,8 @@ chunk_1 到达 → 开始计算 GEMM(chunk_1)
 - 通常参数节省 >> 激活增加，所以 **PP 的显存峰值更低**
 - 典型场景：70B 模型 PP=8，每卡只存 ~10 层参数 vs 全部 80 层
 
+---
+
 ### Q: CUDA_DEVICE_MAX_CONNECTIONS 的含义？
 
 该环境变量控制每个 GPU 设备的**最大并发 hardware work queue 数量**。
@@ -198,6 +208,8 @@ chunk_1 到达 → 开始计算 GEMM(chunk_1)
 - 不能简单设为 1（那样无法重叠）
 - 需要手动用 CUDA event 管理依赖关系
 - 或使用更精细的 stream 设计确保安全重叠
+
+---
 
 ### Q: Launch Bound 是什么？H2D 和 D2H 可以重叠吗？
 
@@ -244,9 +256,13 @@ D2H Engine:             [copy A result][copy B result]
 - 使用 **Pinned Memory**（否则 cudaMemcpyAsync 退化为同步）
 - 数据分成多个 chunk 才能形成流水
 
+---
+
 ### Q: 手撕：LRU Cache？
 
 （编程题）
+
+---
 
 ### Q: 手撕：Online Softmax 和 FlashAttention 伪代码？
 

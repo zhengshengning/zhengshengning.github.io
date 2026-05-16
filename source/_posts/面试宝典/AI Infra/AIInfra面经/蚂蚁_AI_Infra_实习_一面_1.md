@@ -41,6 +41,8 @@ Step 2: 选择对应策略
 Step 3: 实施 + 正确性验证 + 性能回归
 ```
 
+---
+
 ### Q: 如何推进一个还没量化的模型做量化？
 
 **完整的量化落地流程**：
@@ -69,6 +71,8 @@ Step 3: 实施 + 正确性验证 + 性能回归
 2. 性能测试：实际吞吐（tokens/s）和延迟（TTFT/TPOT）
 3. 如果精度不达标：尝试增大 group_size、混合精度（敏感层保持高精度）、换更好的量化方法
 
+---
+
 ### Q: AWQ 量化后为什么整体还能加速（明明多了反量化步骤）？
 
 这是一个核心认知——**LLM Decode 阶段是 memory-bound，不是 compute-bound**：
@@ -93,6 +97,8 @@ Decode 阶段每步只处理 1 个 token（或少量 token），实际执行的�
 
 **融合实现**：AWQ/GPTQ 的推理 kernel 将 dequant 融合在 GEMM 内部——读入 INT4 数据后立即在寄存器做 dequant 再计算，不产生额外的 HBM 访问。
 
+---
+
 ### Q: 为什么不直接用 Nsight/NCU 而要自己写 timing 工具？
 
 **NCU 的局限**：
@@ -112,6 +118,8 @@ Decode 阶段每步只处理 1 个 token（或少量 token），实际执行的�
 1. 日常开发用自写 timing 工具快速定位热点（"哪类算子最慢？"）
 2. 对热点算子用 NCU 深入分析（"它为什么慢？瓶颈在哪？"）
 3. 优化后再用 timing 工具确认整网收益
+
+---
 
 ### Q: 静态图和动态图的区别？为什么要转静态图做优化？
 
@@ -140,6 +148,8 @@ Decode 阶段每步只处理 1 个 token（或少量 token），实际执行的�
 - `torch.compile`（Inductor）：JIT 捕获动态图为静态图 → TorchInductor 编译优化 → 生成高效 Triton/CUDA kernel
 - 实际加速通常 1.5-3x（主要来自融合和 Triton kernel）
 
+---
+
 ### Q: vLLM 的核心机制？
 
 vLLM 的核心设计目标：**最大化单位显存下的并发请求数和吞吐量**。
@@ -155,6 +165,8 @@ vLLM 的核心设计目标：**最大化单位显存下的并发请求数和吞�
    - Recompute mode：释放 KV Cache，恢复时重新 Prefill
 5. **KV Cache 量化**：支持 FP8 KV Cache，显存减半
 6. **Speculative Decoding**：集成投机解码，大小模型协同加速
+
+---
 
 ### Q: 手撕：复制带随机指针的链表？
 

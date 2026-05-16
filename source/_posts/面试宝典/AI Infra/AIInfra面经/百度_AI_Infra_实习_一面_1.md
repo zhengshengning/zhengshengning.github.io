@@ -24,6 +24,8 @@ FusedAttention 的核心思想是将 Attention 中的多个独立操作融合为
 
 **典型实现**：FlashAttention 是最成功的 FusedAttention 实现，通过 tiling + online softmax 实现了完全融合且精确的 attention 计算。xFormers 的 memory_efficient_attention 也是类似思路。
 
+---
+
 ### Q: 介绍FlashAttention？
 
 FlashAttention（Dao et al., 2022）通过**IO 感知的分块计算**彻底优化 Attention 的内存效率。
@@ -40,6 +42,8 @@ FlashAttention（Dao et al., 2022）通过**IO 感知的分块计算**彻底优�
 
 **适用场景**：任何使用标准 self-attention 的模型（BERT/GPT/LLaMA 等）。已成为所有主流框架（PyTorch 2.0+、HuggingFace）的默认 attention 实现。
 
+---
+
 ### Q: FlashAttention的数学推导（Online Softmax）？
 
 Online Softmax 允许分块计算 softmax 而无需一次看到整行数据：
@@ -53,6 +57,8 @@ Online Softmax 允许分块计算 softmax 而无需一次看到整行数据：
 **数学正确性**：通过乘以修正因子 `exp(m_old - m_new)` 将之前基于旧 max 的计算结果修正为基于新 max 的等价结果。最终结果与标准 softmax 数值上完全等价（非近似）。
 
 **关键洞察**：softmax(x_i) = exp(x_i - m) / sum(exp(x_j - m))，当 m 改变时只需对已有结果乘一个修正系数即可。
+
+---
 
 ### Q: RMSNorm为什么相比LayerNorm有提升？
 
@@ -69,6 +75,8 @@ RMSNorm（Root Mean Square Normalization）是 LayerNorm 的简化版本，去�
 4. **去掉 beta 偏置**：LLaMA 等现代模型还去掉了 beta（bias=0），进一步简化
 
 **实际收益**：在 LLaMA 65B 中，每层 RMSNorm 相比 LayerNorm 节省约 5-10% 的归一化计算时间，且训练质量无损。
+
+---
 
 ### Q: 设计一个更灵活有效的显存分配方式（cudaAllocator）？
 
@@ -88,6 +96,8 @@ RMSNorm（Root Mean Square Normalization）是 LayerNorm 的简化版本，去�
 
 **参考实现**：PyTorch CUDACachingAllocator、CUDA 11.2+ 的 cudaMallocAsync（内置流序分配器）。
 
+---
+
 ### Q: Llama模型中有几个全连接层？
 
 每个 Transformer Block 中的线性层（以 LLaMA-2 为例）：
@@ -104,6 +114,8 @@ RMSNorm（Root Mean Square Normalization）是 LayerNorm 的简化版本，去�
 - down_proj（W_down）：intermediate_size -> hidden_size
 
 **总计**：每个 Transformer Block 有 **7 个线性层**。此外模型首尾还有 token embedding 层和 LM head（通常共享权重），但不在 Transformer Block 内。
+
+---
 
 ### Q: Llama2的推理流程？每一层有什么算子？
 
@@ -130,6 +142,8 @@ Input x
 
 **算子类型统计**：主要是 GEMM（矩阵乘，7 个/层）、element-wise（RoPE/SiLU/乘法/加法）、reduction（RMSNorm/Softmax）。GEMM 占 >90% 的计算量。
 
+---
+
 ### Q: C++11有哪些新特性？
 
 C++11 是现代 C++ 的分水岭，引入了大量核心特性：
@@ -146,9 +160,13 @@ C++11 是现代 C++ 的分水岭，引入了大量核心特性：
 
 **其他**：范围 for（`for(auto& x : container)`）、variadic templates、initializer_list、enum class（强类型枚举）、override/final、static_assert
 
+---
+
 ### Q: C++智能指针？
 
 shared_ptr（引用计数共享所有权，原子操作线程安全）、unique_ptr（独占所有权，零额外开销，默认首选）、weak_ptr（弱引用不增计数，打破循环引用/缓存观察）。详细用法见前面问题。
+
+---
 
 ### Q: unique_ptr如何保证唯一性？
 
@@ -162,6 +180,8 @@ unique_ptr<int> p1 = make_unique<int>(42);
 unique_ptr<int> p2 = std::move(p1);  // OK，p1变为nullptr
 ```
 
+---
+
 ### Q: shared_ptr何时析构？
 
 当指向对象的**最后一个 shared_ptr** 销毁或重置时（引用计数 strong_count 降为 0），触发析构并释放对象内存。
@@ -169,6 +189,8 @@ unique_ptr<int> p2 = std::move(p1);  // OK，p1变为nullptr
 **但控制块不一定释放**：控制块中除了 strong_count 还有 weak_count。只有当 weak_count 也降为 0 时（所有 weak_ptr 也销毁），控制块本身才被释放。这意味着如果有 weak_ptr 存活，对象已释放但控制块还在（weak_ptr::lock() 可以安全地检测到对象已死亡）。
 
 **注意**：如果使用 `make_shared`，对象和控制块是一次分配的连续内存——对象析构后整块内存要等 weak_count 归零才释放。这可能导致大对象内存延迟释放的问题。
+
+---
 
 ### Q: 类的成员函数可以当模板吗？
 
@@ -184,6 +206,8 @@ public:
 
 **限制**：虚函数不能是模板。原因是 vtable 的大小需要在编译期确定，而模板可能有无限多个实例化版本，编译器无法为每个可能的实例化都在 vtable 中预留槽位。
 
+---
+
 ### Q: 左值和右值？
 
 - **左值（lvalue）**：有名字、可取地址、生命周期持续的表达式。如变量 `x`、`*ptr`、`arr[i]`。可以出现在赋值号左边。
@@ -191,6 +215,8 @@ public:
 - **右值引用（T&&）**：延长临时对象的生命周期，支持移动语义。`std::move(lvalue)` 将左值转为右值引用。
 
 移动语义的核心价值：对含堆内存的类型（string/vector），移动只需转移内部指针（O(1)），避免深拷贝（O(n)）。
+
+---
 
 ### Q: CUDA有哪几种编程手段？
 
@@ -206,6 +232,8 @@ public:
 
 5. **Triton**（新兴）：Python 到 GPU kernel 的编译器，通过 tile 抽象简化 kernel 编写，自动处理内存层次和 tiling。
 
+---
+
 ### Q: Tensor Core和CUDA Core的区别？
 
 | 对比 | CUDA Core | Tensor Core |
@@ -219,9 +247,13 @@ public:
 
 **为什么 Tensor Core 更快**：本质上是用更多晶体管面积换取吞吐量——一个 Tensor Core 占用面积远大于一个 CUDA Core，但在矩阵乘场景下 FLOPs/mm^2 更高。大模型训练/推理中 90%+ 的计算是 GEMM，因此 Tensor Core 是性能的决定性因素。
 
+---
+
 ### Q: 手撕：最长连续序列（LeetCode 128）？
 
 （编程题）
+
+---
 
 ### Q: 手撕：至多包含K个不同字符的最长子串（LeetCode 340）？
 

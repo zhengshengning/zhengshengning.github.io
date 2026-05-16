@@ -29,6 +29,8 @@ tags: [AIInfra, 推理优化, 算子优化, 面经]
 
 **实践建议**：使用 WikiText-2 的随机 128 条样本作为通用校准集；领域模型使用领域数据；多模态模型需要覆盖不同模态组合。
 
+---
+
 ### Q: 量化的原理？
 
 量化（Quantization）的本质是将连续的高精度浮点数映射为离散的低精度整数值，通过牺牲少量数值精度换取存储压缩和计算加速。
@@ -51,6 +53,8 @@ tags: [AIInfra, 推理优化, 算子优化, 面经]
 **量化误差分析**：误差 = x - x_approx = x - (round(x/s) * s)，最大舍入误差为 scale/2。因此 scale 越小（量化范围越紧）精度越高，但超出范围的值会被 clamp 产生大误差（截断误差）。好的校准就是在舍入误差和截断误差之间找平衡。
 
 **为什么量化能加速**：INT8 Tensor Core 的吞吐是 FP16 的 2x（A100: 624 vs 312 TOPS），且 INT8 数据传输带宽需求减半，对 memory-bound 算子（如 decode 阶段 GEMV）加速更明显。
+
+---
 
 ### Q: 量化的精度评估方法？
 
@@ -81,6 +85,8 @@ tags: [AIInfra, 推理优化, 算子优化, 面经]
 - 可视化权重/激活的直方图，检查是否存在 outlier（如 LLM 中著名的"massive activation"问题）
 - Outlier 会导致量化范围过大，使大部分正常值的有效位数减少
 - 解决：SmoothQuant（平衡权重和激活的量化难度）、AWQ（保护重要通道）
+
+---
 
 ### Q: 量化计算scale的方法？
 
@@ -117,6 +123,8 @@ Scale 的选择直接决定量化精度，核心挑战是确定最优的量化�
 
 **实践选择**：PTQ 快速上线用 Percentile 或 KL 散度；追求极致精度用 MSE 最小化或 GPTQ；有训练资源则用 QAT+LSQ。
 
+---
+
 ### Q: 吞吐量如何计算？
 
 吞吐量（Throughput）衡量系统单位时间内的处理能力，在不同场景下定义和计算方式不同：
@@ -144,6 +152,8 @@ Scale 的选择直接决定量化精度，核心挑战是确定最优的量化�
 
 **优化吞吐的方法**：continuous batching（动态批处理）、量化减少访存、speculative decoding（投机解码）、PagedAttention（减少内存碎片提高可用 batch size）。
 
+---
+
 ### Q: 推理框架有哪些？
 
 主流推理框架按场景和特点分类：
@@ -164,6 +174,8 @@ Scale 的选择直接决定量化精度，核心挑战是确定最优的量化�
 - **ncnn/MNN/TNN**（移动端）：ARM NEON/GPU 优化，轻量级，适合手机端 CV 模型。
 
 **选择建议**：追求吞吐选 vLLM/SGLang；追求延迟选 TensorRT-LLM；端侧选 llama.cpp/MLC-LLM；需要跨平台兼容选 ONNX Runtime。
+
+---
 
 ### Q: 计算图的构建过程？
 
@@ -198,6 +210,8 @@ Scale 的选择直接决定量化精度，核心挑战是确定最优的量化�
 - 选择最优 kernel 实现：cuBLAS/cuDNN 调用或自动生成的 kernel
 - Auto-tuning：对不同 kernel 配置（tile size/unroll factor）做性能测试选最优
 
+---
+
 ### Q: 卷积算子的实现方式？
 
 卷积是 CNN 的核心算子，不同实现方式适用于不同的 kernel size 和输入规模：
@@ -229,6 +243,8 @@ Scale 的选择直接决定量化精度，核心挑战是确定最优的量化�
 
 **实践选择**：3x3 卷积用 Winograd 或 Im2col+GEMM；1x1 卷积直接用 GEMM；depthwise 用 Direct；大 kernel 用 FFT。cuDNN 会根据输入 shape 自动选择最优算法（cudnnFindConvolutionForwardAlgorithm）。
 
+---
+
 ### Q: 矩阵乘分块（Tiling）的原理？
 
 Tiling（分块）是高性能 GEMM 的核心优化技术，通过将大矩阵切分为适配缓存层级的小块，最大化数据复用率：
@@ -255,6 +271,8 @@ Tiling（分块）是高性能 GEMM 的核心优化技术，通过将大矩阵�
 - 最优点需要 auto-tuning（如 CUTLASS 的 tile size 模板参数搜索）
 
 **双缓冲（Double Buffering）**：在计算当前 tile 时预取下一个 tile，将访存延迟隐藏在计算中。这需要额外的 shared memory/寄存器空间，但能显著提升吞吐。
+
+---
 
 ### Q: 大模型分词器（Tokenizer）？
 
@@ -286,6 +304,8 @@ Tokenizer 是 LLM 的输入预处理模块，将原始文本切分为模型可�
 
 **对推理的影响**：平均 token 数直接决定自回归生成步数。同样的文本，128K 词表比 32K 词表少约 15-20% 的 token，意味着推理延迟等比减少。中文场景下大词表优势尤为明显（常见汉字组合可被单 token 表示）。
 
+---
+
 ### Q: ARM NEON是什么？
 
 ARM NEON 是 ARM 处理器的 SIMD（Single Instruction, Multiple Data）扩展指令集，用于移动端和嵌入式设备上的并行计算加速：
@@ -316,6 +336,8 @@ ARM NEON 是 ARM 处理器的 SIMD（Single Instruction, Multiple Data）扩展�
 
 **注意事项**：NEON 的 FP16 支持需要 ARMv8.2+ 的 FP16 扩展（如 A76 及以后的核心）；SVE/SVE2 是 ARM 的可变长度向量扩展（Neoverse V1 支持 256-bit）。
 
+---
+
 ### Q: KV Cache是什么？
 
 KV Cache 是 LLM 自回归推理中最核心的优化技术，通过缓存已计算的 Key 和 Value 矩阵避免重复计算：
@@ -340,6 +362,8 @@ KV Cache 是 LLM 自回归推理中最核心的优化技术，通过缓存已计
 **Prefill vs Decode 的不同行为**：
 - Prefill 阶段：一次性计算完整输入的 KV 并写入缓存（compute-bound）
 - Decode 阶段：每步追加一个 KV 对，读取全部缓存做 attention（memory-bound）
+
+---
 
 ### Q: C++中指针与引用的区别？
 
@@ -369,6 +393,8 @@ KV Cache 是 LLM 自回归推理中最核心的优化技术，通过缓存已计
 - 野指针（dangling pointer）：指向已释放内存的指针
 - 引用并不保证线程安全，多线程修改被引用对象仍需同步
 
+---
+
 ### Q: 堆和栈的区别？
 
 堆（Heap）和栈（Stack）是程序内存布局中两个核心区域，管理方式和性能特征完全不同：
@@ -394,6 +420,8 @@ KV Cache 是 LLM 自回归推理中最核心的优化技术，通过缓存已计
 **堆分配器**：glibc 的 ptmalloc2（基于 arena）、jemalloc（Facebook，减少碎片）、tcmalloc（Google，线程缓存加速）。性能差异显著：tcmalloc 多线程场景下比 ptmalloc2 快 2-5x。
 
 **C++ 最佳实践**：优先栈分配（性能好、安全）；需要堆分配时使用智能指针（unique_ptr/shared_ptr）自动管理；避免裸 new/delete。
+
+---
 
 ### Q: 野指针和智能指针？
 

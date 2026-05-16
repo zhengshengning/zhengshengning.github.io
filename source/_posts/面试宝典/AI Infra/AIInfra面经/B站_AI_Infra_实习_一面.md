@@ -57,6 +57,8 @@ tags: [AIInfra, 算子优化, 高性能计算, 大厂面经, 面经]
 - 算子融合（Kernel Fusion）减少中间结果写回HBM
 - Pipeline：计算与内存访问overlap（双缓冲/多级流水线）
 
+---
+
 ### Q: 分布式通信原语AllReduce、AllGather、AllToAll的语义区别？
 
 **AllReduce（全局归约）**：
@@ -92,9 +94,13 @@ tags: [AIInfra, 算子优化, 高性能计算, 大厂面经, 面经]
 
 **关系**：AllReduce = ReduceScatter + AllGather。理解这个分解很重要——Megatron的Sequence Parallelism正是将AllReduce拆开，分别与不同的计算overlap来隐藏通信延迟。
 
+---
+
 ### Q: 手撕：CUDA实现large array reduce sum（shared memory归约 + 分层kernel设计）？
 
 （编程题）
+
+---
 
 ### Q: 进程、线程和协程的概念及区别？
 
@@ -131,6 +137,8 @@ tags: [AIInfra, 算子优化, 高性能计算, 大厂面经, 面经]
 | 是否共享地址空间 | 否 | 是 | 是 |
 | 利用多核 | 天然支持 | 支持（无GIL的语言） | 需配合多线程 |
 | 典型应用 | 独立服务、安全隔离 | 并行计算、GUI | 高并发IO、异步编程 |
+
+---
 
 ### Q: CPU调度粒度是怎样的？进程级和线程级的公平性如何？
 

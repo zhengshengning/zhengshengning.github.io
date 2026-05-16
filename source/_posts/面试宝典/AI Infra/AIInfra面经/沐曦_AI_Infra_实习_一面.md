@@ -62,6 +62,8 @@ SM 1:  [Block 2 的 Warp 在同时执行]              ← 跨 SM 并行
 | 目的 | 加速计算（数据并行） | 隐藏延迟、提高利用率 |
 | 类比 | 32 人同时搬砖 | 一边搬砖一边等水泥搅拌 |
 
+---
+
 ### Q: C++ 的三大特性？
 
 **封装（Encapsulation）**：
@@ -146,6 +148,8 @@ void launch_kernel(int8_t* data, int n);   // INT8 版本
 - 调用虚函数时：`obj->vptr->vtable[func_index](args)`
 - 开销：一次额外的间接寻址（~几 ns），在 GPU kernel 中应避免
 
+---
+
 ### Q: map 和 unordered_map 的底层实现区别？
 
 | 维度 | std::map | std::unordered_map |
@@ -173,6 +177,8 @@ key 类型没有好的 hash 函数             → std::map（只需 operator<�
 - 当 load_factor = size / bucket_count > max_load_factor（默认 1.0）时触发
 - Rehash：分配更大的桶数组（通常 2x），所有元素重新 hash 分配
 - 时间复杂度 O(n)，但均摊后仍是 O(1)
+
+---
 
 ### Q: new、malloc 和智能指针的区别？底层原理？
 
@@ -243,6 +249,8 @@ auto p = std::shared_ptr<T>(new T());  // 分配 T + 分配控制块（两次 ne
 auto p = std::make_shared<T>();  // T 和控制块在连续内存中（一次 new）
 // 优势: 减少分配次数 + 更好的 cache locality
 ```
+
+---
 
 ### Q: 介绍一下 C++ Lambda 表达式？
 
@@ -315,9 +323,13 @@ auto outliers = std::count_if(values.begin(), values.end(),
 - **大对象捕获**：值捕获大对象（如 vector）会拷贝 → 用 `[v = std::move(v)]` 或引用
 - **this 捕获**：`[this]` 捕获 this 指针，注意对象生命周期
 
+---
+
 ### Q: 手撕 Transformer 结构（PyTorch）？
 
 （编程题）
+
+---
 
 ### Q: 手撕：两数之和？
 

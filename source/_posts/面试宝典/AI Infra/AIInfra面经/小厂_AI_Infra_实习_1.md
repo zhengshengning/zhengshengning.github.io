@@ -94,6 +94,8 @@ def schedule(self) -> SchedulerOutputs:
 | preemption_mode | 抢占策略 | "swap"/"recompute" | swap适合长序列 |
 | swap_space_bytes | CPU swap空间 | 4-16GB | 决定能swap多少请求 |
 
+---
+
 ### Q: vLLM中请求被抢占后续会怎样？
 
 **两种抢占策略的完整流程：**
@@ -147,6 +149,8 @@ def schedule(self) -> SchedulerOutputs:
 | CPU内存不足 | 无法swap | 始终可用 | Recompute |
 | PCIe带宽拥挤 | swap慢 | 不用PCIe | Recompute |
 | 频繁抢占 | swap开销累积 | 重算开销累积 | 根据实际测量选择 |
+
+---
 
 ### Q: 投机采样（Speculative Decoding）的流程？vLLM和SGLang中的实现区别？
 
@@ -228,6 +232,8 @@ Step 4: Bonus token
   KV-Cache: RadixTree天然支持树结构的前缀共享
 ```
 
+---
+
 ### Q: GPTQ量化和SmoothQuant的原理？
 
 **GPTQ——逐层最优权重量化：**
@@ -292,6 +298,8 @@ SmoothQuant的解决方案:
 | 加速比 | Decode ~2-4x(带宽减少) | Prefill ~1.5-2x(INT8算力) |
 | 数学原理 | Hessian最优补偿 | 等价缩放变换 |
 
+---
+
 ### Q: DeepSeek V3中EPLB（Expert-Level Pipeline Load Balancing）推理是什么？
 
 **MoE推理的负载不均问题：**
@@ -354,6 +362,8 @@ Step 2: 负载均衡分配
 - 设备间负载差异从3-5x降到<1.2x
 - 整体推理吞吐提升30-50%(消除了等待最慢设备的时间)
 - 配合DualPipe进一步隐藏通信延迟
+
+---
 
 ### Q: MLA在Prefill和Decode时的计算复杂度区别？MLA矩阵吸收优化？
 
@@ -425,6 +435,8 @@ Decode时: Q = x_new · W_Q (单个token的Q)
 | Attention计算 | seq_len × H × d | seq_len × d_c | 减少32x |
 | Q投影(额外) | H×d → H×d | H×d → d_c | 一次性 |
 | 总体Decode加速 | 基准 | 显著加速 | Memory-bound→有效 |
+
+---
 
 ### Q: DeepSeek V3.2有什么创新点？
 
@@ -510,6 +522,8 @@ DualPipe: 双向流水线 + 计算通信重叠
   
   效果: Bubble ratio < 1F1B, 通信被计算覆盖
 ```
+
+---
 
 ### Q: SGLang中多模态开启TP时，ViT的image embedding在多个进程间怎么高效复用？
 

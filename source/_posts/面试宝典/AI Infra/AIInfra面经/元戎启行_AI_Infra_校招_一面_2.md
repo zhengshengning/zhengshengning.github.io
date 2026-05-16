@@ -79,6 +79,8 @@ __global__ void concat_kernel(float* output, float** inputs,
 4. **大维度拆分**：如果concat维度很大，用二分查找替代线性查找确定input_idx。
 5. **特化kernel**：对常见case（如dim=0、dim=-1）编写特化版本，避免通用版本的开销。
 
+---
+
 ### Q: 手撕：实现LRU Cache？
 
 （编程题）

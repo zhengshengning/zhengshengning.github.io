@@ -51,6 +51,8 @@ w_{t+1} = w_t - lr * trust_ratio * r_t
 | LAMB | 是（Adam 版本） | 好 | NLP/LLM 大 batch |
 | AdaFactor | 否（但低显存） | 中 | 显存受限场景 |
 
+---
+
 ### Q: 增大batch size时学习率如何调整？模型很大但batch不变呢？
 
 **增大 Batch Size 时的学习率调整**：
@@ -92,6 +94,8 @@ w_{t+1} = w_t - lr * trust_ratio * r_t
 - LLaMA-2 70B：lr=1.5e-4, batch=4M tokens, warmup=2000步
 - 小模型（<1B）：lr=3e-4~1e-3, batch=256K-1M tokens
 
+---
+
 ### Q: 你知道的并行切分策略？
 
 分布式训练中，将计算和数据切分到多卡/多机是核心问题，现代系统通常组合使用多种并行策略：
@@ -132,6 +136,8 @@ w_{t+1} = w_t - lr * trust_ratio * r_t
 
 **3D 并行组合示例**（Megatron-LM 训练 175B）：TP=8（节点内 NVLink）× PP=8（跨节点，通信量小）× DP=16（跨节点，AllReduce）= 1024 卡。
 
+---
+
 ### Q: ZeRO介绍？
 
 **ZeRO（Zero Redundancy Optimizer）** 是 DeepSpeed 提出的内存优化技术，通过消除数据并行中的冗余存储实现大模型训练：
@@ -165,6 +171,8 @@ w_{t+1} = w_t - lr * trust_ratio * r_t
 - 模型能用 Stage 1 训完就不用 Stage 2/3（通信量最少）
 - Stage 3 适合单卡放不下模型的情况，但需要通信带宽足够（否则通信成为瓶颈）
 - ZeRO-Offload/Infinity：将部分参数/优化器状态卸载到 CPU/NVMe，进一步扩大可训练模型规模
+
+---
 
 ### Q: PP并行下每张卡的显存、计算量一样吗？激活值呢？
 
@@ -200,6 +208,8 @@ Pipeline Parallelism 中各 stage 的资源分配并非完全对称：
 - Interleaved PP：虚拟 stage 交错减少每 stage 同时持有的 micro-batch 数
 - 不均匀切分：给前面 stage 分配更少的层来平衡激活显存
 
+---
+
 ### Q: T5和GPT-2的差异？
 
 T5 和 GPT-2 代表了 Transformer 的两种主要架构范式：
@@ -232,6 +242,8 @@ T5 和 GPT-2 代表了 Transformer 的两种主要架构范式：
 - Text-to-Text 统一框架：所有 NLP 任务转换为文本到文本格式（"translate English to German: ..." -> 德文输出）
 - 相对位置编码：不绝对编码位置，而是编码 token 间的相对距离（更适合变长序列和外推）
 - 多任务预训练：同时在多种任务上预训练，增强模型的指令跟随能力
+
+---
 
 ### Q: Transformer结构？
 
@@ -277,6 +289,8 @@ Transformer 是现代深度学习的核心架构，由 Multi-Head Self-Attention
 - 总计每层 ≈ 12d^2（标准 FFN）或 16d^2（SwiGLU）
 - LLaMA-7B: d=4096, 32 layers -> ~6.7B 参数
 
+---
+
 ### Q: 残差连接的作用？
 
 残差连接（Residual Connection）是深度网络可训练的基础保障，其作用超出"简单加一个 shortcut"的表面理解：
@@ -311,6 +325,8 @@ Transformer 是现代深度学习的核心架构，由 Multi-Head Self-Attention
 
 **深度与残差的关系**：没有残差连接的网络超过 20-30 层就难以训练（梯度消失/爆炸）。有残差后 100-1000 层都可以有效训练。Transformer 的 32-96 层完全依赖残差连接实现训练。
 
+---
+
 ### Q: 3D并行相关？
 
 3D 并行是将 Data Parallelism（DP）+ Tensor Parallelism（TP）+ Pipeline Parallelism（PP）组合使用的策略，是训练百亿/千亿参数模型的标准配置：
@@ -342,6 +358,8 @@ Transformer 是现代深度学习的核心架构，由 Multi-Head Self-Attention
 **MFU（Model FLOPs Utilization）参考**：
 - 好的 3D 并行配置可达 MFU 50-60%
 - 主要损失来自：PP 气泡（~10-15%）+ TP 通信（~5-10%）+ 其他开销
+
+---
 
 ### Q: DDP/DeepSpeed中的异步保存机制？
 

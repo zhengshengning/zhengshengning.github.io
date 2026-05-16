@@ -67,6 +67,8 @@ tags: [AIInfra, 推理优化, 算子优化, 面经]
 | PyTorch Native | 中 | PyTorch | 研究/原型 |
 | TVM INT8 | 中 | TVM Runtime | 多硬件 |
 
+---
+
 ### Q: CUDA加速图像预处理的具体实现方法和优化手段？
 
 **GPU图像预处理Pipeline：**
@@ -152,6 +154,8 @@ def my_pipeline():
 # 手写CUDA: 更灵活, 可融合自定义操作
 ```
 
+---
+
 ### Q: GPU的内存结构：L1 Cache、共享内存、L2 Cache？
 
 **A100 GPU内存层次详细参数：**
@@ -223,6 +227,8 @@ cudaStreamSetAccessPolicyWindow(stream, &policy);
 | 频繁随机访问 | L1/L2(自动cache) | 硬件管理 |
 | 小权重(<40MB) | L2 Persistent | 常驻L2,减少HBM访问 |
 | 大数据流式访问 | HBM(向量化) | 充分利用2TB/s带宽 |
+
+---
 
 ### Q: 共享内存怎么优化？Bank Conflict是什么？
 
@@ -302,6 +308,8 @@ Trade-off: 更多shared memory → 更多数据复用 → 但更少active block
   最佳点: 需要实验确定(Occupancy Calculator)
 ```
 
+---
+
 ### Q: ByteTrack的匹配过程？
 
 **ByteTrack的核心创新——利用所有检测框(包括低分)：**
@@ -356,6 +364,8 @@ Step 5: Kalman预测
 | 目标模糊 | 检测分0.4→丢弃→新ID | 低分匹配保持旧ID |
 | 误检(背景误判) | 可能被匹配 | 第二次匹配IoU阈值高,误检IoU低→不匹配 |
 
+---
+
 ### Q: ARM相关的优化了解吗？
 
 **ARM CPU优化的核心技术：**
@@ -403,6 +413,8 @@ int16x8_t vc = vmull_s8(vget_low_s8(va), vget_low_s8(vb));  // 乘+扩展
 - Winograd: 3×3卷积用Winograd变换减少乘法数
 - Per-channel INT8: 移动端量化标准
 - 内存复用: 分析tensor生命周期做in-place
+
+---
 
 ### Q: 手撕（思路题）：CUDA实现100万个浮点数相加？
 

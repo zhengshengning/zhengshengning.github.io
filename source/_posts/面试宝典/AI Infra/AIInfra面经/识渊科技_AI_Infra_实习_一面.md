@@ -57,6 +57,8 @@ ncu --set full ./my_program
 - Compute-bound kernel目标：达到理论算力的70%+
 - A100 HBM带宽2039 GB/s，FP16 Tensor Core算力312 TFLOPS
 
+---
+
 ### Q: KNN算法的流程？
 
 KNN（K-Nearest Neighbors，K近邻）是一种基于实例的懒学习(Lazy Learning)算法，不需要显式训练过程。
@@ -93,6 +95,8 @@ KNN（K-Nearest Neighbors，K近邻）是一种基于实例的懒学习(Lazy Lea
 - 优点：简单直观、无需训练、对非线性边界适应好
 - 缺点：预测慢O(nd)（d为维度）、内存占用大、对特征尺度敏感（需标准化）、高维失效（维度灾难）
 
+---
+
 ### Q: 数据集有问题时训练怎么解决？
 
 根据数据集问题的类型采取不同策略：
@@ -125,6 +129,8 @@ KNN（K-Nearest Neighbors，K近邻）是一种基于实例的懒学习(Lazy Lea
 - **Test-Time Adaptation**：推理时在线适应目标域分布（如Tent）
 - **Domain-specific augmentation**：模拟目标域的数据变换
 
+---
+
 ### Q: 图像算子了解哪些？
 
 **传统图像处理算子：**
@@ -154,6 +160,8 @@ KNN（K-Nearest Neighbors，K近邻）是一种基于实例的懒学习(Lazy Lea
 
 **GPU优化角度：**
 传统图像算子（如Sobel、高斯模糊）天然适合GPU并行——每个像素的计算独立，可以分配一个线程。CUDA实现时利用纹理内存（texture memory）的空间局部性和硬件插值加速。
+
+---
 
 ### Q: 如何保证系统的高性能？
 

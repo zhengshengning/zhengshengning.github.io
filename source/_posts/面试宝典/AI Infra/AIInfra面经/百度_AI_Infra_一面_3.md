@@ -23,6 +23,8 @@ tags: [AIInfra, 训练优化, 高性能计算, 大厂面经, 面经]
 
 **关系总结**：PPO 是 TRPO 的一阶近似 + 工程友好版本。牺牲了理论上的单调改进保证，换来了实现简单和训练稳定。在实践中 PPO 已完全取代 TRPO。
 
+---
+
 ### Q: PPO是on-policy还是off-policy？
 
 **On-policy**。PPO 要求训练数据来自当前策略（或非常接近当前策略），通过 clip 机制保证 on-policy 假设的有效性。
@@ -33,6 +35,8 @@ tags: [AIInfra, 训练优化, 高性能计算, 大厂面经, 面经]
 - 更新完成后旧数据作废，需要重新采样
 
 **与 off-policy 的区别**：off-policy 方法（如 DQN、SAC）可以使用任意旧策略产生的数据训练（通过 replay buffer），样本效率更高但训练稳定性通常更差。
+
+---
 
 ### Q: 为什么PPO需要Importance Sampling？
 
@@ -49,6 +53,8 @@ gradient ≈ E_{a~mu} [pi(a|s)/mu(a|s) * A * grad(log pi(a|s))]
 
 **PPO 的处理**：直接在 loss 中使用比率 r = pi_new/pi_old，clip 操作同时限制了 IS 比率的范围，防止方差爆炸。这是 PPO 简洁且有效的核心设计。
 
+---
+
 ### Q: PPO中clip如何根据优势函数A的正负限制上下界？
 
 PPO 的 clip 机制针对 A 的正负分别施加不同方向的约束：
@@ -64,6 +70,8 @@ PPO 的 clip 机制针对 A 的正负分别施加不同方向的约束：
 - 效果：防止一步更新中过度减小坏动作的概率
 
 **双向 clip 的整体效果**：无论好动作还是坏动作，策略更新幅度都被限制在 [1-eps, 1+eps] 范围内（约 +-20%），保证了训练稳定性。
+
+---
 
 ### Q: PPO的损失函数怎么计算？GAE中lambda的作用？
 
@@ -89,6 +97,8 @@ delta_t = r_t + gamma * V(s_{t+1}) - V(s_t)  （TD error）
 
 **直觉**：lambda 控制"看多远的未来"。小 lambda 只关注即时反馈（稳定但短视），大 lambda 考虑长远收益（准确但波动）。
 
+---
+
 ### Q: GRPO的损失计算？序列级别损失如何给到每个token？
 
 **GRPO 的核心流程**：
@@ -108,6 +118,8 @@ L = -E_x [1/G * sum_i (advantage_i * sum_t log(pi(y_i_t | x, y_i_{<t})) / |y_i|)
 
 **关键设计**：无需 Critic/Value 网络（用组内相对排名代替绝对 baseline 估计），大幅简化了训练 pipeline。
 
+---
+
 ### Q: GRPO有哪些变体？
 
 | 变体 | 核心改进 | 解决的问题 |
@@ -117,6 +129,8 @@ L = -E_x [1/G * sum_i (advantage_i * sum_t log(pi(y_i_t | x, y_i_{<t})) / |y_i|)
 | **RLOO** | Leave-One-Out 基线估计代替组均值 | 组均值估计方差大（组内只有 4-8 个样本） |
 | **GSPO** | 组内排序生成 pairwise 对做 DPO-style 优化 | 更充分利用组内对比信息 |
 | **Online DPO** | 在线采样 chosen/rejected 对 | 结合 GRPO 的在线采样和 DPO 的稳定训练 |
+
+---
 
 ### Q: 分布式训练中优化器/梯度/模型参数的显存比例？FSDP和DeepSpeed Zero-1/2/3？
 
@@ -143,6 +157,8 @@ L = -E_x [1/G * sum_i (advantage_i * sum_t log(pi(y_i_t | x, y_i_{<t})) / |y_i|)
 
 ZeRO-3 通信量最大（每次前反向都需要 AllGather 全部参数），但显存最省。FSDP 是 PyTorch 对 ZeRO-3 的原生实现。
 
+---
+
 ### Q: Agentic RL是什么？
 
 将 LLM Agent 的多步决策过程（工具调用、搜索、代码执行等）建模为**强化学习问题**，通过 RL 训练优化整个决策轨迹。
@@ -163,6 +179,8 @@ ZeRO-3 通信量最大（每次前反向都需要 AllGather 全部参数），�
 - DeepSeek-R1：在推理过程中通过 RL 优化 CoT 策略
 
 **挑战**：环境交互成本高（每步需要执行工具/代码）、reward 稀疏（只有最终结果有信号）、动作空间巨大（自然语言生成）。
+
+---
 
 ### Q: 手撕：二叉树的层次遍历，并记录每个节点在第几层？
 

@@ -57,6 +57,8 @@ Tensor B ──↗
 - tensor的生命周期分析用于内存规划（buffer复用）。
 - tensor的device属性决定算子dispatch到哪个后端实现。
 
+---
+
 ### Q: 计算图是用什么构建的？
 
 计算图是AI框架的核心抽象，不同框架和阶段使用不同的构建方式：
@@ -132,6 +134,8 @@ func.func @matmul(%arg0: tensor<128x512xf16>, %arg1: tensor<512x256xf16>)
 | FX Graph | Trace时 | 中（Python变换） | 高 | torch.compile |
 | ONNX | 导出时 | 需外部优化器 | 中 | 跨框架部署 |
 | TensorRT IR | 编译时 | 最强（全图优化） | 低 | 推理部署 |
+
+---
 
 ### Q: 权重如何导入到自搭建的模型中？
 
@@ -215,6 +219,8 @@ with torch.no_grad():
 
 常见陷阱：转置遗漏（TF conv权重格式HWIO vs PyTorch OIHW）、缩放因子遗漏、归一化层参数对应错误。
 
+---
+
 ### Q: 大模型推理分为哪些阶段？
 
 大模型（LLM）的自回归推理分为两个性能特征截然不同的阶段：
@@ -270,6 +276,8 @@ with torch.no_grad():
 
 **PD分离趋势**：由于两阶段性能特征完全不同，生产系统趋向将Prefill和Decode部署在不同GPU集群上：Prefill节点追求高计算密度，Decode节点追求高内存带宽和大容量（如HBM3E 8TB/s）。
 
+---
+
 ### Q: Prefill阶段有没有办法加快KV Cache的生成？
 
 Prefill阶段的KV Cache生成速度直接决定TTFT（首token延迟），以下技术从不同角度加速：
@@ -306,6 +314,8 @@ Prefill阶段的KV Cache生成速度直接决定TTFT（首token延迟），以�
 - 对常见的输入pattern（如固定格式的query模板），提前预计算部分KV Cache。
 - 类似prefix caching但可以覆盖动态内容的部分共同前缀。
 - 适合流量模式可预测的场景（如API的固定前缀）。
+
+---
 
 ### Q: Prompt中token之间有依赖吗？可以并行计算吗？
 
@@ -349,6 +359,8 @@ Step 3: 生成 token_8 (依赖token 0-7的KV Cache)
 | Lookahead Decoding | 利用Jacobi iteration并行生成 | 1.5-2x | 接受率有限 |
 
 投机解码的核心洞察：大模型验证K个token的时间≈生成1个token（读取模型权重的I/O不变），但实际生成了~0.7K个有效token。
+
+---
 
 ### Q: 如何使用Nsight辅助优化？重点关注哪些指标？
 
@@ -426,6 +438,8 @@ Nsight Compute分析该kernel瓶颈类型
 重新Profile验证改善
 ```
 
+---
+
 ### Q: 吞吐量（Throughput）在推理中的含义？
 
 推理场景的吞吐量有多个层次的定义，理解其含义对系统优化至关重要：
@@ -473,6 +487,8 @@ Nsight Compute分析该kernel瓶颈类型
 3. 量化（W8A8可再提升50-100%）。
 4. FlashAttention（Prefill加速2-4x）。
 5. PD分离（资源利用率提升30-50%）。
+
+---
 
 ### Q: Memory-bound和Compute-bound的区别？
 
@@ -528,6 +544,8 @@ A100硬件拐点计算：
 - AI ≈ 2×batch_size（batch=1时AI≈2，远低于A100拐点156）。
 - 只有当batch_size > 78时才可能变成compute-bound（但受显存限制无法达到）。
 
+---
+
 ### Q: 模型和算子已固定时，影响推理速度的因素有哪些？
 
 当模型架构和算子实现已确定后，推理性能仍受多个运行时因素影响：
@@ -578,6 +596,8 @@ Batch越大，单次weight读取服务更多请求（摊薄带宽成本），但
 - 内存分配器：不同allocator（native/CachingAllocator）效率差异。
 - torch.compile可减少2-5x软件overhead。
 
+---
+
 ### Q: Prompt长度和上下文长度是否会影响推理速度？
 
 **显著影响**，且影响机制在Prefill和Decode阶段不同：
@@ -624,6 +644,8 @@ Attention计算（每步）: Q(1×d) × K^T(context_len×d) + Score × V(context
 2. **数值稳定性**：超长序列的softmax中exp值域变大，FP16可能溢出→FlashAttention通过online safe softmax解决。
 
 3. **位置编码外推**：超出训练长度的位置编码可能导致质量下降（RoPE需要配合NTK-aware scaling或YaRN）。
+
+---
 
 ### Q: 进一步提升大模型推理性能，有哪些可用技术？
 
@@ -682,6 +704,8 @@ Target Model (70B): 一次性验证这5个token         (约30ms = 单步时间)
 - DeepSeek-V2/V3采用的注意力变体。
 - 将KV投影到低维潜在空间（如512维 vs 原始4096维），KV Cache减少8倍。
 - 需要在训练时使用MLA架构。
+
+---
 
 ### Q: 稀疏化KV Cache需要改变模型训练吗？
 

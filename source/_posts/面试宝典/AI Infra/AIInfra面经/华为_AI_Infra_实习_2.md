@@ -47,6 +47,8 @@ tags: [AIInfra, 推理优化, 训练优化, 算子优化, 高性能计算, 大�
 | 13B | 6.5GB | 26GB | A100 40GB |
 | 70B | 35GB | 140GB | 2-4x A100 80GB |
 
+---
+
 ### Q: Prefill和Decoding的区别？KV Cache大小怎么算？
 
 **Prefill 阶段**（"理解输入"）：
@@ -93,6 +95,8 @@ KV Cache = 2 * n_layers * n_kv_heads * head_dim * seq_len * batch_size * dtype_b
 
 **优化手段**：GQA 减少 kv_heads（70B 用 8 组 GQA 比 MHA 减少 8x KV Cache）、KV Cache 量化（FP16->INT8 减半）、PagedAttention（消除碎片，提高 batch 上限）。
 
+---
+
 ### Q: DeepSpeed ZeRO 1/2/3的区别？分别优化了什么？
 
 ZeRO 三级策略逐步消除数据并行中的显存冗余：
@@ -128,6 +132,8 @@ ZeRO 三级策略逐步消除数据并行中的显存冗余：
 | 优化器状态撑爆显存 | Stage 1/2 | 切分优化器/梯度足够 |
 | 模型本身放不下单卡 | Stage 3 | 唯一选择（或配合 TP/PP） |
 | 追求极致训练速度 | Stage 1 + 大 batch | 通信可完全重叠 |
+
+---
 
 ### Q: DeepSpeed对矩阵A*B运算，4张卡如何分配参数并交互以节省显存？
 
@@ -166,6 +172,8 @@ ZeRO 三级策略逐步消除数据并行中的显存冗余：
 - 总通信：3*M*K（vs DDP 的 2*M*K，增加 50%）
 
 **优化**：通信与计算重叠——在计算当前层时预取（AllGather）下一层的参数。
+
+---
 
 ### Q: Temperature的数学原理？Temperature、Top-k、Top-p作用顺序？
 
@@ -226,6 +234,8 @@ Raw logits
 - 创意生成（故事/诗歌）：T=0.7-1.0, top_p=0.95
 - 代码生成：T=0.2-0.4, top_p=0.95（需要确定性但偶尔探索）
 
+---
+
 ### Q: Softmax函数？
 
 **Softmax** 将任意实数向量 z = [z_1, ..., z_n] 映射为概率分布 P = [p_1, ..., p_n]：
@@ -262,6 +272,8 @@ softmax(z_i) = exp(z_i - m) / Σ_j exp(z_j - m)
 - 知识蒸馏：soft target = softmax(logits/T) 中高温 softmax 提供更多信息
 
 **计算特点**：需要全局 reduction（max 和 sum），是 memory-bound 操作。FlashAttention 用 Online Softmax 实现分块计算。
+
+---
 
 ### Q: 了解过通信算子吗？
 

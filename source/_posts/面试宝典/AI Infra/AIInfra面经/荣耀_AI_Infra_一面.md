@@ -79,6 +79,8 @@ tags: [AIInfra, 面经]
 - **异步 TP**：通信与计算重叠，减少 TP 同步等待
 - **Selective Activation Recomputation**：只重算占显存大的层（如 Attention），保留小的层
 
+---
+
 ### Q: 模型压缩的方法有哪些？
 
 模型压缩旨在减小模型大小和计算量，同时尽可能保持精度。各方法可独立或组合使用：
@@ -152,6 +154,8 @@ Teacher (大模型, 如 70B) → Student (小模型, 如 7B)
 训练预算有限 → 蒸馏小模型
 ```
 
+---
+
 ### Q: 训练框架有哪些？各自特点？
 
 **主流 LLM 训练框架对比**：
@@ -215,6 +219,8 @@ Teacher (大模型, 如 70B) → Student (小模型, 如 7B)
 RLHF 训练 → veRL（单集群）或 OpenRLHF（多集群）
 Google 生态/TPU → JAX + T5X/MaxText
 ```
+
+---
 
 ### Q: 模型调优的经验和方法？
 

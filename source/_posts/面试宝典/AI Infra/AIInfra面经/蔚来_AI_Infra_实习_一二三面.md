@@ -61,6 +61,8 @@ Optimized Engine (.engine/.plan文件)
 - Intel硬件部署(含CPU推理) → OpenVINO
 - 需要模型快速上线且不限硬件 → ONNX Runtime(支持TRT/OpenVINO后端)
 
+---
+
 ### Q: C++面向对象的三大特性如何体现？
 
 **封装（Encapsulation）：**
@@ -118,6 +120,8 @@ void run_inference(AttnImpl& attn, Tensor q, Tensor k, Tensor v) {
 // 优势: 零虚函数开销, 编译器可优化(但失去运行时灵活性)
 ```
 
+---
+
 ### Q: C++继承的分类和特点？
 
 | 继承类型 | 基类public成员变为 | 基类protected成员变为 | 语义 |
@@ -147,6 +151,8 @@ class APU : public GPU, public CPU {};
 - 访问虚基类成员需要间接寻址(多一次指针解引用)
 - 对象布局更复杂(虚基类放在对象末尾)
 - 实际C++项目中建议避免深层多继承，改用组合+接口
+
+---
 
 ### Q: C++虚函数的原理和作用？
 
@@ -204,6 +210,8 @@ s->area();
 - 虚函数：提供合理的默认行为，派生类可以选择性重写
 - 纯虚函数：强制派生类必须实现，基类只定义接口契约
 - 含纯虚函数的类=抽象类：不可实例化，只能作为接口使用
+
+---
 
 ### Q: vector、map、unordered_map的底层实现？
 
@@ -263,6 +271,8 @@ vec.shrink_to_fit();         // 释放多余capacity
 - 只需快速查找/插入/删除 → `unordered_map`
 - 小数据量(<100) → `vector`(即使需要查找，cache优势可能胜过算法优势)
 
+---
+
 ### Q: 多进程间通信方式有哪些？
 
 | IPC方式 | 速度 | 方向 | 适用场景 | 关键限制 |
@@ -290,6 +300,8 @@ vec.shrink_to_fit();         // 释放多余capacity
 # vLLM: Unix Domain Socket + 共享内存
 # Scheduler(Python)和Worker(Python/C++)通过IPC通信
 ```
+
+---
 
 ### Q: 多线程如何进行资源共享和同步？
 
@@ -343,6 +355,8 @@ counter.fetch_add(1, std::memory_order_relaxed);  // 原子递增
 - `std::scoped_lock(m1, m2)`: C++17 RAII版本
 - 固定加锁顺序: 所有线程按相同顺序获取锁
 - 超时机制: `try_lock_for()`
+
+---
 
 ### Q: TVM的原理和作用？
 
@@ -415,6 +429,8 @@ TIR (Tensor IR, 低层循环级IR)
 | 劣势 | 编译时间长 | 只支持NVIDIA | 只能写kernel |
 | 适用 | 部署到多种硬件 | 生产GPU推理 | 自定义算子 |
 
+---
+
 ### Q: 图优化和算子调度方法？
 
 **图优化（Graph-level Optimization）：**
@@ -484,6 +500,8 @@ q = q * 0.08838834  # 直接用常量
    (C和D可能并行执行)
 ```
 
+---
+
 ### Q: C++多继承的问题和解决？
 
 **菱形继承问题详解：**
@@ -530,6 +548,8 @@ class PetDog : public Dog, public Pet {};
 - 如果需要多个接口，使用纯虚基类(无数据成员的抽象接口)
 - Java/Go等语言直接不允许多继承(只允许多接口)
 
+---
+
 ### Q: C++智能指针有哪些？用过吗？
 
 ```cpp
@@ -573,6 +593,8 @@ public:
 - `unique_ptr`不能直接传值(需要`std::move`)
 - 从`this`构造`shared_ptr`需要`enable_shared_from_this`
 
+---
+
 ### Q: static和const的区别？
 
 | 维度 | static | const |
@@ -599,6 +621,8 @@ Config& Config::getInstance() {
     return instance;
 }
 ```
+
+---
 
 ### Q: C++异步实现方法？
 
@@ -643,6 +667,8 @@ task<int> async_inference(Model& model, Tensor input) {
 - 多请求异步处理（async serving）
 - 权重加载和推理并行
 
+---
+
 ### Q: Python列表切片反转？
 
 ```python
@@ -665,6 +691,8 @@ lst[::2]      # [1, 3, 5] — 每隔一个取
 lst[-3:]      # [3, 4, 5] — 最后3个
 lst[::-2]     # [5, 3, 1] — 反向每隔一个
 ```
+
+---
 
 ### Q: Python装饰器的原理？
 
@@ -723,9 +751,13 @@ def expensive_compute(x, y):
     return x ** y
 ```
 
+---
+
 ### Q: 手撕：反转链表？
 
 （编程题）
+
+---
 
 ### Q: 手撕：C++实现NMS + IOU？
 

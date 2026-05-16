@@ -100,6 +100,8 @@ torch.cuda.memory._dump_snapshot("mem_snapshot.pickle")
 - 用torch.profiler的表格快速定位top耗时op。
 - 注意warmup：前几步可能触发CUDA context初始化和cuDNN autotuning。
 
+---
+
 ### Q: DDP如何优化多机多卡训练？
 
 DDP（DistributedDataParallel）是PyTorch的高效数据并行实现，其优化策略围绕"减少通信开销+最大化计算-通信重叠"展开：
@@ -185,6 +187,8 @@ model = DDP(model, static_graph=True)
 - 更激进的通信调度优化。
 - 对unused parameters不做额外检查。
 
+---
+
 ### Q: 分布式训练中的batch如何设置？
 
 Batch size设置直接影响训练收敛速度、最终精度和硬件利用率，需要综合考虑：
@@ -233,6 +237,8 @@ Global Batch Size = per-GPU Batch Size × GPU数量 × 梯度累积步数
    通信频率 = 1 / gradient_accumulation_steps
    ```
    梯度累积增加可减少通信频率但增加了等效训练步延迟。
+
+---
 
 ### Q: PyTorch图优化和PyTorch 2.0特性？
 
@@ -309,6 +315,8 @@ F.scaled_dot_product_attention(Q, K, V, attn_mask=None, is_causal=True)
 - **Layout优化**：自动选择NHWC或channels-last格式。
 - **内存格式转换**：减少不必要的format转换。
 
+---
+
 ### Q: pytest有哪些常用参数？
 
 pytest是Python生态中最流行的测试框架，在AI Infra项目中广泛用于算子正确性验证、性能回归测试：
@@ -381,6 +389,8 @@ def test_gemm_accuracy(matrix_size, dtype):
     M, N = matrix_size
     # ... 测试逻辑
 ```
+
+---
 
 ### Q: PyTorch如何根据YAML注册算子？
 
@@ -464,6 +474,8 @@ def custom_relu_fake(x):
 - 可维护性：新增算子只需添加YAML条目+实现函数，无需手动写大量胶水代码。
 - 可扩展性：新增平台（如XPU/NPU）只需在dispatch字段添加新key。
 - 一致性：自动保证Python API和C++ API的签名一致。
+
+---
 
 ### Q: 系统级算子多平台测试的方法？
 

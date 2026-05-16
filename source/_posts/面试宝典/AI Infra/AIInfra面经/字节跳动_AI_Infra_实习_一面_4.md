@@ -52,6 +52,8 @@ model, optimizer, _, scheduler = deepspeed.initialize(
 # 训练循环中直接使用model前向反向，deepspeed自动处理通信和显存管理
 ```
 
+---
+
 ### Q: 为什么用ZeRO-3？
 
 **适用场景——模型参数放不下单卡时的选择**：
@@ -85,6 +87,8 @@ model, optimizer, _, scheduler = deepspeed.initialize(
 总通信: 前向N层×AllGather(2Φ/N×N=2Φ) + 反向N层×(AllGather+ReduceScatter)
       = 2Φ + 2Φ + 2Φ = 6Φ（约DDP的3倍通信量，但显存节省N倍）
 ```
+
+---
 
 ### Q: 还用过哪些加速框架？区别是什么？推导显存节省公式。
 
@@ -152,6 +156,8 @@ N=8时: 2Φ（节省8倍！）
 N=64时: 0.25Φ（几乎可以训任何模型）
 ```
 
+---
+
 ### Q: Q-Former是什么？
 
 Q-Former（Querying Transformer）是BLIP-2中连接视觉和语言的核心桥接模块：
@@ -182,6 +188,8 @@ Learnable Queries (32个) → Transformer Encoder → Visual Embeddings (32个)
 - 为什么32个Query而不是更多？足够表达图像语义，且保持LLM输入长度合理。
 - 为什么用Cross-Attention而不是直接拼接？Cross-Attention是信息瓶颈，迫使学习最重要的信息。
 
+---
+
 ### Q: BLIP和BLIP2的区别？现在主流模型用什么？
 
 **BLIP vs BLIP-2对比**：
@@ -210,6 +218,8 @@ Q-Former的复杂设计逐渐被更简单的方案取代：
 - 从复杂连接器（Q-Former）→ 简单连接器（MLP/线性层）。
 - 从冻结ViT → 联合训练或fine-tune ViT。
 - 关键不在连接器复杂度，在于：更多高质量图文数据 + 更大的ViT + 更长的context支持高分辨率。
+
+---
 
 ### Q: 手撕：sqrt(x)（LeetCode 69），有优化方法吗？
 

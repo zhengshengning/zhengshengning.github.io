@@ -64,6 +64,8 @@ x → RMSNorm → LM_Head → logits → softmax → next token probability
 - 推理时像 RNN：每步只需常数状态，无需 KV Cache
 - 但目前在超大规模下仍不如 Transformer（注意力的动态路由能力难以替代）
 
+---
+
 ### Q: Transformer 中参数分布在哪里？参数量和计算量最大的是哪部分？
 
 **参数分布详细分析**（以 hidden_dim = d，FFN hidden_dim = 4d 为例）：
@@ -124,6 +126,8 @@ FFN 层:
 - 长序列（S >> d）：Attention 的 O(S²d) 项主导
 - 实际应用中（S=2048-8192, d=4096）：FFN 仍然是计算量最大的部分
 
+---
+
 ### Q: GPU 的 CUDA Core 和 Tensor Core？常用 GPU 的显存和显存带宽？
 
 **CUDA Core vs Tensor Core 本质区别**：
@@ -165,6 +169,8 @@ FFN 层:
 - **显存带宽**决定 Decode 阶段吞吐（memory-bound，每步读全部权重）
 - **Tensor Core 算力**决定 Prefill 阶段速度（compute-bound，大矩阵乘）
 - **Roofline 拐点** = 算力/带宽：A100 = 156 FLOP/B，H100 = 295 FLOP/B
+
+---
 
 ### Q: 大模型量化和量化算子？
 
@@ -214,6 +220,8 @@ __global__ void quantized_gemm(
 - 瓶颈 = 权重读取带宽
 - INT4 权重 = FP16 的 1/4 数据量 → 读取时间减少 4x → 理论加速 4x
 - Dequant 计算是 compute（寄存器内简单乘加），而 compute 资源本来就是闲置的
+
+---
 
 ### Q: 详细讲 PD 分离？
 
@@ -277,6 +285,8 @@ __global__ void quantized_gemm(
 - DistServe（OSDI 2024）、Splitwise（ISCA 2024）
 - TensorRT-LLM 支持 PD 分离模式
 - Mooncake（月之暗面）生产系统
+
+---
 
 ### Q: 详细讲 PagedAttention？
 
@@ -367,13 +377,19 @@ Beam Search 场景 (beam_width=4):
 - Attention 计算 overhead：~3-5%（间接寻址的额外 latency）
 - 总吞吐提升：**2-4x**（因为能服务更多请求）
 
+---
+
 ### Q: 手撕：K 个一组翻转链表？
 
 （编程题）
 
+---
+
 ### Q: 手撕 CUDA：前缀和算子，实现 base 版本并讲优化方法？
 
 （编程题）
+
+---
 
 ### Q: 手撕 CUDA：GEMM 算子，实现 base 版本并讲优化方法？
 

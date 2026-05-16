@@ -83,6 +83,8 @@ A100 FP16峰值312 TFLOPS → 最快1.9秒
 | Prefill延迟 | 中 | TTFT 3+秒 | PD分离+FlashAttn→1秒 |
 | 调度浪费 | 中 | GPU利用率30% | Continuous Batch→75% |
 
+---
+
 ### Q: LLM推理主要的优化技术？
 
 每种优化技术针对特定瓶颈，下面按原理和收益详细展开：
@@ -177,6 +179,8 @@ vLLM = PagedAttention + Continuous Batching + FlashAttention +
   TP=2, W4量化, PagedAttention, Continuous Batching
   → 吞吐: ~2000 tokens/s, TTFT <1s, 延迟 ~30ms/token
 ```
+
+---
 
 ### Q: PagedAttention的原理？
 
@@ -274,6 +278,8 @@ for (int block_idx = 0; block_idx < num_blocks; block_idx++) {
 | 内存碎片 | 严重 | 近零（仅最后block） | - |
 | Beam Search显存 | K×full copy | 共享+CoW | K倍节省 |
 
+---
+
 ### Q: Orca迭代级请求调度是什么？
 
 **Orca（Continuous Batching / Iteration-level Scheduling）**是Yu等人2022年提出的LLM推理调度策略，核心创新在于将调度粒度从"请求级别"细化到"单步迭代级别"：
@@ -352,6 +358,8 @@ PagedAttention提供: 按block精确分配/回收，无碎片
 - TGI（Hugging Face）：类似实现。
 - TensorRT-LLM：NVIDIA官方，in-flight batching。
 - SGLang：进一步优化RadixAttention实现更智能的调度。
+
+---
 
 ### Q: C++数组下标越界会报什么错？
 
@@ -434,6 +442,8 @@ gsl::span<int> s(arr);  // 可配置debug模式检查
 - CUDA kernel中的数组越界：不会立即崩溃，可能写坏其他数据→结果静默错误。需要`compute-sanitizer`检测。
 - Tensor shape不匹配：PyTorch/TensorFlow会做运行时shape检查，越界会抛异常。
 - 内存访问越界是GPU kernel最常见的bug之一（尤其在手写kernel中）。
+
+---
 
 ### Q: Linux下如何Debug和定位错误？
 
@@ -596,9 +606,13 @@ perf script | stackcollapse-perf.pl | flamegraph.pl > flame.svg
 - PyTorch CUDA OOM：`torch.cuda.memory_summary()`查看显存分配详情。
 - 分布式训练某个rank挂住：`py-spy`采样Python调用栈，不需要GDB。
 
+---
+
 ### Q: 手撕：反转链表？
 
 （编程题）
+
+---
 
 ### Q: 手撕：LRU Cache？
 

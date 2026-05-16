@@ -69,6 +69,8 @@ s[C].pragma(i, "unroll_explicit", True)
 | 自动化程度 | 规则驱动（启发式） | 搜索驱动（Auto-Tuning） |
 | 硬件相关性 | 弱（通用规则） | 强（tile size等依赖硬件参数） |
 
+---
+
 ### Q: MLIR和TVM的区别？
 
 **TVM — 端到端深度学习编译器**：
@@ -110,6 +112,8 @@ s[C].pragma(i, "unroll_explicit", True)
 - 需要为新硬件构建完整编译栈 → MLIR
 - 需要极致的编译时优化定制 → MLIR
 - 需要Auto-Tuning能力 → TVM（或在MLIR上自建）
+
+---
 
 ### Q: 如何提高单个算子的性能？GEMM/Conv op优化有哪些方法？
 

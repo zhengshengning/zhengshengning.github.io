@@ -99,6 +99,8 @@ C[M×N] = A[M×K] × B[K×N]
 4. 如果带宽利用率低 → 增大 BK 或增大 BM/BN
 5. 最终通过 autotuning 搜索最优组合
 
+---
+
 ### Q: Bank Conflict 怎么避免？
 
 **Bank Conflict 的本质**：
@@ -184,6 +186,8 @@ B_shared[k][n] = B_global[k * N + n];   // 转置存储
 - Nsight Compute 的 Shared Memory 面板显示 bank conflict 统计
 - 指标：`l1tex__data_bank_conflicts_pipe_lsu_mem_shared`
 - 目标：0 conflict（或接近 0）
+
+---
 
 ### Q: 手撕 CUDA：矩阵每一行的 ReduceSum？
 

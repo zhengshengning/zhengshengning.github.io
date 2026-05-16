@@ -40,6 +40,8 @@ Cache Line是CPU缓存管理的最小单位（x86-64典型为64字节），每�
 - **Prefetch**：CPU硬件预取利用连续访问模式（stride prefetch），这要求数据结构尽量连续排列。
 - **Cache Line Bouncing**：多核频繁写同一全局变量（如atomic counter）→该line在核间乒乓→成为扩展瓶颈。
 
+---
+
 ### Q: 多级Cache存在的原因？
 
 **核心原因——速度-容量-成本的物理限制不可调和**：
@@ -66,6 +68,8 @@ Cache Line是CPU缓存管理的最小单位（x86-64典型为64字节），每�
 **对GPU编程的启示**：
 - GPU的L1/L2 Cache更小且无法像CPU那样有效隐藏延迟（靠大量线程切换代替）。
 - 显式使用Shared Memory等价于程序员手动管理"L1 Cache"。
+
+---
 
 ### Q: Cache Miss之后的流程？
 
@@ -106,6 +110,8 @@ CPU重新执行该load指令
 **AI推理中Cache Miss的典型场景**：
 - 模型权重首次加载：cold cache，全部miss到DRAM→首个推理batch较慢（warmup效应）。
 - Embedding Table查找：随机索引→几乎每次都cache miss→用prefetch或GPU offload。
+
+---
 
 ### Q: 页表机制带来的开销以及如何缓解？
 
@@ -153,6 +159,8 @@ CPU重新执行该load指令
 - 大模型权重mmap加载后，首次访问每4KB会触发page fault + TLB miss + page walk → 首次推理极慢。
 - 解决：`madvise(MADV_SEQUENTIAL)` 提示OS预读、使用大页减少TLB压力、`mlockall()` 防止swap。
 
+---
+
 ### Q: 页表的好处？
 
 页表（Page Table）实现虚拟内存机制，提供了以下关键能力：
@@ -168,6 +176,8 @@ CPU重新执行该load指令
 **5. 内存共享**：不同进程的不同虚拟页可以映射到同一物理页（共享库、mmap共享内存）。零拷贝进程间通信。
 
 **6. Copy-on-Write**：fork()后父子进程共享物理页（PTE标记只读），写入时才复制——使fork几乎零开销。
+
+---
 
 ### Q: C++重载机制以及如何实现？
 
@@ -208,6 +218,8 @@ void process(const string&) → _Z7processRKSs
 - `const`修饰的成员函数和非const版本可以重载。
 - 模板函数和非模板函数同时匹配时，优先选择非模板（更特化）。
 - `extern "C"`禁用name mangling（C没有重载，需要保持符号名不变）。
+
+---
 
 ### Q: C++中的原子操作以及引入的原因？
 
@@ -263,6 +275,8 @@ void consume() {
 - Lock-free数据结构：推理服务的请求队列。
 - 引用计数：`shared_ptr`的计数器用原子操作实现线程安全的引用计数。
 
+---
+
 ### Q: 大模型分布式训练中的并行方式？
 
 六种并行策略从不同维度切分计算/数据/模型，满足不同规模的训练需求：
@@ -287,6 +301,8 @@ GPT-4级(~1T参数, ~10000 GPU):
   EP=8 (MoE expert分布)
   总GPU = 8×16×64 = 8192
 ```
+
+---
 
 ### Q: 如何应对模型训练和推理中过高的内存占用？
 
@@ -314,6 +330,8 @@ Activation Checkpointing详解：
 | KV量化(INT8) | KV显存↓2x | 极小精度损失 |
 | Offloading | 有效容量+Nx | 加载延迟 |
 | GQA架构 | KV显存↓4-8x | 需要训练时使用 |
+
+---
 
 ### Q: C++多态机制，虚函数表中函数地址何时确定？虚表指针何时确定？
 
@@ -351,6 +369,8 @@ vtable本身是只读数据段（.rodata），程序加载后不会改变。
 - 这就是为什么"不要在构造函数中调用虚函数"——不会得到多态行为。
 - 析构时逆序更新vptr：先Derived析构（vptr=Derived_vtable）→再Base析构（vptr=Base_vtable）。
 
+---
+
 ### Q: C++中vector如何释放内存？
 
 vector的`clear()`只调用元素析构函数但不释放底层内存（capacity不变）：
@@ -386,17 +406,25 @@ v = std::vector<int>();  // 移动赋值，旧内存随旧storage释放
 - PyTorch的TensorList：类似vector<Tensor>，clear后tensor的storage由引用计数管理。
 - 显存管理：CUDA的caching allocator不会立即将cudaFree返回给OS，而是缓存以供后续使用。类似vector不释放capacity的理念。
 
+---
+
 ### Q: 实现一个支持O(1)获取最小值的栈？
 
 （编程题）
+
+---
 
 ### Q: 手撕：棋盘连通性判断（DFS）？
 
 （编程题）
 
+---
+
 ### Q: 手撕：拓扑排序？
 
 （编程题）
+
+---
 
 ### Q: 手撕：下一个全排列（LeetCode 31）？
 

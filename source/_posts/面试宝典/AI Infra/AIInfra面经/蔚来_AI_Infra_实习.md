@@ -77,6 +77,8 @@ __shared__ float s[32][32+1];   // 同列不同bank → 0 conflict!
 // i=0: bank 0, i=1: bank 1, i=2: bank 2, ... 全部不同!
 ```
 
+---
+
 ### Q: 同一Warp内不同线程的访问约束？
 
 **Warp执行模型的关键约束：**
@@ -136,6 +138,8 @@ if (threadIdx.x < 16) {
 // 允许更灵活的调度,但分支仍有性能损失
 ```
 
+---
+
 ### Q: GPU共享内存的广播机制（Broadcast）？
 
 **Broadcast的触发条件和硬件行为：**
@@ -188,6 +192,8 @@ __syncthreads();
 sum = shared_sum;  // broadcast
 ```
 
+---
+
 ### Q: C++四种Cast转换的区别与应用场景？
 
 | Cast类型 | 安全性 | 检查时机 | 用途 | 典型场景 |
@@ -233,6 +239,8 @@ float4* vec_data = reinterpret_cast<float4*>(data);  // 向量化读取
 - `reinterpret_cast<half2*>`: FP16打包计算
 - `static_cast<float>`: 精度转换
 - 避免`dynamic_cast`: GPU代码不支持RTTI
+
+---
 
 ### Q: 父类转子类的安全性问题与内存布局约束？
 
@@ -284,6 +292,8 @@ if (d2) d2->extra_data = 42;  // 确认后安全访问
 | 不确定实际类型 | dynamic_cast | 运行时检查RTTI |
 | 性能关键路径 | static_cast + assert | 开发时验证，release零开销 |
 | 模板/泛型代码 | static_cast | 编译时类型推导已保证安全 |
+
+---
 
 ### Q: 手撕：01背包问题 vs 完全背包问题？
 

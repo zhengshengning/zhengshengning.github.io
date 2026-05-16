@@ -37,6 +37,8 @@ tags: [AIInfra, 面经]
 - DataLoader：多进程（worker进程预处理数据，通过共享内存传给主进程）
 - CUDA Runtime：多线程（host端多线程管理多stream/多设备）
 
+---
+
 ### Q: Attention解决了什么问题？还存在什么缺点？
 
 **Attention解决的问题：**
@@ -70,6 +72,8 @@ Attention: 任意两个位置直接交互 → 无距离衰减
 | 局部模式效率低 | 捕获局部pattern不如CNN | 结合CNN(ConvNeXt), 局部注意力窗口 |
 | 推理自回归慢 | 每步只生成1个token | 投机解码, 并行解码 |
 
+---
+
 ### Q: GPU和CPU的区别？
 
 **设计哲学的根本差异：**
@@ -102,6 +106,8 @@ GPU: 针对吞吐优化(Throughput-Optimized)
 - 数据量大且访问模式规律 → GPU高带宽内存优势明显
 - 训练中同一个kernel要处理百万级元素 → GPU千核并行处理
 - Tensor Core专门为矩阵乘优化 → FP16峰值算力是CPU的100倍
+
+---
 
 ### Q: 手撕：旋转矩阵（Python实现）？
 

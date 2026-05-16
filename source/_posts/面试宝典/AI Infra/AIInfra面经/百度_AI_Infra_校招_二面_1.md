@@ -25,6 +25,8 @@ DETR（DEtection TRansformer）虽然实现了端到端检测（无需 NMS），
 
 **效果**：RT-DETR-L 在 COCO 上达到 53.0% AP，T4 GPU 上 114 FPS，首次实现了 DETR 类模型的实时推理。
 
+---
+
 ### Q: 大模型推理加速的方法有哪些？
 
 大模型推理加速是一个系统性工程，从模型层面到系统层面都有优化空间：
@@ -43,6 +45,8 @@ DETR（DEtection TRansformer）虽然实现了端到端检测（无需 NMS），
 9. **算子融合**：将多个小 kernel 合并为一个，减少 launch 开销和中间内存读写。
 10. **CUDA Graph**：预录制 kernel 执行图，消除反复 launch 的 CPU 开销。
 
+---
+
 ### Q: Attention算子加速方法？
 
 Attention 是 Transformer 的核心瓶颈，占推理延迟的 30-60%。加速方法：
@@ -54,9 +58,13 @@ Attention 是 Transformer 的核心瓶颈，占推理延迟的 30-60%。加速�
 5. **线性 Attention**：用核函数近似 softmax（如 elu+1），将复杂度从 O(N^2) 降到 O(N)。但精度通常不如标准 attention（目前非主流）。
 6. **KV Cache 压缩**：量化 KV Cache（如 KV8）、Head-wise 压缩、Token 淘汰（H2O）等降低 Cache 带宽需求。
 
+---
+
 ### Q: 手撕：字符串相乘（LeetCode 43）？
 
 （编程题）
+
+---
 
 ### Q: 手撕：验证栈序列（LeetCode 946）？
 

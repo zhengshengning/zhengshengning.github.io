@@ -41,6 +41,8 @@ FlashAttention 通过**重新组织计算顺序**来减少对 HBM 的访问，�
 - 当 d（head_dim，通常 64-128）远小于 M（~数 MB）时，大幅减少 HBM 访问
 - 实测：对 seq_len=2048 约减少 **5-9x** 的 HBM 读写量
 
+---
+
 ### Q: Self-Attention 为什么要除以 √d？
 
 **直观解释**：当 head_dim（d）较大时，Q 和 K 的点积值绝对值会变大，导致 softmax 进入饱和区（梯度几乎为 0），模型无法有效学习。
@@ -61,6 +63,8 @@ FlashAttention 通过**重新组织计算顺序**来减少对 HBM 的访问，�
 - 点积值归一化为方差 ≈ 1，分布在 [-3, 3] 范围
 - softmax 处于梯度敏感区域，训练正常
 - 这是缩放点积注意力（Scaled Dot-Product Attention）名称的由来
+
+---
 
 ### Q: 回调函数怎么实现？
 
@@ -105,6 +109,8 @@ void asyncTask(F&& cb) { cb(42); }
 - 性能敏感路径：模板参数（零开销）
 - 通用接口：`std::function`（灵活性最好）
 - C 兼容/系统级：函数指针
+
+---
 
 ### Q: 显存越界（Out-of-bounds access）怎么排查？
 

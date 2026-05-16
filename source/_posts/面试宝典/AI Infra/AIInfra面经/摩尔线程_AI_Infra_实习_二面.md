@@ -91,6 +91,8 @@ A100/H100 + 精度优先 → W8A8 (SmoothQuant + TensorRT)
 H100 + 训练+推理 → FP8 (Transformer Engine, 最简单)
 ```
 
+---
+
 ### Q: 数据分布极不均匀（最小值 -10000，其余在 [-1,1]）应该用什么量化方式？
 
 这是一个典型的 **outlier 问题**——少数极端值将量化范围撑大，导致绝大部分正常值的有效量化位数极低。
@@ -175,6 +177,8 @@ NF4 (NormalFloat4): 假设权重近似正态分布
 - 如果是权重 outlier → per-group 量化（group_size=128）解决大部分问题
 - 如果是激活 outlier → SmoothQuant 或 LLM.int8() 分离处理
 - 极端情况 → 混合精度：outlier channel 保持 FP16，其余 INT8/INT4
+
+---
 
 ### Q: 手撕：手写一个 CUDA 算子？
 

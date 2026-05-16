@@ -63,6 +63,8 @@ MCP（Model Context Protocol）为LLM提供标准化的外部工具/数据接口
 - **Shadow mode**：新版本先上shadow模式，对比新旧版本在真实流量上的表现
 - **Tool description A/B测试**：微调description措辞对LLM选择行为影响巨大（一个词的改变可能影响10%+的选择率）
 
+---
+
 ### Q: 如何对一个Agent系统做链路追踪和可观测性？
 
 Agent系统的非确定性使得可观测性比传统微服务更加关键——你需要理解LLM"为什么"做出某个决策。
@@ -125,6 +127,8 @@ Agent系统的非确定性使得可观测性比传统微服务更加关键——
 - 开发阶段：所有中间步骤verbose打印，方便debug
 - 生产阶段：采样记录（1-10%流量全量trace），异常全量记录
 - 回放能力：能够基于trace日志重放完整推理过程（用于排查问题）
+
+---
 
 ### Q: Agent对话记录怎么保存？用什么数据结构？
 
@@ -205,6 +209,8 @@ class MemoryStore:
 | Vector DB (Milvus) | 语义检索历史 | ~10ms | 十亿级向量 |
 | 文件系统 (JSON/SQLite) | 简单应用、本地Agent | ~1ms | GB级 |
 
+---
+
 ### Q: 了解哪些Agent开发框架？
 
 **主流Agent框架对比**：
@@ -265,6 +271,8 @@ class MemoryStore:
 | 非技术团队 | Dify |
 | 企业级.NET项目 | Semantic Kernel |
 | 极致可控性 | 不用框架，自建Agent loop |
+
+---
 
 ### Q: 手撕：最长有效括号？
 

@@ -52,6 +52,8 @@ tags: [AIInfra, 算子优化, 面经]
 
 **cuDNN 的自动选择**：调用 `cudnnFindConvolutionForwardAlgorithm` 自动 benchmark 所有可用算法，选择当前 shape 下最快的。不同 batch size/channel/spatial size 的最优算法通常不同。
 
+---
+
 ### Q: 写算子时为什么会发生Bank Conflict？如何解决？
 
 **Bank Conflict 的发生机制**：
@@ -104,6 +106,8 @@ smem[row][physical_col] = data;
 
 **诊断方法**：Nsight Compute -> Memory Workload -> Shared Memory -> Wavefronts/Requests。理想值为 1.0，>1.0 说明存在 bank conflict。
 
+---
+
 ### Q: CPU和GPU架构的区别？
 
 CPU 和 GPU 是针对不同计算模式优化的处理器，架构设计哲学截然不同：
@@ -140,6 +144,8 @@ CPU 和 GPU 是针对不同计算模式优化的处理器，架构设计哲学�
 **性能数据对比**（典型值）：
 - 矩阵乘（4096x4096）：CPU（512 GFLOPS with AVX-512）vs GPU A100（312 TFLOPS FP16）≈ 600x 差距
 - 单次条件分支：CPU ~1ns vs GPU ~100ns（warp divergence）
+
+---
 
 ### Q: Grid、Block、Thread的理解？
 
@@ -183,6 +189,8 @@ Grid (全部工作)
 - Block 数量应 >> SM 数量（确保所有 SM 都有工作，隐藏调度间隙）
 - Grid 维度组织应匹配数据的逻辑结构（2D grid 处理 2D 数据更直观）
 
+---
+
 ### Q: 写算子时如何最大化利用缓存？
 
 缓存利用是 memory-bound kernel 性能的关键。核心原则是**让数据访问模式匹配缓存层级的容量和替换策略**：
@@ -217,6 +225,8 @@ Grid (全部工作)
 - Double Buffer：两套 shared memory buffer 交替使用，加载和计算完全重叠
 
 **实际效果**：好的缓存利用可以让 memory-bound kernel 的有效带宽从理论峰值的 30-40% 提升到 80-90%。
+
+---
 
 ### Q: 线程束分歧（Warp Divergence）是什么？
 
@@ -272,9 +282,13 @@ GPU 处理方式：
 
 **注意**：Volta+ 架构支持 Independent Thread Scheduling，每个线程有独立的 PC 和调用栈，但 divergence 的性能惩罚本质上仍然存在（warp 仍需串行执行不同路径）。
 
+---
+
 ### Q: 手撕：CUDA矩阵乘算子？
 
 （编程题）
+
+---
 
 ### Q: blockDim.x和gridDim.x最大能开多少？
 
@@ -306,6 +320,8 @@ cudaGetDeviceProperties(&prop, 0);
 - gridDim.x 的 21 亿上限在实际中几乎不会成为约束
 - 真正的限制来自：每 SM 最大 block 数（16-32 blocks/SM）、每 SM 最大 thread 数（2048）、每 SM 寄存器总量（65536）、每 SM shared memory 容量
 
+---
+
 ### Q: 共享内存和Cache的区别？
 
 共享内存（Shared Memory）和 Cache（L1/L2）都是片上快速存储，但管理方式和使用场景完全不同：
@@ -336,6 +352,8 @@ cudaGetDeviceProperties(&prop, 0);
 - 对已知会被多次复用的数据（如 GEMM 的 tile）：使用 shared memory 显式管理
 - 对偶尔复用或不确定复用模式的数据：依赖 L1/L2 cache 自动缓存
 - A100 的 L1/shared memory 共享 192KB pool，可配置比例（如 164KB shared + 28KB L1）
+
+---
 
 ### Q: Tensor Core和CUDA Core的区别？加速矩阵乘谁更快？
 
@@ -373,6 +391,8 @@ cudaGetDeviceProperties(&prop, 0);
 - 面积效率：Tensor Core 用专用电路（乘法器阵列 + 加法树）替代通用逻辑，单位面积算力远高于通用 ALU
 
 **实际应用**：GEMM、Attention（FlashAttention 内部的分块矩阵乘）、卷积（im2col 后的 GEMM）。几乎所有 AI 模型的核心计算都可以利用 Tensor Core。
+
+---
 
 ### Q: Softmax算法在深度学习中的应用？
 
@@ -422,6 +442,8 @@ similarity_matrix = softmax(embeddings @ embeddings.T / tau)
 - Gumbel-Softmax：在离散选择问题中提供可微分的近似
 
 **实现性能考量**：softmax 是 memory-bound 操作（每元素约 5 FLOPs 但需读写两次），优化重点是 fusion（与前后算子融合）和减少 global memory 遍历次数（online softmax）。
+
+---
 
 ### Q: 手撕：CUDA Softmax算子？
 

@@ -38,6 +38,8 @@ tags: [AIInfra, 面经]
 - 梯度 AllReduce：BF16
 - 这样只需 2 bytes/param 的通信和计算，但保持 FP32 级别的训练稳定性
 
+---
+
 ### Q: 大端和小端的区别？主流架构用什么？
 
 **大端（Big-Endian）**：高字节在低地址。数据在内存中的顺序与人类阅读顺序一致。
@@ -61,6 +63,8 @@ tags: [AIInfra, 面经]
 - 网络编程中必须处理字节序转换
 - 序列化/反序列化二进制数据时需要一致
 - GPU 通信中（NCCL/RDMA）也需注意，不过 NVIDIA GPU 与 x86 一样使用小端
+
+---
 
 ### Q: 如果设计一个 CPU，从哪几个部分考虑？
 
@@ -94,6 +98,8 @@ tags: [AIInfra, 面经]
 - 多核：多个独立执行核心，共享 L3 和内存
 - SMT（超线程）：一个物理核虚拟为 2 个逻辑核，共享执行资源
 
+---
+
 ### Q: 用户态和内核态的区别？如何切换？
 
 **本质区别**——CPU 权限级别不同：
@@ -125,6 +131,8 @@ tags: [AIInfra, 面经]
 - 典型开销：数百纳秒到数微秒
 - 频繁 syscall 是性能瓶颈——现代方案：io_uring（减少 syscall 次数）、vDSO（纯用户态读时钟）
 
+---
+
 ### Q: NPU 开发的难点和策略？
 
 **难点分析**：
@@ -155,6 +163,8 @@ tags: [AIInfra, 面经]
 4. **编译器路线**：用 TVM/Triton-like 编译器生成 kernel，减少手写工作
 5. **紧密协作**：与硬件团队获取底层性能信息、micro-benchmark 结果
 
+---
+
 ### Q: Softmax 优化中如何解决负载不均衡？
 
 Softmax 计算 `softmax(x)_i = exp(x_i - max(x)) / Σ exp(x_j - max(x))` 涉及 reduce（求 max、求 sum）和 elementwise（exp、div）操作，负载不均衡主要出现在以下场景：
@@ -179,6 +189,8 @@ Softmax 计算 `softmax(x)_i = exp(x_i - max(x)) / Σ exp(x_j - max(x))` 涉及 
 4. **Warp 级归约**：利用 `__shfl_down_sync` 在 warp（32线程）内做 reduce，避免 shared memory 同步的开销。对于短序列（≤32 元素），一个 warp 即可完成
 
 5. **Persistent Kernel**：对于 batch 中序列长度差异大的情况，使用 persistent kernel + 任务队列，每个 block 处理完当前任务后从队列取下一个，天然负载均衡
+
+---
 
 ### Q: Tensor Parallel 切分的是什么？涉及哪些通信？
 

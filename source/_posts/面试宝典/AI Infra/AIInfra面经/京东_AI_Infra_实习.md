@@ -27,6 +27,8 @@ Qwen 系列基于 Decoder-only Transformer 架构，在原始 Transformer 的基
 2. **SFT（Supervised Fine-Tuning）**：用高质量指令数据训练模型遵循指令
 3. **RLHF 对齐**：Qwen2.5 使用 GRPO（Group Relative Policy Optimization）替代传统 PPO，降低训练资源需求
 
+---
+
 ### Q: PPO、DPO 和 GRPO 的区别？
 
 这三种方法都是 LLM 对齐（Alignment）的策略优化算法，但复杂度和资源需求递减：
@@ -58,6 +60,8 @@ Qwen 系列基于 Decoder-only Transformer 架构，在原始 Transformer 的基
 | 训练稳定性 | 需要调参 | 较稳定 | 较稳定 |
 | 典型应用 | InstructGPT | Zephyr, LLaMA2-Chat | DeepSeek-R1 |
 
+---
+
 ### Q: 熵、交叉熵和 KL 散度的联系？
 
 这三个概念是信息论的核心度量，在机器学习中无处不在：
@@ -84,6 +88,8 @@ H(P,Q) = H(P) + D_KL(P||Q)
 ```
 
 当 P 固定时（如分类任务中标签固定），最小化交叉熵等价于最小化 KL 散度。这就是为什么分类任务用交叉熵损失等同于让模型输出分布逼近真实分布。
+
+---
 
 ### Q: 讲一下 DeepSpeed、DDP 和 FlashAttention？
 
@@ -118,6 +124,8 @@ H(P,Q) = H(P) + D_KL(P||Q)
 - 效果：显存从 O(N^2) 降至 O(N)，同时因减少 HBM 读写次数实现 2-4x 加速
 - HBM 读写分析：标准实现读写 O(N^2)，FlashAttention 只读写 O(N^2·d/M)（M 为 SRAM 大小），当 M >> d 时显著减少
 
+---
+
 ### Q: 为什么分类任务不用 MSE 而用交叉熵损失？
 
 从**梯度**和**优化**两个角度理解：
@@ -136,6 +144,8 @@ H(P,Q) = H(P) + D_KL(P||Q)
 **实际效果对比**：
 - 相同模型和数据，交叉熵通常收敛速度快 3-5 倍
 - 交叉熵对类别不平衡更鲁棒（可通过 weighted CE/Focal Loss 调整）
+
+---
 
 ### Q: 计算 Qwen3-8B 推理时需要多少显存？
 
@@ -164,6 +174,8 @@ H(P,Q) = H(P) + D_KL(P||Q)
 | INT4 (GPTQ/AWQ) | 4 GB | 6-8 GB |
 
 INT4 量化后单张 RTX 4090（24GB）即可运行。
+
+---
 
 ### Q: RAG 的流程以及可以优化的策略？
 
@@ -199,6 +211,8 @@ INT4 量化后单张 RTX 4090（24GB）即可运行。
 - 事实校验：检测生成内容与检索文档的一致性
 - Self-RAG：模型自主判断是否需要检索
 
+---
+
 ### Q: PPO 中优势函数如何计算？Critic 模型如何更新？
 
 **优势函数计算（GAE - Generalized Advantage Estimation）**：
@@ -222,6 +236,8 @@ A_t^GAE = Σ_{l=0}^{T-t} (γλ)^l · δ_{t+l}  # GAE 优势估计
 - 损失函数：`L_critic = E[(V_θ(s_t) - R_t)²]`，其中 R_t 是 discounted return
 - PPO 中 Critic 也可加 clip：`L = max((V-R)², (clip(V, V_old±ε) - R)²)`，防止价值函数更新过大导致优势估计不稳定
 - 在 LLM 场景中，Critic 通常与 Policy 共享底层 Transformer backbone，只在最后加一个 scalar head
+
+---
 
 ### Q: GRPO 中冷启动是如何处理的？
 
@@ -247,6 +263,8 @@ GRPO 的冷启动策略针对的是模型在强化学习阶段初期**不具备�
 **替代方案**：
 - DeepSeek-R1-Zero 尝试完全不做 SFT 冷启动直接 RL，但需要更多训练步数且格式不够稳定
 - 也可以用蒸馏数据（从更强模型获取推理样本）做冷启动
+
+---
 
 ### Q: 手撕 GQA（Grouped Query Attention）？
 

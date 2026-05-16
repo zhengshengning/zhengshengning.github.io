@@ -84,6 +84,8 @@ SGLang Frontend (结构化生成语言)
 | 适用场景 | 生产部署追求极致性能 | 通用serving/研究 | 复杂应用(多轮/结构化) |
 | 自定义难度 | 高 | 中 | 中 |
 
+---
+
 ### Q: 为什么要有Continuous Batching？
 
 **传统Static Batching的致命问题：**
@@ -131,6 +133,8 @@ Step 20: [-, B, E, F] → A完成,G加入
 - Prefill和Decode的计算模式不同（compute-bound vs memory-bound），混合调度需要平衡
 - KV-Cache管理复杂：需要动态分配/释放，PagedAttention解决碎片问题
 - Padding浪费：不同请求长度不同导致tensor需要padding（或使用变长kernel）
+
+---
 
 ### Q: Python计算密集型任务使用多进程还是多线程？
 
@@ -190,6 +194,8 @@ with ProcessPoolExecutor(max_workers=8) as executor:
 - **PyTorch DataLoader**：多进程（`num_workers>0`时spawn子进程预处理数据）
 - **PyTorch DDP训练**：多进程（每GPU一个进程，NCCL通信）
 - **推理serving（vLLM）**：多进程 + 异步IO（每个GPU worker一个进程）
+
+---
 
 ### Q: C++继承是怎么实现的？
 
@@ -267,13 +273,19 @@ class D : public B, public C { int d; };
 
 虚函数调用本身开销约2-3ns（cache命中时），但会阻止内联优化，对热循环影响较大。
 
+---
+
 ### Q: 手撕：最大子数组之和？
 
 （编程题）
 
+---
+
 ### Q: 求一个整数比特位中1的个数？
 
 （编程题）
+
+---
 
 ### Q: C++编译时计算（constexpr）？
 
@@ -336,6 +348,8 @@ int runtime_val = 5;
 - 编译期确定shared memory大小、block配置
 - 根据GPU架构选择不同的kernel实现（`if constexpr`配合架构宏）
 - 生成查找表避免运行时计算
+
+---
 
 ### Q: vLLM中PagedAttention的原理？
 
@@ -421,6 +435,8 @@ for (int block_idx = 0; block_idx < num_blocks; block_idx++) {
 - PagedAttention：>96%（仅最后一个Block有少量内部碎片）
 - 实际效果：相同显存下可服务2-4倍的并发请求
 
+---
+
 ### Q: CUDA内存模型介绍？
 
 **CUDA内存层次完整架构：**
@@ -499,6 +515,8 @@ window.hitProp = cudaAccessPropertyPersisting;  // 保持在L2中
 | 全局同步 | Cooperative Groups / 原子操作 | 跨block |
 | 只读数据(广播模式) | 常量内存或L2 persist | 专用cache高效 |
 | 寄存器溢出 | 减少每线程变量或降低occupancy | 避免local memory |
+
+---
 
 ### Q: 使用Triton实现PagedAttention的思路？
 

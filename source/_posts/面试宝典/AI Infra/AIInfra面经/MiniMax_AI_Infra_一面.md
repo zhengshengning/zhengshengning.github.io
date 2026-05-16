@@ -15,6 +15,8 @@ tags: [AIInfra, 训练优化, 面经]
 
 Attention本质是加权求和机制：`Attention(Q,K,V) = softmax(QK^T/√d_k)V`。从数学角度看，它是一个以query为条件、对value做自适应加权平均的操作。softmax(QK^T/√d_k)计算的是query与每个key的相似度（归一化后为概率分布），再用这个概率分布对value加权求和。本质是一个可微分的软寻址/信息检索机制。
 
+---
+
 ### Q: 了解Agent吗？把RAG做成Agent有什么好处？
 
 将RAG做成Agent的好处：
@@ -23,6 +25,8 @@ Attention本质是加权求和机制：`Attention(Q,K,V) = softmax(QK^T/√d_k)V
 - **工具调用**：除检索外还可调用计算工具、API等扩展能力。
 - **自我纠错**：发现检索结果不满足需要时可重新制定检索策略。
 
+---
+
 ### Q: Agent多轮对话任务中，Attention的局限性体现在哪些方面？
 
 - **上下文长度限制**：多轮对话历史可能超出模型最大上下文窗口。
@@ -30,11 +34,15 @@ Attention本质是加权求和机制：`Attention(Q,K,V) = softmax(QK^T/√d_k)V
 - **计算开销**：上下文长度增加导致注意力计算O(N^2)增长。
 - **信息遗忘**：模型无法有效管理和更新长期记忆，新信息可能覆盖旧信息。
 
+---
+
 ### Q: SFT的核心流程以及数据集构建策略？
 
 **核心流程**：准备指令-响应对数据 → 在预训练模型基础上继续训练 → 只对response部分计算loss（通常mask掉instruction部分）→ 学习率通常较小（1e-5量级）。
 
 **数据集构建策略**：多样性（覆盖不同任务类型和领域）、质量优先（少量高质量数据优于大量低质量）、长度分布合理、难度递进、人工审核或用强模型筛选/生成。
+
+---
 
 ### Q: SFT之后常见的Post-Training方法有哪些？目的有何区别？
 
@@ -42,6 +50,8 @@ Attention本质是加权求和机制：`Attention(Q,K,V) = softmax(QK^T/√d_k)V
 - **DPO**：直接用偏好对数据优化策略，无需训练奖励模型，简化RLHF流程。
 - **GRPO**：Group Relative Policy Optimization，无需critic模型，用组内相对奖励训练。
 - **拒绝采样微调（RFT）**：用奖励模型筛选模型自身生成的高质量样本再SFT。
+
+---
 
 ### Q: 什么是RAG？如何提升生成质量？与传统"检索+生成"有何不同？
 
@@ -53,6 +63,8 @@ RAG（Retrieval-Augmented Generation）将外部知识检索与生成模型结�
 
 **标准RAG的问题**：单次检索可能不够精确、检索和生成目标不一致、对检索噪声敏感。
 
+---
+
 ### Q: 如何评估一个RAG系统是否真正有效？有哪些指标或框架？
 
 **评估维度**：
@@ -63,6 +75,8 @@ RAG（Retrieval-Augmented Generation）将外部知识检索与生成模型结�
 
 **框架**：RAGAS（Faithfulness/Answer Relevance/Context Recall）、TruLens。
 
+---
+
 ### Q: PPO和DPO在大模型对齐中的主要区别？DPO训练注意事项？
 
 **区别**：
@@ -72,15 +86,21 @@ RAG（Retrieval-Augmented Generation）将外部知识检索与生成模型结�
 
 **DPO注意事项**：偏好数据质量至关重要、参考模型需要固定、学习率需要较小（防止偏离参考过远）、chosen和rejected的差异不宜太小或太大。
 
+---
+
 ### Q: 是否了解GRPO算法？
 
 GRPO（Group Relative Policy Optimization）是DeepSeek提出的RL算法。核心思想：对每个prompt采样一组回答，用奖励信号在组内计算相对优势（去均值除标准差），无需训练critic/value模型。优点是实现简单、训练稳定、显存占用少（无需value模型）。在数学推理等有明确奖励信号的任务上效果突出。
+
+---
 
 ### Q: LoRA的原理？推理时要挂着Adapter吗？
 
 **原理**：在冻结的预训练权重W旁边加低秩矩阵BA（W'=W+BA），只训练B和A。r远小于原始维度，大幅减少可训练参数。
 
 **推理时**：可以将BA合并到W中（W'=W+BA），合并后参数结构与原模型一致，推理时无额外开销。如果需要动态切换多个LoRA（如多任务/多用户），则保持分离按需加载。
+
+---
 
 ### Q: 场景题：Agent推理链路包含3个工具+高频请求导致延迟高，如何优化？
 
@@ -90,6 +110,8 @@ GRPO（Group Relative Policy Optimization）是DeepSeek提出的RL算法。核�
 - **模型优化**：用更小更快的模型做规划/路由判断。
 - **预取**：基于历史模式预测可能需要的工具调用结果。
 - **异步队列**：非关键工具调用异步化，不阻塞主链路。
+
+---
 
 ### Q: 手撕：用PyTorch实现SFT的loss计算代码（注意shift right）？
 

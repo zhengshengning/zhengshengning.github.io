@@ -18,6 +18,8 @@ Qwen-VL训练分为三个阶段：
 2. **跨模态对齐**：冻结LLM，训练视觉编码器和投影层（将视觉特征映射到LLM的embedding空间）。
 3. **联合微调**：解冻全部参数，在指令数据上进行多模态SFT。
 
+---
+
 ### Q: 多模态大模型的视觉特征传递给LLM有哪些方法？
 
 - **线性投影**：直接用线性层映射视觉特征到LLM维度（LLaVA）。
@@ -26,12 +28,16 @@ Qwen-VL训练分为三个阶段：
 - **Cross Attention**：在LLM层间插入交叉注意力层处理视觉特征（Flamingo）。
 - **直接拼接**：将视觉token与文本token拼接作为LLM输入。
 
+---
+
 ### Q: ViT一般怎么预训练？
 
 - **对比学习**：CLIP方式，图文对的contrastive loss。
 - **MAE（Masked Autoencoder）**：随机mask 75%的patch，重建被mask的像素。
 - **DINO/DINOv2**：自蒸馏，student和teacher网络的特征一致性学习。
 - **监督预训练**：在ImageNet等分类数据上做有监督训练。
+
+---
 
 ### Q: 多模态RAG介绍？
 
@@ -42,6 +48,8 @@ Qwen-VL训练分为三个阶段：
 
 挑战：跨模态对齐质量、图片内容理解精度、多模态文档的分块策略。
 
+---
+
 ### Q: 对于不同形状的图片或视频，位置编码怎么设计？
 
 - **2D RoPE**：对图片的行列位置分别做旋转位置编码，支持任意分辨率。
@@ -49,6 +57,8 @@ Qwen-VL训练分为三个阶段：
 - **插值**：将预训练的固定位置编码做双线性插值到目标分辨率。
 - **视频**：在2D空间位置编码基础上增加时间维度编码（3D位置）。
 - **NTK-Aware RoPE**：通过调整RoPE的base频率支持更长序列。
+
+---
 
 ### Q: 残差连接（Residual Connection）的作用？
 
@@ -58,6 +68,8 @@ Qwen-VL训练分为三个阶段：
 - **训练稳定性**：使得训练极深网络（如100+层ResNet、GPT）成为可能。
 
 在Transformer中，每个attention和FFN子层后都有残差连接：`output = LayerNorm(x + Sublayer(x))`。
+
+---
 
 ### Q: 大模型训练和推理时显存不够，有哪些优化方法？
 
@@ -75,6 +87,8 @@ Qwen-VL训练分为三个阶段：
 - 模型并行（TP）分散到多卡。
 - Flash Attention减少中间显存。
 - Token pruning/early exit减少计算。
+
+---
 
 ### Q: 手撕：数组中的第K个最大元素？
 

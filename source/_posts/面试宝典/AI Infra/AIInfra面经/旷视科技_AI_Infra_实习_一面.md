@@ -42,6 +42,8 @@ vLLM 是面向 LLM 的高吞吐推理框架，其核心设计围绕**最大化 G
 - Pipeline Parallel（多节点）
 - 基于 Ray 的 worker 管理
 
+---
+
 ### Q: CUDA 算子优化常用的方法有哪些？
 
 系统化的 CUDA 算子优化方法，按重要性排序：
@@ -89,6 +91,8 @@ vLLM 是面向 LLM 的高吞吐推理框架，其核心设计围绕**最大化 G
 - Ampere+ 支持 Global→Shared 的异步拷贝，不占用 SM 计算资源
 - Hopper 的 TMA 更强：支持多维 tensor 直接异步搬运
 - 实现 compute 与 memory 流水化
+
+---
 
 ### Q: 手撕：链表倒数第 K 个节点？
 

@@ -79,6 +79,8 @@ class Cache:
 cache = weakref.WeakValueDictionary()
 ```
 
+---
+
 ### Q: 内联（inline）什么时候会影响性能？
 
 内联将函数体直接嵌入调用点，消除函数调用开销（压栈/跳转/返回）。但**过度内联会导致性能下降**：
@@ -116,6 +118,8 @@ L1 I-Cache 32 KB, 每条指令 ~4 bytes → 容纳 ~8000 条指令
 - 但 GPU 寄存器压力大，内联可能增加寄存器使用 → occupancy 下降
 - 编译器（nvcc）通常会自动内联小函数（`__device__` 函数默认内联）
 - 可用 `__forceinline__` 或 `__noinline__` 显式控制
+
+---
 
 ### Q: inline 对作用域的影响？除了 inline 还有什么会内联？
 
@@ -156,6 +160,8 @@ int compute(int x) { return x * 2; }  // 错误: 多个 .cpp include 会导致�
 - 调用开销占比大（函数体短时 call/ret 开销占比高）
 - `-O2` 比 `-O1` 更激进内联，`-O3` 和 `-Ofast` 最激进
 - `-Os`（优化大小）会抑制内联
+
+---
 
 ### Q: 完美转发（Perfect Forwarding）？
 
@@ -240,6 +246,8 @@ auto timed_call(F&& f, Args&&... args) {
 }
 ```
 
+---
+
 ### Q: 右值引用的意义？
 
 右值引用（`T&&`）是 C++11 引入的核心特性，解决了**不必要的深拷贝**问题。
@@ -319,6 +327,8 @@ Tensor b = std::move(a);  // std::move 将 a 转为右值 → 调用移动构造
 - 如果移动构造可能抛异常，STL 退回使用拷贝（保证异常安全）
 - 因此移动构造函数务必加 `noexcept`
 
+---
+
 ### Q: FasterTransformer（FT）框架的特点？
 
 FasterTransformer 是 NVIDIA 推出的高性能 Transformer 推理库（现已演进为 TensorRT-LLM），代表了 CUDA 原生 LLM 推理的极致优化水平。
@@ -370,6 +380,8 @@ FasterTransformer 是 NVIDIA 推出的高性能 Transformer 推理库（现已�
 - C++ 纯手动实现新模型开发周期长（每支持一个新模型需要数周）
 - 缺乏动态 batch/PagedAttention 等现代推理框架特性
 - TensorRT-LLM 继承了 FT 的所有优化 + 添加了编译器自动化 + Python 易用性
+
+---
 
 ### Q: 线程同步的方式？
 
@@ -429,6 +441,8 @@ if (tid < 128) {
     __syncthreads();  // 只有一半线程到达 → 死锁!
 }
 ```
+
+---
 
 ### Q: CUDA Stream 有什么要求？如何实现设备级重叠？
 
@@ -517,6 +531,8 @@ kernel<<<..., stream1>>>(...);         // 确保 H2D 完成后才计算
   总时间 ≈ max(32, 50, 32) + startup = ~55 ms (加速 ~2x)
 ```
 
+---
+
 ### Q: Git 协作流程？
 
 **标准 Feature Branch 工作流**：
@@ -583,9 +599,13 @@ docs: 文档
 chore: 构建/工具链
 ```
 
+---
+
 ### Q: 手撕：智能指针（shared_ptr）？
 
 （编程题）
+
+---
 
 ### Q: 手撕：前 K 大的元素？
 

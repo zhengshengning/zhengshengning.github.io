@@ -35,6 +35,8 @@ GIL（Global Interpreter Lock）是CPython解释器中的一把全局互斥锁�
 
 **面试陷阱**：GIL并不意味着Python多线程完全无用——IO密集型场景（爬虫、网络服务）多线程仍然有意义；且GIL是CPython特有的实现细节，不是Python语言规范的一部分。
 
+---
+
 ### Q: Python不同进程之间如何通信（IPC）？
 
 Python进程间通信（Inter-Process Communication）方式丰富，选择取决于数据量、延迟要求和场景复杂度：
@@ -80,6 +82,8 @@ Python进程间通信（Inter-Process Communication）方式丰富，选择取�
 | 跨机器通信 | Socket / gRPC |
 | 简单状态共享 | Manager（低频）/ Value（高频） |
 
+---
+
 ### Q: AllReduce通信开销具体是怎么计算的？
 
 Ring AllReduce是分布式训练中最常用的梯度同步算法，其通信开销可以精确计算：
@@ -115,6 +119,8 @@ T_ring = 2*(N-1) * α + 2*(N-1)/N * M / β
 
 **实际带宽参考**：NVLink 4.0单向带宽450 GB/s（A100为600 GB/s双向），PCIe 5.0约64 GB/s，InfiniBand NDR 400Gb/s≈50 GB/s
 
+---
+
 ### Q: tensor.view和tensor.contiguous的区别？
 
 这两个操作涉及PyTorch tensor的**内存布局**概念：
@@ -147,6 +153,8 @@ w = x[:, ::2]                # 切片后可能不连续
 - 如果不确定连续性且不关心是否拷贝，用`reshape`更安全
 - 常用模式：`tensor.contiguous().view(new_shape)`
 - 注意：频繁的`contiguous()`调用会产生额外显存分配和拷贝，应在性能关键路径上避免
+
+---
 
 ### Q: 张量并行（Tensor Parallelism）中先列切和先行切有什么区别？
 
@@ -192,9 +200,13 @@ Attention: Input → QKV [Column Parallel] → Attention → Output Proj [Row Pa
 | 反向通信 | 梯度需reduce-scatter | 梯度需all-gather |
 | 激活函数 | 可在切分状态下做（非线性） | 在聚合后做 |
 
+---
+
 ### Q: 手撕：数值的整数次方（快速幂）？
 
 （编程题）
+
+---
 
 ### Q: 手撕：实现Graph Fusion？
 

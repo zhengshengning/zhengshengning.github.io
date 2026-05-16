@@ -44,6 +44,8 @@ tags: [AIInfra, 训练优化, 面经]
 | 归一化 | LayerNorm/RMSNorm | GPT/LLaMA | RMSNorm更快更稳定 |
 | 归一化位置 | Pre-Norm/Post-Norm | 主流/原始Transformer | Pre-Norm训练更稳定 |
 
+---
+
 ### Q: 为什么MoE架构能在参数规模继续扩大时保持训练效率？
 
 MoE的核心优势在于**解耦了模型容量（总参数量）和计算成本（激活参数量）**：
@@ -69,6 +71,8 @@ MoE的核心优势在于**解耦了模型容量（总参数量）和计算成本
 - 路由不均衡导致部分GPU负载高、部分空闲
 - 微调困难（活跃专家子集不确定）
 
+---
+
 ### Q: MoE的路由机制和负载不均问题？
 
 **路由机制的实现**：
@@ -93,6 +97,8 @@ output = sum(topk_probs[i] * expert_i(x) for i in topk_indices)
 - **训练不稳定**：严重不均时loss可能spike
 
 **量化评估**：通常用 `Load Balance Factor = max_tokens_per_expert / avg_tokens_per_expert` 衡量，理想值为1.0
+
+---
 
 ### Q: 如何优化低专家利用率的路由策略？
 
@@ -124,6 +130,8 @@ output = sum(topk_probs[i] * expert_i(x) for i in topk_indices)
 - **Hash routing**：用确定性hash函数分配token（完美均衡但不可学习）
 - **Shared Expert**：始终激活的共享专家处理通用模式，路由专家处理特化模式
 
+---
+
 ### Q: SFT和RLHF的本质区别？为什么SFT后仍需RLHF？
 
 **本质区别**：
@@ -147,6 +155,8 @@ output = sum(topk_probs[i] * expert_i(x) for i in topk_indices)
 4. **开放式任务的评价困难**：创意写作、代码生成等任务没有唯一正确答案，SFT的最大似然目标不适合。RLHF通过人类偏好信号指导这类开放式优化
 
 5. **拒绝/安全行为**：SFT教模型"如何回答"，RLHF教模型"什么时候拒绝回答"——后者本质上是一个reward optimization问题
+
+---
 
 ### Q: RLHF中PPO的核心优化目标和目标函数解释？
 
@@ -186,6 +196,8 @@ L_PPO = E[min(r(θ) * A, clip(r(θ), 1-ε, 1+ε) * A)] - β * KL(π_θ || π_ref
 - Action = 下一个token的选择
 - Reward = 奖励模型对完整回答的打分（通常只在最后一个token处给出）
 - Episode = 一次完整的回答生成
+
+---
 
 ### Q: 手撕：实现滑动窗口最大值？
 

@@ -80,6 +80,8 @@ Step t:
 - 重新激活时通过PCIe加载回GPU（Gen4: 32GB/s，4K KV约50ms加载）。
 - 适合交互式长session场景。
 
+---
+
 ### Q: PagedAttention的原理？为什么效果好？
 
 **原理——借鉴OS虚拟内存分页**：
@@ -130,6 +132,8 @@ float* kv_addr = block_pool + physical_block * block_size * kv_size + block_offs
 **Copy-on-Write应用**：
 - Beam Search：K个beam共享前缀的block，只有当某beam修改时才复制。
 - Parallel Sampling：同一prompt多次采样，prompt的KV block全部共享。
+
+---
 
 ### Q: FlashAttention的原理？
 
@@ -190,6 +194,8 @@ end
 - FLOPs确实不变（还多了rescale计算），但I/O从O(N^2)降为O(N^2/M)。
 - A100的计算-带宽比极高（312T/2T=156），I/O减少后计算管线被充分利用。
 - 本质：将Attention从memory-bound变为（接近）compute-bound。
+
+---
 
 ### Q: vLLM的核心技术和推理加速策略？
 
@@ -259,6 +265,8 @@ llm = LLM(model="large-model", speculative_model="small-model", num_speculative_
 - vLLM vs TGI: 2-3x吞吐提升。
 - 主要来源：PagedAttention的高利用率 + Continuous Batching的高调度效率。
 
+---
+
 ### Q: Prefix Cache的作用？
 
 **场景和动机**：
@@ -311,6 +319,8 @@ else:
 - 缓存淘汰：LRU策略，不常用的prefix被淘汰释放显存。
 - 适用条件：大量请求共享长前缀时收益最大；如果每个请求前缀都不同，则无收益。
 - vLLM配置：`--enable-prefix-caching`即可启用。
+
+---
 
 ### Q: AI应用（Agent）的构建大致包含哪些模块？
 
@@ -382,6 +392,8 @@ AI Agent是一个能自主规划、使用工具、持续交互的智能系统，
 - 向量检索：ms级延迟、百万级向量库。
 - 工具执行：沙箱隔离（代码执行安全）、超时控制。
 - 可观测性：trace每步决策和执行结果，便于debug和优化。
+
+---
 
 ### Q: 手撕：环上n步回到原点的走法数？
 

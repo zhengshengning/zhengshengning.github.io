@@ -57,6 +57,8 @@ Decoder Layer (×N):
 
 **KV-Cache的显存占用：** 以LLaMA-70B为例，每个token的KV-Cache约1MB（FP16），4K上下文需要4GB/request
 
+---
+
 ### Q: 并行策略有哪几种？
 
 大模型训练中的并行策略用于将单卡无法承载的模型/数据分布到多个设备上：
@@ -99,6 +101,8 @@ Decoder Layer (×N):
 - 跨PP组: DP=16（梯度同步）
 ```
 
+---
+
 ### Q: 做并行时矩阵切分有什么注意的？数学原理是什么？
 
 **矩阵切分的数学原理：**
@@ -138,6 +142,8 @@ Input X → [Gate_proj列切] → [Down_proj行切] → Output
 3. **通信类型选择**：列切后需AllGather(拼接), 行切后需AllReduce(求和)
 4. **激活值通信**：TP中每层的输入X需要在所有设备上保持一致（forward时需broadcast/allgather）
 5. **实际Megatron实现中**：列切输出直接作为行切输入（跳过中间通信），利用SiLU/GeLU的element-wise特性
+
+---
 
 ### Q: 通信时延的影响因素？如何缓解？
 
@@ -183,6 +189,8 @@ for layer in layers:
 - NVLink/NVSwitch：节点内高带宽（900GB/s on H100）
 - InfiniBand NDR/XDR：节点间高带宽低延迟
 - SHARP/In-Network Computing：交换机内做AllReduce减少数据传输
+
+---
 
 ### Q: 手撕：在全0方形矩阵中画出一个内切圆（用1填充）？
 

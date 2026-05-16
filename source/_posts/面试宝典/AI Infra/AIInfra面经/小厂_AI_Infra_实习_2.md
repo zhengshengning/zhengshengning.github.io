@@ -75,6 +75,8 @@ GRPO:
 | 样本效率 | 每prompt生成1个回复 | 每prompt生成N个(更多显存换效率) |
 | 典型使用 | OpenAI InstructGPT | DeepSeek-R1 |
 
+---
+
 ### Q: RL中Rollout耗时占比？Policy MFU和计算公式？6Nd公式是什么？
 
 **Rollout(生成阶段)是RL训练的瓶颈：**
@@ -140,6 +142,8 @@ MFU = 实际模型计算吞吐 / 硬件峰值FLOPs
   实际稍大于6Nd,但作为估算足够准确
 ```
 
+---
+
 ### Q: RL中Rollout有哪些优化点？
 
 **Rollout优化方案全景：**
@@ -202,6 +206,8 @@ GRPO: 对同一prompt生成N=16个回复
   → 如果prompt很长(如RAG场景), 节省显著
 ```
 
+---
+
 ### Q: RL中如何把预训练权重同步到推理引擎？
 
 **权重同步的四种方案：**
@@ -262,6 +268,8 @@ Trade-off:
 缺点: 延迟高(秒-分钟级), 需要大量存储IO
 适用: 大规模分布式RL(如数千GPU的训练集群)
 ```
+
+---
 
 ### Q: Megatron中TP是怎么切分的？MLP中两个矩阵分别是行切还是列切？通信算子分别是什么？
 
@@ -329,6 +337,8 @@ Attention切分:
   反之任何其他组合都需要更多通信
 ```
 
+---
+
 ### Q: 预训练和SFT的loss、数据集有什么区别？
 
 **对比：**
@@ -378,6 +388,8 @@ SFT数据(如OpenAssistant/ShareGPT):
   - 安全数据: 拒绝有害请求的样本
   - 格式: chat template(system/user/assistant结构)
 ```
+
+---
 
 ### Q: 流水线并行怎么做？1F1B和DualPipe的区别？
 
@@ -444,6 +456,8 @@ P=4, M=16: bubble = 3/19 ≈ 16%
   - 实现复杂(需要精确的计算-通信切分)
   - 要求计算和通信可分离
 ```
+
+---
 
 ### Q: DeepSeek论文中FP8训练的关键点？
 
@@ -515,6 +529,8 @@ FP8使用位置:
 | 显存(weight+activation) | 基准 | -25-35% | FP8存储更小 |
 | 模型质量 | 基准 | <0.1 PPL差异 | 几乎无损 |
 | 额外工程量 | 无 | scale管理/精度监控 | 中等 |
+
+---
 
 ### Q: vLLM/SGLang中Continuous Batching是怎么工作的？
 

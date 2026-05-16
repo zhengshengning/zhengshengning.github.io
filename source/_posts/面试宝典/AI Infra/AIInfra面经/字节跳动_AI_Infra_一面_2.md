@@ -107,6 +107,8 @@ compute(smem_1);
 - 不要靠猜测优化——先Profile确定瓶颈，再针对性优化。
 - Nsight Compute的Roofline图一目了然地告诉你"离峰值还有多远、在哪个方向"。
 
+---
+
 ### Q: 卷积如何优化？
 
 卷积优化的核心是将其转化为高效的矩阵运算或利用数学恒等变换减少计算量：
@@ -151,6 +153,8 @@ cudnnFindConvolutionForwardAlgorithm(handle, ..., &algo);
 // 或 cudnnGetConvolutionForwardAlgorithm_v7() 基于启发式快速选择
 ```
 cuDNN会根据输入shape/kernel/stride自动选择Winograd/ImplicitGEMM/FFT等。实际部署中通常让cuDNN auto-tune（首次慢一点，后续用缓存）。
+
+---
 
 ### Q: 共享内存的作用和使用？
 
@@ -219,6 +223,8 @@ kernel<<<grid, block, smem_bytes>>>();   // launch时指定大小
 - 一定要`__syncthreads()`确保写入可见（否则读到旧数据）。
 - 不要在条件分支中放`__syncthreads()`（可能死锁——部分线程不执行sync）。
 
+---
+
 ### Q: C的malloc和C++的new有什么区别？
 
 **全面对比**：
@@ -268,6 +274,8 @@ delete s; // 正确：先析构再释放
 - PyTorch的CachingAllocator：基于cudaMalloc但缓存释放的block（避免频繁系统调用）。
 - 自定义operator new：可以用来实现内存池、对齐分配、统计追踪。
 - `aligned_alloc`/`posix_memalign`：当需要特定对齐时使用。
+
+---
 
 ### Q: C++四种强制类型转换？
 
@@ -326,6 +334,8 @@ float4* vec_ptr = reinterpret_cast<float4*>(float_ptr);  // 向量化读取
 - `static_cast`：精度转换（FP32→FP16）、enum→int。
 - `dynamic_cast`：在算子dispatch中检查具体子类类型（如检查TensorImpl的具体device type）。
 
+---
+
 ### Q: 深拷贝和浅拷贝的区别？
 
 **核心区别在于是否复制指针指向的资源**：
@@ -372,6 +382,8 @@ e = a.detach().clone()  # 深拷贝且脱离计算图
 ```
 
 Tensor的storage是引用计数管理的——多个Tensor可以共享同一个Storage（不同offset/stride）。只有`clone()`会创建独立的storage。
+
+---
 
 ### Q: 智能指针的种类和实现原理？
 
@@ -441,6 +453,8 @@ auto p = shared_ptr<T>(new T(args));  // 两次分配（对象和控制块分开
 ```
 make_shared更高效（减少内存分配次数、更好的cache局部性）。
 
+---
+
 ### Q: 如何防止内存泄漏？
 
 **系统化的防泄漏策略（从设计到检测）**：
@@ -501,6 +515,8 @@ for batch in loader:
 # 检查显存
 print(torch.cuda.memory_summary())  # 查看是否有unreleased tensor
 ```
+
+---
 
 ### Q: GDB的基本使用？
 
@@ -572,6 +588,8 @@ $ gdb -p <pid>
 - Segfault：通常是越界访问或空指针。用`bt`定位，然后`p`检查指针。
 - CUDA错误：host端看到`cudaErrorIllegalAddress`——可能kernel越界。用`compute-sanitizer`代替GDB。
 - 死锁：`thread apply all bt`看哪些线程在等锁，分析锁顺序。
+
+---
 
 ### Q: 手撕：图的最短连通路径长度？
 

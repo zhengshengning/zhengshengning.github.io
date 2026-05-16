@@ -34,6 +34,8 @@ tags: [AIInfra, 推理优化, 训练优化, 大厂面经, 面经]
 
 5. **MoE 变体（Qwen2-MoE）**：引入稀疏 MoE 架构，总参数 57B 但每 token 只激活约 14B，在同等推理成本下获得更强能力。
 
+---
+
 ### Q: 为什么Decoder-only成为大模型主流架构？
 
 这是一个从 GPT-3 到 LLaMA 到 Qwen 再到 DeepSeek 的行业共识，原因涉及多个层面：
@@ -61,6 +63,8 @@ tags: [AIInfra, 推理优化, 训练优化, 大厂面经, 面经]
 - 开源生态（vLLM、TGI、SGLang 等推理框架）主要围绕 Decoder-only 优化。
 
 **反面观点**：Encoder-Decoder 在某些场景仍有优势——如翻译、摘要等明确的 "输入→输出" 任务中，encoder 可以用双向 attention 更充分地理解输入。但这些优势在 scale up 后被 Decoder-only 的通用能力追平。
+
+---
 
 ### Q: 模型训练推理优化方法有哪些？
 
@@ -92,6 +96,8 @@ tags: [AIInfra, 推理优化, 训练优化, 大厂面经, 面经]
 
 **关键认知**：训练瓶颈通常在显存和通信，推理瓶颈通常在带宽和延迟。Decode 阶段是典型的 memory-bound（算术强度 < 1 FLOP/byte），所以量化（减少读取量）和 batching（摊分权重读取）是最直接的加速手段。
 
+---
+
 ### Q: 为什么有了SFT之后还需要RLHF？
 
 这个问题的本质是：**模仿学习（SFT）和强化学习（RLHF）各解决对齐的什么层面**。
@@ -109,6 +115,8 @@ tags: [AIInfra, 推理优化, 训练优化, 大厂面经, 面经]
 4. **安全对齐**：拒绝有害请求、承认不确定性、减少幻觉——这些"边界"行为需要 RL 的负反馈信号来强化。
 
 **直觉类比**：SFT 像教一个人看范文学写作，RLHF 像给他批改作文——前者学格式和基础能力，后者学什么是好品味。
+
+---
 
 ### Q: PPO和DPO的主要思想是什么？
 
@@ -158,6 +166,8 @@ L_DPO = -E[log σ(β · (log π/π_ref(y_w|x) - log π/π_ref(y_l|x)))]
 | 代表应用 | InstructGPT, Claude | Zephyr, LLaMA2-Chat |
 
 **趋势**：GRPO（DeepSeek）去掉 Critic 用组内相对奖励，兼顾在线探索和低资源需求，可能成为下一代主流。
+
+---
 
 ### Q: 手撕：合并K个升序链表（LeetCode 23）？
 

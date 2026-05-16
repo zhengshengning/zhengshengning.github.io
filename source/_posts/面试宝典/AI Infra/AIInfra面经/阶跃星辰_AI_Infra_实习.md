@@ -56,6 +56,8 @@ tags: [AIInfra, 算子优化, 高性能计算, 面经]
 - 不同于 Megatron-SP 的切分方式，Ulysses 在 attention 维度切分 head（类似 TP 切 head）
 - 通信量可能更少（只需 All-to-All 而非 AllGather+ReduceScatter）
 
+---
+
 ### Q: 训练稳定性和容错方面的工作有哪些？
 
 大规模训练（千卡/万卡级别）面临的稳定性和容错挑战是工程化的核心问题：
@@ -118,6 +120,8 @@ tags: [AIInfra, 算子优化, 高性能计算, 面经]
 
 **千卡规模的可靠性数据**：1000 GPU 训练中，平均每 2-4 天遇到一次硬件故障。好的容错系统可以将恢复时间从"人工干预数小时"降为"自动恢复 5-10 分钟"。
 
+---
+
 ### Q: Infra领域正在做的前沿技术/方向？
 
 AI Infra 是一个快速演进的领域，当前的前沿方向包括：
@@ -155,6 +159,8 @@ AI Infra 是一个快速演进的领域，当前的前沿方向包括：
 **7. 推理编译优化（AI Compiler）**：
 - 方向：将 PyTorch 模型自动编译为极致优化的 kernel（如 torch.compile/Inductor）
 - 挑战：动态 shape 支持、编译时间 vs 运行时性能权衡、跨平台代码生成
+
+---
 
 ### Q: DMA和RDMA是什么？
 
@@ -199,6 +205,8 @@ AI Infra 是一个快速演进的领域，当前的前沿方向包括：
   - NCCL 底层使用 GPUDirect RDMA：GPU A 的显存 -> 网卡 -> 网络 -> 远程网卡 -> GPU B 的显存
   - 绕过两端的 CPU 和主存，延迟从 ~10us 降到 ~2us
   - AllReduce/AllGather 等集合通信的高效实现依赖 RDMA
+
+---
 
 ### Q: 为什么cudaMemcpy时要锁住内存（Page-locked/Pinned Memory）？
 
@@ -250,6 +258,8 @@ malloc() 分配的内存 -> 虚拟地址
 - CUDA 异步传输（`cudaMemcpyAsync`）**必须**使用 pinned memory（否则退化为同步传输）
 - 使用 CUDA Streams + Pinned Memory 实现计算与传输重叠
 
+---
+
 ### Q: 进程和线程的区别？
 
 进程和线程是操作系统中两个层次的执行抽象：
@@ -285,9 +295,13 @@ malloc() 分配的内存 -> 虚拟地址
 - **多线程**：推理服务内部的请求处理（共享模型权重避免多份副本），CUDA kernel 内的"线程"
 - **选择依据**：需要隔离性/安全性选进程，需要高效共享/低切换开销选线程
 
+---
+
 ### Q: 手撕：最多可以完整看多少个电视节目（区间调度/贪心）？
 
 （编程题）
+
+---
 
 ### Q: 手撕：实现LRU Cache？
 

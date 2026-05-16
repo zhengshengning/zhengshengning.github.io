@@ -44,9 +44,13 @@ GPU有两个硬件上限：
 3. **数据Layout**：行主序访问连续内存时合并访问高效；转置访问需要shared memory中转。
 4. **硬件利用率**：Tensor Core要求特定的数据格式和对齐（如FP16、维度是8/16的倍数）。
 
+---
+
 ### Q: 手撕CUDA：实现二维矩阵转置并逐步优化？
 
 （编程题）
+
+---
 
 ### Q: map和unordered_map的实现与复杂度对比？
 
@@ -75,6 +79,8 @@ GPU有两个硬件上限：
 - 自定义类型做key → 需要为unordered_map提供hash函数和==运算符
 
 **性能注意**：unordered_map在元素极多时因为链表指针追踪（pointer chasing）导致cache不友好。对于高性能场景可考虑开放寻址hash（如absl::flat_hash_map）。
+
+---
 
 ### Q: 推理中常见的优化手段有哪些？
 

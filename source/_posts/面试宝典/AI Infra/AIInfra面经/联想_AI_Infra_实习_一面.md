@@ -38,6 +38,8 @@ KV Cache 是 LLM 推理的核心显存瓶颈。以 LLaMA-70B 为例，batch=16, 
 - 请求重新激活时加载回 GPU
 - 需要平衡加载延迟和显存利用率
 
+---
+
 ### Q: DeepSeek R1 有什么注意力优化？
 
 DeepSeek-V2/V3/R1 采用 **MLA（Multi-head Latent Attention）**，这是目前 KV Cache 压缩比最高的架构设计：
@@ -64,6 +66,8 @@ DeepSeek-V2/V3/R1 采用 **MLA（Multi-head Latent Attention）**，这是目前
 - GQA (8 KV heads)：缓存 8×128 = 1024 维/token
 - MLA：缓存 latent_dim + rope_dim ≈ 512+64 = 576 维/token
 - 相比 GQA 还能再压缩 ~2x
+
+---
 
 ### Q: Transformer 结构介绍？
 
@@ -104,6 +108,8 @@ x + down ←────────────────────┘
 - **因果 Mask**：下三角 mask 确保 token 只能看到之前的 token（自回归约束）
 - **Pre-Norm**（替代 Post-Norm）：Norm 在子层之前，训练更稳定
 
+---
+
 ### Q: 现在主流大模型架构有什么变化？
 
 相比 2017 年原始 Transformer，现代 LLM 的关键架构改进及其原因：
@@ -118,6 +124,8 @@ x + down ←────────────────────┘
 | Norm 位置 | 子层之后 | 子层之前 | Pre-Norm 梯度流更稳定 |
 | Bias | 有 | 去掉 | 减参数 + 简化量化（无 zero_point） |
 | FFN dim | 4×hidden | 8/3×hidden (SwiGLU) | SwiGLU 有 gate 分支，等效参数量对齐 |
+
+---
 
 ### Q: GRPO 的改进方法有哪些？了解 GSPO 吗？
 
@@ -143,6 +151,8 @@ x + down ←────────────────────┘
 - GRPO 使用 `(r_i - mean) / std` 作为优势估计——对组内奖励的绝对差异不敏感
 - GSPO 使用更细粒度的组内排序/评分方式（如 pairwise comparison、Elo rating 风格的评分）
 - 目的：当组内奖励差异很小时（如都对但质量有差异），提供更有区分度的梯度信号
+
+---
 
 ### Q: 手撕：实现 Multi-Head Attention，并说明在哪里加 Mask 矩阵？
 

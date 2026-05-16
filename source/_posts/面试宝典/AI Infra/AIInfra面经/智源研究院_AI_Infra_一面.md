@@ -50,6 +50,8 @@ tags: [AIInfra, 算子优化, 面经]
 - 大kernel/任意参数：隐式GEMM。
 - 最佳实践：让cuDNN auto-tune选择（`cudnnFindConvolutionForwardAlgorithm`）。
 
+---
+
 ### Q: 端侧大模型部署的关键技术？
 
 端侧（手机/车载/IoT）部署大模型面临严格的**内存、功耗、延迟**三重约束，需要综合多种技术：
@@ -91,6 +93,8 @@ tags: [AIInfra, 算子优化, 面经]
 **端侧部署典型数据**：
 - 7B模型INT4量化：模型约3.5GB，推理需4-6GB RAM，iPhone 15 Pro约8-12 tokens/s。
 - 1.5B模型INT4：模型约1GB，推理需2GB RAM，中端手机约20-30 tokens/s。
+
+---
 
 ### Q: 手撕：树形DP？
 

@@ -37,6 +37,8 @@ tags: [AIInfra, 推理优化, 大厂面经, 面经]
 - **投机解码（Speculative Decoding）**：小模型快速生成 K 个候选 token，大模型一次并行验证，接受率高时可加速 2-3x
 - **并行解码**：Medusa/EAGLE 多头预测，一次生成多个 token
 
+---
+
 ### Q: PagedAttention 具体是什么？
 
 PagedAttention 是 vLLM 提出的 KV Cache 管理方案，借鉴操作系统虚拟内存的**分页思想**：
@@ -58,6 +60,8 @@ PagedAttention 是 vLLM 提出的 KV Cache 管理方案，借鉴操作系统虚�
 - **支持 Prefix Caching**：相同 system prompt 的请求共享 KV Cache block
 
 **Attention 计算适配**：PagedAttention kernel 需要根据 block table 索引分散的 KV block，计算效率略低于连续存储（~5% overhead），但整体吞吐因 batch 增大而大幅提升。
+
+---
 
 ### Q: FlashAttention 为什么能加速？计算过程是什么？
 
@@ -96,6 +100,8 @@ FlashAttention 的核心思想：**永远不在 HBM 中物化完整的 N×N atte
 | HBM 读写量 | O(N²·d) | O(N²·d²/M)（M=SRAM大小）|
 | 实际加速 | baseline | 2-4x |
 | 适用场景 | 短序列 | 长序列收益更明显 |
+
+---
 
 ### Q: PD 分离机制中如何实现调度队列？Chunked Prefill 是什么？
 
@@ -136,6 +142,8 @@ FlashAttention 的核心思想：**永远不在 HBM 中物化完整的 N×N atte
 - 插入的是**其他请求**的 Decode（不是同一请求的），因为当前请求还没 Prefill 完
 - chunk 大小的选择需要平衡：chunk 越小 Decode 延迟越低，但 Prefill 效率越低（GEMM 利用率下降）
 - 实现需要维护跨 chunk 的中间状态（已计算的 KV Cache）
+
+---
 
 ### Q: C++ 的多态如何实现？虚函数表的函数顺序是什么？
 
@@ -179,6 +187,8 @@ class Derived : public Base {
     // g() 未重写          // vtable[1] → Base::g（继承）
 };
 ```
+
+---
 
 ### Q: 手撕：实现快速排序？
 

@@ -87,6 +87,8 @@ AI = 16.8M / 67.1M ≈ 0.25 → 远小于156 → Memory-bound
 - 反之 → Compute-bound。
 - Nsight Compute的`Speed of Light`面板直接显示两者的达峰百分比。
 
+---
+
 ### Q: 用过哪些Profiling工具？Nsight Systems能看到指令级流水吗？
 
 **工具层次对比**：
@@ -124,6 +126,8 @@ AI = 16.8M / 67.1M ≈ 0.25 → 远小于156 → Memory-bound
 第四步: 检查代码 → 发现tiling不够，数据复用不足
 第五步: 优化shared memory tiling → 重新profile验证
 ```
+
+---
 
 ### Q: Warp利用率低怎么归因？负载不均衡怎么解决？
 
@@ -206,6 +210,8 @@ __global__ void persistent_kernel(TaskQueue* queue) {
 sort_by_row_length(rows);  // 预处理
 ```
 
+---
+
 ### Q: 昇腾NPU和NVIDIA GPU架构差异？内存层级设计？
 
 **核心架构对比**：
@@ -272,6 +278,8 @@ DataCopy(outputGlobal, outputLocal, count);
 - NPU无Cache兜底：不手动搬运=每次从HBM读=极慢。编程者必须理解内存层次。
 - 这使得NPU编程更接近传统DSP/FPGA的思维模式，对程序员要求更高。
 - NPU优势：显式管理带来更可预测的性能，适合固定计算模式的深度学习算子。
+
+---
 
 ### Q: 多进程和多线程的性能区别？
 
@@ -340,6 +348,8 @@ loader = DataLoader(dataset, num_workers=8, pin_memory=True)
 高并发网络IO（10K+连接）？ → 协程/asyncio
 ```
 
+---
+
 ### Q: KV Cache、算子融合、量化分别如何优化推理？
 
 三种技术从不同层面加速推理，且可叠加使用：
@@ -406,6 +416,8 @@ Decode阶段是memory-bound（AI≈2），权重读取是瓶颈。量化直接�
 
 **三者叠加效果**：
 - KV Cache（基础必备）+ 算子融合（全链路优化）+ W4A16量化：总计可达5-10x加速（相比naive实现）。
+
+---
 
 ### Q: 模型输出与预期不符怎么debug？误差累积怎么解决？
 

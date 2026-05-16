@@ -48,6 +48,8 @@ torch-mlir是PyTorch到MLIR的桥梁项目，提供了大量可参考的设计�
 - **Op Decomposition策略**：复杂op分解为简单op的组合（如将BatchNorm分解为mean/var/normalize）。
 - **Backend Contract**：定义lowering到各backend前需要满足的"契约"（如所有dynamic shape已解析、所有高级op已分解）。
 
+---
+
 ### Q: 有考虑动态图（Dynamic Shape）的问题吗？
 
 动态Shape是AI编译器面临的核心挑战之一——tensor维度在编译时未知，只有运行时才能确定。
@@ -83,6 +85,8 @@ torch-mlir是PyTorch到MLIR的桥梁项目，提供了大量可参考的设计�
 - 优化pass需要区分"静态维度可优化"和"动态维度需保守处理"。
 - `shape.assuming` 操作表达"在某shape条件满足时"的优化region。
 
+---
+
 ### Q: 转成tosa和tensor后，接着lower到哪些Dialect？
 
 MLIR的Lowering是逐级降低抽象程度的过程，典型路径如下：
@@ -108,6 +112,8 @@ Target:      ├── LLVM dialect → LLVM IR → 机器码 (CPU)
 - **scf**：表达一般的结构化控制流（for/while/if），比affine更通用但优化能力更弱。
 - **LLVM dialect**：LLVM IR的MLIR表示形式，可直接转为LLVM IR交给LLVM后端生成目标代码。
 - **gpu dialect**：表达GPU编程概念（kernel launch, thread/block ids, shared memory）。
+
+---
 
 ### Q: One-shot Bufferization和基于Dialect的Bufferization有什么区别？
 
@@ -136,6 +142,8 @@ Bufferization是将tensor（value语义，immutable）转换为memref（引用�
 | Pass依赖 | 顺序敏感 | 顺序无关 |
 | 实现方式 | 各dialect独立实现 | 统一接口（BufferizableOpInterface） |
 | 目前状态 | 已deprecated | 推荐方式 |
+
+---
 
 ### Q: LLVM中的isa和dyn_cast是什么？
 
@@ -182,6 +190,8 @@ public:
 - `cast_or_null<T>(val)`：nullptr时返回nullptr而非assert。
 - `isa<T1, T2, T3>(val)`：检查是否是多个类型之一。
 
+---
+
 ### Q: 静态图和动态图的区别是什么？
 
 | 特性 | 静态图（Define-and-Run） | 动态图（Define-by-Run） |
@@ -200,6 +210,8 @@ public:
 - **torch.jit.trace**：记录一次执行的op序列作为静态图。不支持数据依赖控制流。
 - **torch.jit.script**：解析Python代码的AST生成图。支持有限的控制流。
 - **趋势**：用户侧保持动态图编程体验（易开发），编译器侧自动提取静态子图做优化（高性能）。
+
+---
 
 ### Q: MLIR中怎么处理in-place操作？
 
@@ -238,9 +250,13 @@ AliasingOpOperandList getAliasingOpOperands(OpResult result); // 结果alias哪�
 // 如果%t之后还有其他use → out-of-place：分配新buffer，copy %t，再写入
 ```
 
+---
+
 ### Q: 手撕：给定一个计算图，计算运行该计算图所需的最小内存？
 
 （编程题）
+
+---
 
 ### Q: 手撕：拓扑排序？
 

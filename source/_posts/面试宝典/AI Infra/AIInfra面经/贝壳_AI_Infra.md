@@ -25,6 +25,8 @@ Tokenizer 是 LLM 推理的第一步，虽然计算量小但影响整体效率�
 
 5. **前缀缓存**：对常用前缀（如 system prompt）缓存 tokenize 结果，避免重复编码。与 Prefix Caching（KV Cache 层面）配合使用。
 
+---
+
 ### Q: P-Tuning v2怎么做？和之前版本的区别？
 
 P-Tuning 系列是参数高效微调（PEFT）的重要方法：
@@ -41,6 +43,8 @@ P-Tuning 系列是参数高效微调（PEFT）的重要方法：
 - v2 在 330M-10B 模型上都能接近全参微调效果（gap<1%），因为深层也有可调参数
 - 可调参数量：prefix_length * n_layers * 2 * hidden_size（通常总量为原模型 0.1-1%）
 
+---
+
 ### Q: LoRA微调怎么做？
 
 LoRA（Low-Rank Adaptation）在冻结的预训练权重旁添加低秩分解矩阵进行微调：
@@ -56,6 +60,8 @@ LoRA（Low-Rank Adaptation）在冻结的预训练权重旁添加低秩分解矩
 **推理**：将 BA 合并到 W 中：W_merged = W + alpha/r * BA。无额外推理开销（与原模型计算量完全相同）。
 
 **应用位置**：通常对 attention 的 Q/K/V/O 投影和 FFN 的线性层应用 LoRA。实践中 attention 层的 Q 和 V 投影效果最好。
+
+---
 
 ### Q: LoRA两个矩阵怎么初始化？为什么A不能初始化为0？
 
@@ -78,6 +84,8 @@ LoRA（Low-Rank Adaptation）在冻结的预训练权重旁添加低秩分解矩
 
 **关键**：A 的随机初始化打破了对称性，使 B 能收到非零梯度从而开始学习。如果 A=0，整个 LoRA 模块永远保持 BA=0，等于没有添加。
 
+---
+
 ### Q: TF-IDF是什么？
 
 TF-IDF（Term Frequency - Inverse Document Frequency）是经典的文本特征权重算法，衡量一个词对文档的重要性：
@@ -91,6 +99,8 @@ TF-IDF（Term Frequency - Inverse Document Frequency）是经典的文本特征�
 **应用**：文本特征提取（作为向量空间模型的维度权重）、关键词抽取（取每篇文档 TF-IDF 最高的 N 个词）、BM25 的基础（搜索引擎中 BM25 是 TF-IDF 的改进版本）。
 
 **局限性**：无法捕获语义相似性（同义词 TF-IDF 为 0）、无法处理词序信息。现代 RAG 系统用 dense embedding 替代，但 BM25（基于 TF-IDF）仍作为混合检索的关键词匹配通道。
+
+---
 
 ### Q: GRPO强化学习怎么做？
 
@@ -108,6 +118,8 @@ TF-IDF（Term Frequency - Inverse Document Frequency）是经典的文本特征�
 - **序列级 reward**：适合 outcome-based reward（如数学答案对错、代码测试通过）
 - **长度归一化**：除以 |y_i| 防止长回答获得不公平的优势
 
+---
+
 ### Q: 奖励函数怎么设计？
 
 奖励函数的设计是 RL 对齐成功的关键，常见策略：
@@ -122,6 +134,8 @@ TF-IDF（Term Frequency - Inverse Document Frequency）是经典的文本特征�
 
 5. **组合奖励**：多种信号加权组合。如 r = 0.5*correctness + 0.3*format + 0.2*conciseness。权重需要仔细调优。
 
+---
+
 ### Q: 如何实现LLM as a Judge？
 
 用强模型（如 GPT-4/Claude）自动评估弱模型输出质量：
@@ -134,6 +148,8 @@ TF-IDF（Term Frequency - Inverse Document Frequency）是经典的文本特征�
 5. **处理自我偏好**：模型倾向于偏好自己生成的风格。解决：使用与被评模型不同的 Judge 模型
 
 **输出格式**：要求 Judge 先给出逐维度分析，再给出总分和理由（CoT 提升评分一致性）。
+
+---
 
 ### Q: RAG怎么做？
 
@@ -153,6 +169,8 @@ RAG（Retrieval-Augmented Generation）的完整流程：
 
 **优化方向**：多路召回、查询改写、迭代检索、知识图谱融合、长上下文模型。
 
+---
+
 ### Q: 向量检索怎么做？
 
 高效向量检索（ANN - Approximate Nearest Neighbor）是 RAG 的核心技术：
@@ -167,6 +185,8 @@ RAG（Retrieval-Augmented Generation）的完整流程：
 **压缩加速**：PQ（Product Quantization，将向量分段量化）减少内存占用和计算量；SQ（Scalar Quantization，标量量化为 INT8）简单高效。
 
 **混合检索**：dense vector（语义匹配）+ sparse BM25（关键词匹配）融合。RRF（Reciprocal Rank Fusion）或学习的融合权重合并两路结果。互补性强，通常 +5-10% recall。
+
+---
 
 ### Q: LLM预训练和后训练分别做什么？
 
@@ -184,6 +204,8 @@ RAG（Retrieval-Augmented Generation）的完整流程：
 
 **后训练的核心目标**：不是注入新知识（预训练已完成），而是"教会模型如何使用已有知识"——对齐人类意图。
 
+---
+
 ### Q: 量化具体做什么？
 
 量化是将高精度数值映射为低精度数值的过程：
@@ -198,6 +220,8 @@ RAG（Retrieval-Augmented Generation）的完整流程：
 **目标**：减少模型大小（W4 比 FP16 小 4x）、加速推理（INT8 Tensor Core 吞吐是 FP16 的 2x）、降低显存占用（KV Cache 也可量化）。
 
 **精度保证**：好的量化方法（GPTQ/AWQ）在 4-bit 量化下任务指标下降 <1%。
+
+---
 
 ### Q: 手撕：字符串转整数（LeetCode 8）？
 

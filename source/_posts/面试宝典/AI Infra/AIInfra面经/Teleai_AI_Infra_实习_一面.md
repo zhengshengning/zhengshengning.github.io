@@ -21,6 +21,8 @@ tags: [AIInfra, 推理优化, 算子优化, 高性能计算, 面经]
 - **编程接口**：提供结构化生成的高效原语（fork/join）。
 - **推理模型更适配**：对需要长上下文和多轮推理的场景（如DeepSeek-R1）更优，因前缀复用收益大。
 
+---
+
 ### Q: 大模型量化算法有哪些？有没有实际部署经验？
 
 **主要算法**：
@@ -31,11 +33,15 @@ tags: [AIInfra, 推理优化, 算子优化, 高性能计算, 面经]
 
 部署时关注：量化前后精度对比（perplexity/任务指标）、推理速度提升比例、显存节省量。
 
+---
+
 ### Q: CLIP的原理和推理流程？
 
 **原理**：对比学习框架，同时训练图像编码器（ViT/ResNet）和文本编码器（Transformer），使匹配的图文对在嵌入空间中距离最近（InfoNCE loss）。
 
 **推理流程**：输入图片通过图像编码器得到图像embedding → 输入文本通过文本编码器得到文本embedding → 计算cosine similarity → 用于零样本分类/检索。
+
+---
 
 ### Q: 常见大模型算子优化思路有哪些？
 
@@ -49,6 +55,8 @@ tags: [AIInfra, 推理优化, 算子优化, 高性能计算, 面经]
 - 利用Tensor Core加速矩阵运算。
 - Warp-level原语（shuffle）减少共享内存依赖。
 
+---
+
 ### Q: Ascend CANN MindIE框架有哪些组成？
 
 CANN（Compute Architecture for Neural Networks）是华为昇腾AI处理器的计算架构：
@@ -57,11 +65,15 @@ CANN（Compute Architecture for Neural Networks）是华为昇腾AI处理器的�
 - **图编译器**：将计算图优化编译为昇腾硬件指令。
 - **MindIE**：推理引擎，包含模型转换、量化、调度等功能。支持大模型高效推理（类似TensorRT-LLM for Ascend）。
 
+---
+
 ### Q: V100显存多少？DeepSeek/Qwen 32B INT8量化能部署吗？怎么部署？
 
 V100有16GB和32GB两个版本。32B模型INT8量化后约32GB（32B * 1字节），单张V100(32GB)勉强放下参数但无KV Cache空间。
 
 **部署方案**：使用2-4张V100(32GB)做张量并行；或使用A100/H100等更大显存卡。部署工具：vLLM + AutoAWQ/GPTQ量化，设置`--tensor-parallel-size`配置多卡。
+
+---
 
 ### Q: 并发场景下怎么测试最大并发数？需要关注哪些指标？
 
@@ -74,6 +86,8 @@ V100有16GB和32GB两个版本。32B模型INT8量化后约32GB（32B * 1字节�
 - **P50/P90/P99延迟**：关注长尾。
 - **显存使用率**：是否OOM。
 - **请求排队长度**：调度器压力。
+
+---
 
 ### Q: vLLM怎么去支持自研模型？
 

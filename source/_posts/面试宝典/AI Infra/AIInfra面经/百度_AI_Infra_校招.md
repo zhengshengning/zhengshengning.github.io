@@ -26,6 +26,8 @@ tags: [AIInfra, 大厂面经, 面经]
 - etcd 追求一致性（CP）：Raft 共识协议保证所有节点看到相同数据，代价是写入延迟高（需要多数节点确认）。B+ 树适合范围扫描（如 Watch prefix）。
 - Redis 追求性能（AP 倾向）：单线程模型避免锁开销，内存操作保证微秒级延迟。哈希表 O(1) 查找适合缓存场景。
 
+---
+
 ### Q: 操作系统的文件管理？
 
 文件系统是 OS 中负责数据持久化组织的核心子系统：
@@ -39,6 +41,8 @@ tags: [AIInfra, 大厂面经, 面经]
 
 **VFS 层**：Linux 虚拟文件系统抽象不同文件系统的统一接口（inode/dentry/super_block），用户态 open/read/write 通过 VFS 路由到具体文件系统实现（ext4/XFS/NFS/procfs）。
 
+---
+
 ### Q: Kafka如何实现顺序消费？如何做到消息不丢失？顺序消费如何写文件？
 
 **顺序消费保证**：
@@ -51,6 +55,8 @@ Kafka 的顺序性在 **Partition** 粒度内保证。同一 Partition 内消息
 
 **顺序写文件**：
 Kafka 采用**日志结构存储**——消息以追加写（append-only）方式顺序写入 Segment 文件（默认 1GB/段）。利用 OS Page Cache 和顺序 IO 的特性实现极高吞吐（GB/s 级别）。磁盘顺序写速度接近内存随机写。
+
+---
 
 ### Q: cgroup和namespace原理？
 
@@ -70,6 +76,8 @@ Kafka 采用**日志结构存储**——消息以追加写（append-only）方�
 
 Cgroup v2（统一层级）已成为主流，相比 v1 简化了多控制器管理。
 
+---
+
 ### Q: K8s Pod创建过程？CSI和CNI在哪里调用的？
 
 Pod 从创建到运行的完整流程：
@@ -81,6 +89,8 @@ Pod 从创建到运行的完整流程：
    - **CNI 调用时机**：sandbox 容器创建后、应用容器启动前。Kubelet 调用 CNI 插件（如 Calico/Cilium）为 Pod 分配 IP、创建 veth pair、配置路由规则
    - **CSI 调用时机**：Pod spec 中声明了 PVC 时。Kubelet 通过 CSI Driver 的 NodeStageVolume/NodePublishVolume 接口挂载存储卷到容器内路径
 4. 容器启动 -> readiness probe 通过 -> Pod 变为 Ready
+
+---
 
 ### Q: K8s中request和limit的实现原理？
 

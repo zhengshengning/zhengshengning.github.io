@@ -26,6 +26,8 @@ tags: [AIInfra, 推理优化, 面经]
 
 **PyTorch 的 Autograd**：动态记录计算图（每个 tensor 操作形成一条 grad_fn 链），反向时自动遍历图执行链式法则。
 
+---
+
 ### Q: ReLU激活函数在0点如何求导？
 
 **ReLU 定义**：f(x) = max(0, x) = { x, if x > 0; 0, if x <= 0 }
@@ -43,6 +45,8 @@ tags: [AIInfra, 推理优化, 面经]
 3. SGD 的随机性保证了不会永远停在 0 点
 
 **ReLU 的问题**：Dead ReLU——如果某些神经元输出始终 <0（梯度始终为 0），该神经元永远无法恢复。解决：LeakyReLU（x<0 时 f(x)=0.01x）、GELU/SiLU（平滑近似，无死区）。
+
+---
 
 ### Q: Softmax的实现及溢出问题？
 

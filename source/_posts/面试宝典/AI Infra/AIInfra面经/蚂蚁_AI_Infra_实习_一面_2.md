@@ -33,6 +33,8 @@ Nsight Systems 时间线分析
     ↓ 选择最高 ROI 的优化路径
 ```
 
+---
+
 ### Q: 优化后仍和目标性能有 gap，差距来自哪？
 
 **三层分析框架**：
@@ -59,6 +61,8 @@ Nsight Systems 时间线分析
 - NCU SOL < 80% → 实现还有优化空间
 - NCU SOL > 80% → 接近硬件极限，需要更本质的改变（如算法换硬件更匹配的方案）
 
+---
+
 ### Q: 如何判断哪些算子链适合融合？
 
 **四个判断维度**（按优先级排列）：
@@ -84,6 +88,8 @@ Nsight Systems 时间线分析
 - 融合后寄存器压力是否超限（→ register spilling）
 - 融合后 shared memory 是否超限（→ occupancy 下降）
 - 需要评估融合后单 kernel 的资源消耗
+
+---
 
 ### Q: Profiling 时重点看什么指标？
 
@@ -112,6 +118,8 @@ Nsight Systems 时间线分析
    - 是否形成合理流水（H2D / Compute / D2H 重叠）
    - 有无不必要的同步（cudaDeviceSynchronize 会打断流水）
 
+---
+
 ### Q: W8A8 和 W4A16 分别代表什么？为什么激活要保留更高精度？
 
 **配置含义**：
@@ -129,6 +137,8 @@ Nsight Systems 时间线分析
 | 量化方案 | per-channel scale 效果好 | 需要 per-token 或更细粒度 |
 
 **误差累积的直觉**：激活是层与层之间的"信号"，如果信号本身被污染，后续每一层都基于错误的输入计算，误差逐层放大。而权重误差只影响当前层的计算。
+
+---
 
 ### Q: 均匀量化 vs 非均匀量化的取舍？
 
@@ -149,6 +159,8 @@ Nsight Systems 时间线分析
 
 - **FP8**：在 Hopper 上有原生 Tensor Core 支持，兼具非均匀优势和硬件加速
 - **NF4**：QLoRA 使用，4-bit 内最优地适配正态分布权重，但无硬件加速
+
+---
 
 ### Q: CUDA 实现 Histogram 算子，如何优化写冲突？
 

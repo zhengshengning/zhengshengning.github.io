@@ -61,6 +61,8 @@ A_i = (rewards[i] - mean(rewards)) / std(rewards)
 - GRPO更适合：有明确奖励信号的任务（数学推理、代码生成——答案对错明确）
 - PPO更适合：奖励信号模糊的任务、需要精细token级别反馈的场景
 
+---
+
 ### Q: PPO中clip操作的作用？
 
 **clip的具体机制**：
@@ -102,6 +104,8 @@ loss = -min(ratio * A, clipped_ratio * A)
 - ε太大：约束太松，可能训练不稳定
 - ε太小：约束太紧，学习速度慢（每步更新量小）
 - LLM RLHF中常用ε = 0.2
+
+---
 
 ### Q: 重要性采样的作用？除了与clip结合限制更新幅度还有什么用？与KL散度限制更新的区别？
 
@@ -150,6 +154,8 @@ PPO:   max E[min(r(θ)*A, clip(r(θ))*A)]         (clip近似信赖域)
 - clip约束的是相对于π_old（同一training iteration内的旧策略）
 - KL约束的是相对于π_ref（SFT后的初始策略）——防止reward hacking
 
+---
+
 ### Q: 马尔可夫性质是什么？
 
 **马尔可夫性（Markov Property）的严格定义**：
@@ -177,6 +183,8 @@ P(s_{t+1} | s_t, s_{t-1}, ..., s_0) = P(s_{t+1} | s_t)
 **不满足马尔可夫性的例子**：
 - 速度：当前位置不够做决策，还需要知道位置变化率（速度）。解决：将(位置,速度)作为状态
 - 部分可观测（POMDP）：Agent只能看到环境的部分信息→当前观测不满足马尔可夫性。解决：用历史观测的聚合作为状态（如用RNN/Transformer编码历史）
+
+---
 
 ### Q: 从策略梯度到GRPO的发展脉络？哪些模块保留了，哪些丢掉了？
 
@@ -249,6 +257,8 @@ loss = -min(ratio * A, clip(ratio) * A) + β * KL
 - REINFORCE → AC：引入结构化的方差降低方法
 - AC → PPO：从on-policy到off-policy（数据效率），加入稳定性保证
 - PPO → GRPO：针对LLM场景的简化——用"比较"代替"估计"，反映了"大力出奇迹"的思路（采样足够多就不需要精细估计）
+
+---
 
 ### Q: 手撕：LeetCode 173 二叉搜索树迭代器？
 

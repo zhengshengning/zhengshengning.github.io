@@ -38,6 +38,8 @@ tags: [AIInfra, 推理优化, 面经]
 - MinMax：scale=100/255≈0.39，[0,10]的数据只能用26个量化级别表示。
 - Percentile(99.9%)：scale≈10/255≈0.04，[0,10]的数据能用全部255个级别，精度好10倍。
 
+---
+
 ### Q: 还有哪些其他量化校准算法？
 
 除了MinMax和Percentile，更高级的校准算法通过最小化某种量化损失指标来确定最优范围：
@@ -68,6 +70,8 @@ tags: [AIInfra, 推理优化, 面经]
 - 快速验证：MinMax/Percentile
 - 量产部署（CNN/CV模型）：KL散度（TensorRT默认，效果稳定）
 - LLM部署：SmoothQuant/AWQ等专用方法（因为LLM的outlier问题更严重）
+
+---
 
 ### Q: SmoothQuant的量化粒度是什么？AWQ和GPTQ的流程？
 
@@ -104,6 +108,8 @@ Y = (X × diag(s)^{-1}) × (diag(s) × W) = X_smooth × W_smooth
 
 优点：误差补偿使得量化精度显著优于naive round-to-nearest。4bit量化时perplexity损失通常<0.5。
 
+---
+
 ### Q: NVFP4的原理是什么？怎么做缩放？在哪个维度缩放？
 
 NVFP4是NVIDIA在Blackwell（B100/B200）架构引入的4位浮点格式，配合Tensor Core实现极致压缩率的推理。
@@ -134,6 +140,8 @@ NVFP4是NVIDIA在Blackwell（B100/B200）架构引入的4位浮点格式，配�
 - B200 Tensor Core原生支持FP4格式，吞吐比FP8再翻倍。
 - FP4 Tensor Core峰值可达9 PFLOPS（vs H100 FP8 约4 PFLOPS）。
 
+---
+
 ### Q: per-tensor、per-channel、per-group，哪个粒度更细？
 
 粒度从粗到细：**per-tensor < per-channel < per-group**。
@@ -158,6 +166,8 @@ NVFP4是NVIDIA在Blackwell（B100/B200）架构引入的4位浮点格式，配�
 - per-tensor：1个FP16 scale = 2字节额外。
 - per-channel（假设4096个channel）：4096 × 2 = 8KB额外。
 - per-group（G=128）：1B/128 × 2 = 15.6MB额外（约为模型的3%）。
+
+---
 
 ### Q: 手撕：实现MinMax和Percentile量化校准？
 

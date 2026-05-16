@@ -35,6 +35,8 @@ tags: [AIInfra, 算子优化, 高性能计算, 面经]
 - 加载速度比 .bin 快 2-5x（直接 mmap 无需 unpickle）
 - 已成为社区推荐的标准格式
 
+---
+
 ### Q: 怎么初始化模型所有层？
 
 **标准初始化流程**（以 HuggingFace Transformers 为例）：
@@ -71,6 +73,8 @@ nn.init.kaiming_normal_(linear.weight, mode='fan_in')
 nn.init.normal_(linear.weight, std=0.02)
 ```
 
+---
+
 ### Q: CPU 数据怎么拷贝到 GPU 上？
 
 **五种 Host→Device 数据传输方式**：
@@ -103,6 +107,8 @@ nn.init.normal_(linear.weight, std=0.02)
 **最佳实践**：
 - 推理框架中：预分配 pinned memory buffer → asyncMemcpy → 计算重叠
 - 大数据量：分 chunk 流水化传输（三级流水）
+
+---
 
 ### Q: 推理框架中怎么调用 forward？
 
@@ -138,6 +144,8 @@ nn.init.normal_(linear.weight, std=0.02)
 - **Kernel Dispatch**：每层 forward 本质是通过 CUDA launcher 将对应 kernel 提交到 GPU stream
 - **预分配**：所有中间 buffer 在初始化时预分配好，运行时零 malloc 开销
 
+---
+
 ### Q: 算子优化的思路和过程？
 
 **系统化的算子优化流程**：
@@ -168,6 +176,8 @@ nn.init.normal_(linear.weight, std=0.02)
 - 正确性：与 PyTorch reference 对比（cosine similarity > 0.999）
 - 性能：NCU profiling 确认 SOL 提升
 - 回归测试：不同 shape 下的正确性和性能
+
+---
 
 ### Q: 怎么设计内存管理（显存池）？显存池的数据结构？
 
@@ -210,6 +220,8 @@ nn.init.normal_(linear.weight, std=0.02)
 - Free block 用简单队列管理
 - 分配：从队列头取；释放：归还队列尾
 - 利用率接近 100%（唯一浪费是最后一个 block 的未填满部分）
+
+---
 
 ### Q: 手撕：三数之和？
 

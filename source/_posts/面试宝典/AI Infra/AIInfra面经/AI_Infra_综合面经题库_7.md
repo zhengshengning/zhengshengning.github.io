@@ -17,6 +17,8 @@ tags: [AIInfra, 推理优化, 训练优化, 面经]
 
 **推理加速**：KV Cache、量化（INT8/INT4）、Flash Attention/Flash Decoding、Speculative Decoding、Continuous Batching、算子融合、CUDA Graph减少launch开销、PagedAttention。
 
+---
+
 ### Q: 是否了解DeepSpeed？
 
 DeepSpeed是微软开发的分布式训练优化库，核心功能：
@@ -26,6 +28,8 @@ DeepSpeed是微软开发的分布式训练优化库，核心功能：
 - **Pipeline Parallelism**：流水线并行实现。
 - **DeepSpeed-Chat**：RLHF训练框架。
 - **通信优化**：梯度压缩、分桶AllReduce。
+
+---
 
 ### Q: 对多机多卡分布式训练的了解？
 
@@ -38,11 +42,15 @@ DeepSpeed是微软开发的分布式训练优化库，核心功能：
 
 通常组合使用，机内TP+SP（通信密集用NVLink），机间PP+DP（通信少用IB）。
 
+---
+
 ### Q: 怎么提高训练效率（时间和资源角度）？
 
 **时间角度**：混合精度减少计算量、增大batch size减少迭代次数、通信与计算重叠、减少数据加载瓶颈（prefetch、多worker）、使用更高效的优化器。
 
 **资源角度**：ZeRO减少显存冗余、梯度checkpointing以时间换空间、offload到CPU/NVMe、模型压缩/蒸馏用更小模型达到效果、选择合适的并行策略最大化硬件利用。
+
+---
 
 ### Q: 训练速度很慢时该从哪些方面排查？
 
@@ -54,6 +62,8 @@ DeepSpeed是微软开发的分布式训练优化库，核心功能：
 6. **batch size太小**：GPU计算未饱和。
 7. **编译优化**：是否使用了torch.compile/CUDA Graph。
 
+---
+
 ### Q: 多机多卡训练中的通信问题有哪些？
 
 - **通信带宽瓶颈**：机间带宽远低于机内NVLink，梯度同步成为瓶颈。
@@ -64,9 +74,13 @@ DeepSpeed是微软开发的分布式训练优化库，核心功能：
 
 解决：梯度累积减少通信频率、异步通信overlap、梯度压缩、层级AllReduce、拓扑感知调度。
 
+---
+
 ### Q: 梯度累积的原理是什么？
 
 梯度累积将一个大batch拆分为多个micro-batch，每个micro-batch前向反向后梯度累加到梯度buffer中，不立即更新参数。累积N个micro-batch后，用累积的梯度做一次参数更新。等效于使用N倍大的batch size，但峰值显存只需一个micro-batch的量。通信也只在参数更新时进行一次AllReduce，频率降为1/N。
+
+---
 
 ### Q: 了解哪些模型的量化方法和加速方法？
 
@@ -75,6 +89,8 @@ DeepSpeed是微软开发的分布式训练优化库，核心功能：
 - QAT：量化感知训练，精度最好但成本高。
 
 **加速方法**：Flash Attention、CUDA Graph、Speculative Decoding、Continuous Batching、PagedAttention、算子融合、TensorRT/vLLM推理引擎。
+
+---
 
 ### Q: 训练时loss震荡可能是什么原因？
 

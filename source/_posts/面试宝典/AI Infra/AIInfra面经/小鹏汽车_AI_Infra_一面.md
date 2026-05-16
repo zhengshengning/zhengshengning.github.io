@@ -62,6 +62,8 @@ C++11引入constexpr，C++14/17逐步放宽约束，C++20支持constexpr容器�
 
 **const与线程安全**：C++标准库将const成员函数视为线程安全的（多个线程可以同时调用const方法），这是C++11的重要约定。
 
+---
+
 ### Q: 动态链接库的依赖顺序问题？
 
 动态链接库的加载顺序是C/C++项目中常见的"隐蔽bug"来源，需要理解链接器和加载器的工作机制：
@@ -96,6 +98,8 @@ gcc main.o -lB -lA  # undefined reference错误
 - 符号冲突（symbol interposition）：先加载的库的同名符号会覆盖后加载的。
 - ABI兼容性：库升级后如果ABI变了（如类增加了成员变量），需要重新编译使用者。
 - dlopen的RTLD_GLOBAL vs RTLD_LOCAL：控制符号是否对后续dlopen可见。
+
+---
 
 ### Q: C++四种Cast的区别与底层含义？
 
@@ -142,6 +146,8 @@ uintptr_t addr = reinterpret_cast<uintptr_t>(ptr);  // 指针转整数
 
 **安全级别从高到低**：dynamic_cast > static_cast > const_cast > reinterpret_cast。
 
+---
+
 ### Q: 给出CUDA Kernel代码，识别其功能？
 
 分析CUDA Kernel的系统化方法：
@@ -177,6 +183,8 @@ int col = blockIdx.x * blockDim.x + threadIdx.x;
 | Softmax | 先求max（reduce），再exp和sum（reduce），最后归一化 |
 
 **实战技巧**：关注 `__syncthreads()` 的位置（划分计算阶段）、shared memory的使用pattern（数据复用方式）、边界条件检查（if tid < N）。
+
+---
 
 ### Q: 手撕：计算平面上两个任意角度矩形的重叠面积？
 

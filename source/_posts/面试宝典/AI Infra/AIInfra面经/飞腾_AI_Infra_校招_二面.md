@@ -34,6 +34,8 @@ tags: [AIInfra, 推理优化, 训练优化, 算子优化, 面经]
 - 推理服务：多线程处理并发请求（共享模型权重，避免多份模型副本占显存）
 - 分布式训练：多进程（每个 GPU 一个进程），进程间通过 NCCL 通信
 
+---
+
 ### Q: 算子调优的通用思路：如何针对特定shape超越官方库？
 
 官方库（cuBLAS/cuDNN）为通用 shape 优化，针对特定 shape 的定制 kernel 可以超越它们：
@@ -69,6 +71,8 @@ tags: [AIInfra, 推理优化, 训练优化, 算子优化, 面经]
 - 工具：CUTLASS profiler、Triton auto-tune、自定义 benchmark script
 
 **实际案例**：针对 LLaMA-7B decode 阶段的 GEMV（M=1, N=4096, K=4096），定制 kernel 可比 cuBLAS 快 20-30%（因为 cuBLAS 的 GEMM kernel 对 M=1 场景有额外开销）。
+
+---
 
 ### Q: 融合算子如何设计？
 
@@ -109,6 +113,8 @@ tags: [AIInfra, 推理优化, 训练优化, 算子优化, 面经]
 - `Residual Add + LayerNorm`：一次 kernel 完成残差连接和归一化
 - `Multi-Head Attention`（FlashAttention）：整个注意力计算融合为一个 kernel
 
+---
+
 ### Q: 混合精度训练相关问题？
 
 混合精度训练（Mixed Precision Training）利用低精度计算加速的同时保持训练精度，是大模型训练的必备技术：
@@ -137,6 +143,8 @@ tags: [AIInfra, 推理优化, 训练优化, 算子优化, 面经]
 **显存开销**：混合精度训练实际上增加了显存（需要 FP32 主权重 + FP16 工作副本），但 Tensor Core 的 2x 计算加速足以弥补。Adam 优化器状态：FP32 参数（4B）+ momentum（4B）+ variance（4B）+ FP16 参数（2B）+ FP16 梯度（2B）= 16 bytes/param。
 
 **框架支持**：PyTorch `torch.cuda.amp`（GradScaler + autocast）、DeepSpeed、Megatron-LM 都内置混合精度支持。
+
+---
 
 ### Q: GPU优化方法：Nsight工具链使用、关注的效率指标？
 
@@ -170,6 +178,8 @@ tags: [AIInfra, 推理优化, 训练优化, 算子优化, 面经]
 - **多 stream 并行**：是否有效利用多 stream 实现计算-通信重叠
 
 **优化决策流程**：Nsight Systems 定位热点 kernel -> Nsight Compute 深入分析该 kernel -> 根据 Roofline 位置决定优化方向 -> 实施优化 -> 重新 profile 验证。
+
+---
 
 ### Q: KV Cache原理？FlashAttention内存优化思想？
 
@@ -206,6 +216,8 @@ tags: [AIInfra, 推理优化, 训练优化, 算子优化, 面经]
 - 实际加速：2-4x wall-clock speedup（减少 HBM I/O 是主因）
 
 **FlashAttention-2 改进**：优化 warp 间工作分配，减少非矩阵乘计算的开销，进一步提升 Tensor Core 利用率。FlashAttention-3（Hopper）利用异步拷贝和 warp specialization。
+
+---
 
 ### Q: C++虚函数实现（vtable）、编译四阶段、设计模式？
 

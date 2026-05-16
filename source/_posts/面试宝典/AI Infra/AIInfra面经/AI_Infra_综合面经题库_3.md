@@ -17,6 +17,8 @@ tags: [AIInfra, 推理优化, 训练优化, 算子优化, 高性能计算, 面�
 
 其中N=模型参数量，D=训练token数，6是前向+反向的系数（前向2N FLOPS/token，反向4N FLOPS/token），MFU是模型算力利用率（Model FLOPs Utilization，通常30-50%）。还需考虑通信开销、故障恢复时间等。
 
+---
+
 ### Q: Prefill和Decode阶段各有什么优化技术？
 
 **Prefill优化**（计算密集型）：
@@ -32,6 +34,8 @@ tags: [AIInfra, 推理优化, 训练优化, 算子优化, 高性能计算, 面�
 - PagedAttention减少内存碎片。
 - Multi-Query/Grouped-Query Attention减少KV Cache大小。
 
+---
+
 ### Q: 什么是Two-batch overlap？什么场景下是负优化？
 
 Two-batch overlap是将一个batch的计算和另一个batch的通信（如AllReduce）同时进行，利用计算和通信的硬件独立性实现重叠。
@@ -42,6 +46,8 @@ Two-batch overlap是将一个batch的计算和另一个batch的通信（如AllRe
 - 显存紧张时，两个batch同时在GPU上增加显存压力。
 - 通信和计算共享带宽资源时（如PCIe），overlap导致相互争抢反而都变慢。
 
+---
+
 ### Q: Megatron-LM中通信优化怎么做？
 
 - **TP通信与计算重叠**：将AllReduce分解为Reduce-Scatter + All-Gather，与计算流水线化。
@@ -51,12 +57,16 @@ Two-batch overlap是将一个batch的计算和另一个batch的通信（如AllRe
 - **分层通信**：机内NVLink做TP，机间IB做DP/PP。
 - **梯度累积**：减少通信频率。
 
+---
+
 ### Q: 多机PD分离有KV Cache transfer开销，为什么还要做PD分离？
 
 - **资源异构适配**：Prefill是计算密集型（用高算力卡），Decode是访存密集型（用大带宽/大显存卡），分离后各自用最适合的硬件。
 - **调度灵活性**：Prefill和Decode负载波动独立，分离后可独立扩缩容。
 - **消除干扰**：混合部署时Prefill的长计算会阻塞Decode的低延迟要求。
 - **总体效率**：虽有传输开销，但资源利用率和吞吐量的提升远超传输成本（NVLink/RDMA可达100+GB/s）。
+
+---
 
 ### Q: Muon和AdamW的pretrain和posttrain为什么不能混用？
 
@@ -65,11 +75,15 @@ Muon（Momentum Orthogonalization）优化器通过正交化动量更新来优�
 - Muon维护的动量状态与AdamW的一阶/二阶矩估计不兼容，切换时优化器状态无法继承。
 - 梯度统计分布在切换点突变，可能导致训练不稳定。
 
+---
+
 ### Q: 如何看待跨SM的PD分离和AF（Attention-FFN）分离？
 
 跨SM分离将SM划分为不同功能组：如部分SM做Attention（访存密集），部分做FFN（计算密集），类似warp specialization的思想扩展到SM级别。
 
 优势：不同workload对硬件资源需求不同，分离后可以为各部分配置最优的资源（如共享内存分配、occupancy设置）。劣势：增加SM间通信开销、负载均衡困难、实现复杂度高。目前更多是学术探索，实际中Flash Attention + 大batch的pipeline重叠更实用。
+
+---
 
 ### Q: CUDA的global memory和shared memory访存分别需要注意什么？
 
@@ -83,6 +97,8 @@ Muon（Momentum Orthogonalization）优化器通过正交化动量更新来优�
 - 适当padding消除conflict。
 - 注意shared memory容量限制对occupancy的影响。
 
+---
+
 ### Q: DeepSeek-V3有哪些优化点？
 
 - **MLA（Multi-head Latent Attention）**：将KV Cache压缩为低维latent表示，大幅减少推理时KV Cache大小。
@@ -92,6 +108,8 @@ Muon（Momentum Orthogonalization）优化器通过正交化动量更新来优�
 - **DualPipe**：优化的流水线并行策略，减少bubble。
 - **无辅助损失的负载均衡**：通过bias调节替代auxiliary loss。
 
+---
+
 ### Q: DeepSeek-DSA、NSA和MoBA的区别？
 
 - **DSA（DeepSeek Sparse Attention）**：训练时使用的稀疏注意力，基于预设的稀疏模式减少计算量。
@@ -100,11 +118,15 @@ Muon（Momentum Orthogonalization）优化器通过正交化动量更新来优�
 
 核心区别在于稀疏模式的确定方式：DSA是预定义模式，NSA是硬件适配模式，MoBA是动态学习的路由模式。
 
+---
+
 ### Q: NCCL中的通信原语有哪些？AllReduce参数更新一次需要几次通信？
 
 **通信原语**：AllReduce、AllGather、ReduceScatter、Broadcast、Reduce、AllToAll、Send/Recv。
 
 **AllReduce通信次数**：Ring AllReduce分为两个阶段：Reduce-Scatter（N-1步）+ All-Gather（N-1步），总通信量为2*(N-1)/N倍数据量（N为GPU数）。对于一次参数更新，只需要一次AllReduce操作（内含多步通信），总通信数据量约2倍模型大小。
+
+---
 
 ### Q: 小数据量场景用NVSHMEM直接读取其他GPU数据做本地reduce，相比Ring AllReduce有什么好处？
 
@@ -115,6 +137,8 @@ Muon（Momentum Orthogonalization）优化器通过正交化动量更新来优�
 
 对大数据量，Ring AllReduce的带宽利用更优（接近理论带宽峰值）。
 
+---
+
 ### Q: 训练时如何设计超长序列下的并行？
 
 - **Sequence Parallelism（SP）**：将序列切分到不同GPU，非TP层各GPU处理局部序列。
@@ -123,6 +147,8 @@ Muon（Momentum Orthogonalization）优化器通过正交化动量更新来优�
 - **结合使用**：TP + SP + Context Parallelism多维并行。
 - **梯度Checkpointing**：减少激活显存。
 - **Flash Attention**：减少单步的显存占用。
+
+---
 
 ### Q: 将Ampere架构的算子适配到Hopper架构，会对哪些地方进行升级改造？
 

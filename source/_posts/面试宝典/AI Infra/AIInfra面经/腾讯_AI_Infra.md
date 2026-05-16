@@ -70,6 +70,8 @@ model = AutoModelForCausalLM.from_pretrained(
 - 计算效率依赖反量化：当前硬件多需先解码到FP16再计算（Blackwell原生支持FP4）
 - Group-wise scale开销：每64-128个权重需一个FP16 scale值，额外存储~0.5bit/weight
 
+---
+
 ### Q: 量化矩阵乘的维度和流程？
 
 **量化GEMM的完整计算流程：**
@@ -156,6 +158,8 @@ INT4: 2/0.5 = 4 FLOP/Byte → 接近compute-bound
 结论: Weight-Only量化直接减少权重读取带宽，decode速度几乎线性提升
 ```
 
+---
+
 ### Q: 硬件怎么做量化的？量化硬件需要什么？
 
 **Tensor Core的量化计算架构：**
@@ -229,6 +233,8 @@ Transformer Engine自动管理FP8精度:
 - **计算密度**：相同芯片面积容纳4倍INT8乘法器(相比FP16)
 - **能效**：INT8乘法能耗约为FP16的1/4
 - **实际加速**：A100上INT8 GEMM比FP16快约2倍(带宽翻倍+算力翻倍)
+
+---
 
 ### Q: 怎么分析系统瓶颈？
 
@@ -323,6 +329,8 @@ A100 Roofline:
 | CPU瓶颈 | nsys看CPU占用 | 异步调度/减少Python开销 |
 | 显存不足 | nvidia-smi | 量化/梯度检查点/offload |
 
+---
+
 ### Q: FlashAttention有什么用？矩阵维度推导？多头多batch怎么并行？
 
 **FlashAttention解决的核心问题：**
@@ -410,6 +418,8 @@ FlashAttention-3 (H100优化):
 | 2048 | 8ms | 2ms | 4x |
 | 8192 | 128ms | 15ms | 8.5x |
 | 32768 | OOM | 120ms | - |
+
+---
 
 ### Q: FlashAttention中K的维度包不包含当前Q的那个token？
 

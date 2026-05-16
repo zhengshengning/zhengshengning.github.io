@@ -48,6 +48,8 @@ AI框架的通信涉及训练集群内GPU间通信、推理服务对外接口、
 - 应用：多进程DataLoader将预处理数据传给训练进程、同机多GPU间的小数据交换。
 - 实现：POSIX shm、mmap、PyTorch的torch.multiprocessing共享tensor。
 
+---
+
 ### Q: 多路复用了解哪些？推理框架的复用？
 
 **I/O多路复用（系统级）**：
@@ -77,6 +79,8 @@ epoll为什么高效：内核维护红黑树管理注册的FD，就绪事件放�
    - 同一GPU上的不同CUDA Stream可以并行执行不同的计算任务。
    - MPS（Multi-Process Service）允许多个进程共享GPU。
    - MIG（Multi-Instance GPU）将物理GPU分为多个独立实例。
+
+---
 
 ### Q: HTTP/2.0的特性？
 
@@ -108,6 +112,8 @@ HTTP/2.0是对HTTP/1.1的重大性能升级，核心改进集中在传输效率�
 
 **对AI推理服务的意义**：gRPC基于HTTP/2，天然获得多路复用（同一连接并发多个推理请求）和头部压缩（减少protobuf metadata开销）的好处。
 
+---
+
 ### Q: 视频会议一般用什么协议？
 
 视频会议的核心需求是**实时性**——宁可丢帧也不能有累积延迟。协议栈从底层到上层：
@@ -134,6 +140,8 @@ HTTP/2.0是对HTTP/1.1的重大性能升级，核心改进集中在传输效率�
 - 底层：SRTP（音视频传输）+ SCTP over DTLS（数据通道）+ ICE（NAT穿透）。
 - 编解码：VP8/VP9/H.264（视频）、Opus（音频）。
 - 端到端延迟目标：<150ms（"实时对话"体验）。
+
+---
 
 ### Q: Linux内存管理机制？
 
@@ -166,6 +174,8 @@ Linux内存管理是一个多层次的系统，从硬件页表到用户空间分
 - GPU训练/推理需要大块连续物理内存 → cudaMalloc内部使用NVIDIA UVM或pinned memory。
 - 数据加载：mmap大文件避免全部读入内存；hugepage减少TLB miss提高CPU预处理效率。
 
+---
+
 ### Q: Docker的Namespace机制？
 
 Namespace是Linux内核提供的**资源隔离**机制，每个Namespace创造了一个独立的资源视图，进程只能看到自己Namespace内的资源。Docker利用以下7种Namespace实现容器隔离：
@@ -189,6 +199,8 @@ Namespace是Linux内核提供的**资源隔离**机制，每个Namespace创造�
 - Namespace是内核级别的逻辑隔离（共享内核），虚拟机是硬件级别的物理隔离（独立内核）。
 - Namespace几乎零开销（仅多了一层查找表），虚拟机有虚拟化开销。
 - Namespace隔离性较弱（共享内核漏洞可逃逸），虚拟机隔离性强。
+
+---
 
 ### Q: Docker容器间如何通信？
 
@@ -226,6 +238,8 @@ docker run --network=my_net --name=svc2 ...
 - 提供更好的隔离（不同network之间默认不通）。
 
 **AI训练场景**：通常使用host网络模式，让NCCL直接访问IB/RoCE网卡，避免容器网络虚拟化的带宽和延迟开销。
+
+---
 
 ### Q: Docker的原理？
 
@@ -265,6 +279,8 @@ Docker基于Linux内核的三大技术实现轻量级进程隔离：
 - VM：独立内核+虚拟化硬件，启动分钟级，5-15% CPU开销，隔离性强。
 - AI训练选Docker：性能接近裸机 + 环境可复现 + 快速部署。
 
+---
+
 ### Q: Linux中如何替换文本？
 
 Linux文本替换工具从简单到强大：
@@ -297,6 +313,8 @@ sed -i '' 's/foo/bar/g' file.txt
 
 **AI开发中的典型场景**：批量修改配置文件中的模型路径、更新版本号、替换deprecated API调用。
 
+---
+
 ### Q: 进程间通信（IPC）方式有哪些？
 
 | 方式 | 速度 | 适用场景 | 特点 |
@@ -314,6 +332,8 @@ sed -i '' 's/foo/bar/g' file.txt
 - **管道**：简单的进程间命令传递（如触发checkpoint保存）。
 - **Unix Socket**：NCCL在同机GPU间的控制通道。
 - **TCP Socket**：分布式训练的rendezvous（进程发现）、gRPC推理服务。
+
+---
 
 ### Q: 协程数量如何限制？
 
@@ -369,6 +389,8 @@ for _, task := range tasks {
 - 下游资源（数据库连接池、文件描述符、网络端口）有上限。
 - 过多并发可能导致下游过载（如数据库连接池耗尽）。
 
+---
+
 ### Q: 开闭原则（OCP）的具体代码应用？
 
 开闭原则（Open-Closed Principle）：软件实体（类/模块/函数）应该**对扩展开放，对修改关闭**——新增功能时通过添加新代码实现，而不修改已有的稳定代码。
@@ -417,6 +439,8 @@ public:
 - TensorRT的Plugin接口：自定义算子通过实现IPluginV2接口注册。
 - ONNX Runtime的ExecutionProvider：新增硬件后端不修改框架核心。
 
+---
+
 ### Q: 并发编程如何实现？
 
 并发编程的核心挑战是**在多个执行单元间安全高效地协调工作**：
@@ -435,6 +459,8 @@ public:
 - **数据加载**：多进程预处理（DataLoader num_workers）+ 共享内存传输tensor。
 - **推理服务**：协程处理网络IO（接收请求）+ 线程/进程池执行GPU推理。
 - **Ray框架**：Actor模型实现分布式训练调度、超参搜索。
+
+---
 
 ### Q: CUDA Core和Tensor Core的区别？
 
@@ -467,6 +493,8 @@ public:
 - 维度需对齐到特定值（如FP16需M/N/K为8或16的倍数）。
 - 数据layout需匹配（行/列主序要求）。
 - 不是所有计算都适合Tensor Core——只有GEMM类运算能利用。逐元素操作仍然走CUDA Core。
+
+---
 
 ### Q: 达芬奇架构了解多少？
 
@@ -514,6 +542,8 @@ DataCopy(outputGlobal, outputLocal, count);
 
 **与NVIDIA GPU的编程模型对比**：GPU有L1/L2 Cache自动管理，程序员可以不显式管理shared memory（依赖cache也能工作，只是不够优化）。NPU没有这种"兜底"机制——如果不手动搬数据到L1 Buffer，数据就留在HBM中，每次计算都要从HBM读取，性能极差。
 
+---
+
 ### Q: Reduce算子如何优化？
 
 Reduce（规约）是GPU编程中的经典优化问题，优化层次从基础到极致：
@@ -559,6 +589,8 @@ for (int i = tid; i < N; i += gridDim.x * blockDim.x)  // grid-stride loop
 ```
 - 每线程处理多个元素，覆盖任意大数据。
 - 向量化加载（float4）减少内存事务。
+
+---
 
 ### Q: AI框架具体要开发哪些部分？
 

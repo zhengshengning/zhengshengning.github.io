@@ -79,6 +79,8 @@ SELECT city, SUM(amount) FROM orders GROUP BY city;
 
 **注意：** COUNT(DISTINCT)不能简单分阶段合并（各节点的distinct集合可能有重叠），需要用HyperLogLog近似或全局shuffle后去重。
 
+---
+
 ### Q: SQL中JOIN是如何实现的？有什么优化方法？
 
 **三种JOIN实现算法详解：**
@@ -151,6 +153,8 @@ while i < |A| and j < |B|:
 - **Bloom Filter**：probe前先用bloom filter快速过滤不可能匹配的行
 - **Partition-wise Join**：分区表之间只需对应分区做join
 - **Semi-Join Reduction**：分布式场景先传输distinct key列表过滤
+
+---
 
 ### Q: 数据库优化器的实现原理？如何选择执行计划？
 
@@ -233,6 +237,8 @@ WHERE orders.amount > 1000;
 --        -> Seq Scan on customers
 ```
 
+---
+
 ### Q: Buffer Pool中脏页如何管理？数据丢失如何解决？
 
 **Buffer Pool脏页管理机制：**
@@ -286,6 +292,8 @@ Write-Ahead Logging原则:
 | Checkpoint | 已刷盘的脏页对应的最大LSN，恢复只需从此处开始 |
 | Doublewrite Buffer | 防止partial page write导致数据损坏 |
 | fsync | 确保数据从OS缓存写到磁盘持久化 |
+
+---
 
 ### Q: LRU算法有什么缺陷？如何改进？
 
@@ -365,6 +373,8 @@ LRU-K: 页被访问K次才进入, 用第K次的访问时间排序
 - ZFS和一些数据库使用
 ```
 
+---
+
 ### Q: 并发B+树如何实现？
 
 **Latch Crabbing（蟹行协议）——最经典方案：**
@@ -417,6 +427,8 @@ B-link Tree: 节点带right pointer
   → 跟随right pointer到新节点
   → 无需锁父节点也能找到数据！
 ```
+
+---
 
 ### Q: 火山模型和其他执行模型的区别？
 
@@ -489,6 +501,8 @@ class Operator {
 - 向量化模型：ClickHouse、DuckDB、Velox（现代OLAP）
 - JIT编译：Hyper、MemSQL（编译执行计划为机器码，消除解释开销）
 
+---
+
 ### Q: 行存和列存的应用场景？
 
 **核心设计差异：**
@@ -530,6 +544,8 @@ class Operator {
 - 同一列数据类型相同，pattern重复 → Run-Length Encoding, Dictionary Encoding有效
 - 典型压缩率：列存5-10x vs 行存2-3x
 - 压缩后IO更少 → 进一步加速分析查询
+
+---
 
 ### Q: Linux中断处理模块如何实现？CPU如何处理多个中断？
 
@@ -606,6 +622,8 @@ NAPI解决方案: 中断+轮询混合模式
 效果: 高负载时接近轮询效率，低负载时保持中断的低延迟
 ```
 
+---
+
 ### Q: 进程和线程的区别？用户态线程的问题？
 
 **进程 vs 线程的本质区别：**
@@ -660,6 +678,8 @@ Go的GMP模型:
   - G计算密集: sysmon检测长时间不让出的G，强制抢占(1.14+)
   - 工作窃取: P空闲时从其他P的队列偷G执行
 ```
+
+---
 
 ### Q: 用户态向内核态切换的过程？
 
@@ -735,13 +755,19 @@ vDSO (Virtual Dynamic Shared Object):
   类似: clock_gettime(), getcpu()
 ```
 
+---
+
 ### Q: 手撕：实现一个基于内存的文件系统（字典树变体）？
 
 （编程题）
 
+---
+
 ### Q: 手撕：快慢指针找中点+反转链表？
 
 （编程题）
+
+---
 
 ### Q: 手撕：字符串大写转小写后按字典序排序（不用库函数）？
 

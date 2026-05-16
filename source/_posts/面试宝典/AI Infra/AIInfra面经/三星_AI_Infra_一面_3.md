@@ -48,6 +48,8 @@ MLIR是LLVM的子项目，通过Dialect机制支持任意数量的IR层级：
 
 每层保留该层需要的语义信息做优化，渐进式lowering避免信息丢失——这是MLIR相比传统编译器（只有少数IR层）的核心优势。
 
+---
+
 ### Q: 算子融合的原理和方式？
 
 算子融合（Op Fusion）将多个独立算子合并为一个kernel执行，是深度学习编译器中最重要的优化之一。
@@ -77,6 +79,8 @@ MLIR是LLVM的子项目，通过Dialect机制支持任意数量的IR层级：
 - 不能跨Reduce维度融合（数据依赖）
 - 融合后的kernel不能超过寄存器/共享内存限制
 - 动态shape可能影响融合决策
+
+---
 
 ### Q: Attention的实现原理？
 
@@ -115,6 +119,8 @@ where head_i = Attention(X·W_Qi, X·W_Ki, X·W_Vi)
 - 总计：O(n^2 * d)，n为序列长度
 - 显存：需要存储n*n的attention矩阵（FlashAttention优化此问题）
 
+---
+
 ### Q: Softmax的公式和数值稳定性？
 
 **标准Softmax公式：**
@@ -148,6 +154,8 @@ for block in blocks:
 ```
 
 这使得softmax可以分块计算而不需要预先知道全局max——FlashAttention利用这一特性在分块处理QK^T时增量维护softmax状态。
+
+---
 
 ### Q: 卷积算子的优化方法？
 
@@ -187,6 +195,8 @@ for block in blocks:
 - Conv + BN + ReLU融合：BN在推理时等价于线性变换，可以吸收到Conv的权重和bias中
 - 即：W_fused = W * gamma / sqrt(var + eps), b_fused = (b - mean) * gamma / sqrt(var + eps) + beta
 
+---
+
 ### Q: 拓扑排序的实现？
 
 **BFS方法（Kahn算法）：**
@@ -221,6 +231,8 @@ vector<int> topoSort(int n, vector<vector<int>>& adj) {
 - 检测图中是否有环（若无法输出所有节点则有环）
 
 **并行性发现：** 同一轮中所有入度为0的节点可以并行处理——这在任务调度中非常重要。
+
+---
 
 ### Q: BFS和DFS的区别和应用？
 

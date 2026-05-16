@@ -39,6 +39,8 @@ tags: [AIInfra, 面经]
 
 **AI Infra 中的应用**：CUDA 中的 `atomicAdd` 是 GPU 上的无锁操作，用于 reduction 的最终汇总；推理服务的请求队列通常用无锁队列（SPSC/MPMC lock-free queue）减少调度延迟。
 
+---
+
 ### Q: 互斥锁的风险？
 
 互斥锁虽然简单易用，但有多种潜在风险需要注意：
@@ -70,6 +72,8 @@ tags: [AIInfra, 面经]
 - 浪费大量 CPU 周期在无用的唤醒和阻塞上
 - 解决：只唤醒一个线程（condition variable 的 signal vs broadcast）
 
+---
+
 ### Q: 自旋锁和互斥锁的区别？使用场景？
 
 **核心区别**：获取锁失败时的行为不同——自旋锁"忙等"，互斥锁"睡眠"。
@@ -97,6 +101,8 @@ tags: [AIInfra, 面经]
 **混合策略（Adaptive Mutex）**：先自旋一小段时间（如 1000 次循环），如果还没获取到则切换为睡眠等待。Linux 的 `pthread_mutex` 在多核系统上通常使用这种自适应策略。
 
 **Linux 内核中的 spinlock**：保护中断处理和短临界区，配合关中断（`spin_lock_irqsave`）防止中断中重入。
+
+---
 
 ### Q: 线程拿不到互斥锁时操作系统做什么？
 

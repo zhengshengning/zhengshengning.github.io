@@ -55,6 +55,8 @@ tags: [AIInfra, 推理优化, 算子优化, 面经]
 
 **实际框架示例**：TensorRT在build阶段完成所有优化生成运行图 + 静态内存规划，runtime阶段仅执行已优化的计划，零动态开销。
 
+---
+
 ### Q: 动态图、静态图、动态Shape的区别？
 
 这三个概念容易混淆，它们描述了计算图在不同维度上的"动态性"：
@@ -76,6 +78,8 @@ tags: [AIInfra, 推理优化, 算子优化, 面经]
 - **Bucket编译**：对常见shape区间各预编译一个优化版本，运行时匹配最近的bucket。
 - **Shape Guard**：torch.compile的做法——首次trace记录shape，后续运行如果shape变了就重新编译。
 - **保守代码生成**：用动态循环边界，牺牲部分优化（如不能做固定的loop unroll）。
+
+---
 
 ### Q: 常见的图优化技术有哪些？
 
@@ -113,6 +117,8 @@ tags: [AIInfra, 推理优化, 算子优化, 面经]
 **7. 算子替换（Op Substitution）**：
 - 用等价但更高效的实现替代：如将大的depthwise conv拆分为更小的kernel组合。
 - 或将自定义op映射到高度优化的库函数（如cuDNN的特定conv算法）。
+
+---
 
 ### Q: Warp之间如何通信？
 
@@ -159,6 +165,8 @@ tile32.sync();  // 只同步32线程的tile
 - 需要`__threadfence()` 保证写入对其他Block可见。
 - 无法保证Block间的执行顺序（GPU不保证Block调度顺序）。
 - 替代方案：多次kernel launch（自然同步点）。
+
+---
 
 ### Q: CUDA Reduce如何实现？
 
@@ -219,6 +227,8 @@ for (int offset = 16; offset > 0; offset >>= 1)
 - Block内reduce → Block间：原子操作（atomicAdd全局结果）或两轮kernel。
 - Grid-stride loop：每线程循环处理多个元素，单kernel覆盖任意大数据。
 
+---
+
 ### Q: CUDA Softmax实现：Warp处理与Block处理的区别？
 
 Softmax需要三步：求max（数值稳定）、求exp(x-max)之和、归一化。核心是两次reduce操作。
@@ -255,6 +265,8 @@ float result = exp_val / sum;
 
 **实际框架（如FlashAttention）中**：Softmax与注意力计算融合，使用Online Softmax在SRAM中逐block处理，避免两次遍历完整的N长度行。
 
+---
+
 ### Q: Block/Grid设置为什么会影响算子速度？
 
 Block和Grid大小的选择通过以下机制直接影响GPU的硬件利用率和执行效率：
@@ -288,6 +300,8 @@ Block和Grid大小的选择通过以下机制直接影响GPU的硬件利用率�
 - Grid大小：确保至少有2-4个wave（即Block数 >= 4 × SM数 × 驻留Block数/SM）。
 - 对于逐元素kernel：Grid大小 = ceil(N / BlockSize)，通常自然满足。
 - 对于GEMM：Block数由矩阵大小和tile大小决定，需确保覆盖所有SM。
+
+---
 
 ### Q: CUDA的计算模型（执行模型）是什么？
 
@@ -324,6 +338,8 @@ Grid (整个kernel的所有线程)
 - **Warp间独立**：不同Warp由调度器独立调度，执行顺序不确定。
 - **Block间无通信保证**：不同Block可能在不同时间执行，全局内存+原子操作是唯一通信方式。
 - **延迟隐藏靠TLP**：GPU不像CPU用深流水线/乱序执行隐藏延迟，而是靠大量Warp快速切换——一个Warp stall时立即切换到另一个就绪Warp。
+
+---
 
 ### Q: FlashAttention V1和V2的区别？
 

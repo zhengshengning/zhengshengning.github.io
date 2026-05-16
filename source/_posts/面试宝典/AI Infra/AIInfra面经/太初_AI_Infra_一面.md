@@ -45,6 +45,8 @@ std::vector<int> v(100);  // 容器管理内存
 - 双重释放：unique_ptr保证唯一所有权
 - 缓冲区溢出：使用容器替代裸数组、`at()`替代`[]`
 
+---
+
 ### Q: 共享内存了解吗？
 
 "共享内存"在不同上下文中有两个含义：
@@ -87,6 +89,8 @@ __global__ void kernel() {
 - 数据复用：一次从HBM加载，多次从共享内存读取（如GEMM tiling）
 - Block内线程通信：线程间交换数据（如reduce操作）
 - 避免重复全局内存访问
+
+---
 
 ### Q: 智能指针的原理？能管理多个连续空间吗？
 
@@ -131,6 +135,8 @@ std::shared_ptr<int> arr(new int[100], std::default_delete<int[]>());
 - shared_ptr<int[]>（C++17）支持operator[]，shared_ptr<int>（自定义deleter）不支持
 - 优先使用`std::vector`管理连续空间（更安全、更方便）
 - 只有在需要共享所有权或自定义deleter时才用智能指针管理数组
+
+---
 
 ### Q: C++多态有哪些？
 
@@ -185,6 +191,8 @@ s->area();  // 运行时通过vtable查找Circle::area()
 | 可扩展性 | 添加新类型需重编译 | 添加新派生类无需修改已有代码 |
 | 典型使用 | STL容器/算法、数值计算库 | 插件系统、GUI框架、游戏引擎 |
 
+---
+
 ### Q: 虚函数的实现原理？
 
 **虚函数通过vtable（虚函数表）+ vptr（虚表指针）实现运行时多态。**
@@ -224,6 +232,8 @@ Derived的vtable: [&Derived::f, &Base::g]  // f槽位被覆盖，g继承
 - 阻止内联优化（编译器无法在编译时确定目标函数）
 - 在热路径上（如每帧调用百万次），可考虑CRTP静态多态替代
 
+---
+
 ### Q: 构造函数里面调用虚函数会怎样？
 
 **不会触发多态——只会调用当前正在构造的类的版本。**
@@ -260,6 +270,8 @@ Derived d;  // 输出"Base"，而非"Derived"
 **这是C++的安全设计：** 如果基类构造时调用了派生类的虚函数，而派生类成员尚未初始化，会访问未初始化的内存——未定义行为。
 
 **析构函数中同理：** Derived析构先执行（成员已销毁），然后Base析构时vptr已回退到Base的vtable，虚函数调用不会分派到Derived。
+
+---
 
 ### Q: GPU的架构？
 
@@ -302,6 +314,8 @@ GPU芯片
 - Block → 一个SM上执行（受资源限制可能多个block共享SM）
 - Warp(32 threads) → SM的基本调度单位
 - Thread → CUDA Core执行
+
+---
 
 ### Q: Reduce优化怎么做？
 
@@ -355,6 +369,8 @@ float local_sum = val4.x + val4.y + val4.z + val4.w;
 ```
 
 **性能目标：** 优化后的reduce应该达到HBM带宽的90%+（因为reduce是纯memory-bound操作）。
+
+---
 
 ### Q: GEMM优化怎么做？
 

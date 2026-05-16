@@ -59,6 +59,8 @@ func.func @matmul(%A: tensor<256x512xf32>, %B: tensor<512x256xf32>)
 - **可组合优化**：不同Dialect的Pass可以自由组合，形成定制化的编译流水线
 - **硬件适配**：为不同硬件定义专用Dialect（如NVGPU dialect for Tensor Core）
 
+---
+
 ### Q: XLA动态性不好如何解决？
 
 XLA（Accelerated Linear Algebra）是Google的ML编译器，基于**静态shape**编译优化。核心问题：遇到不同shape的输入需要重新编译（compilation cache miss），导致严重的性能开销。
@@ -93,6 +95,8 @@ def forward(params, x, config):
 
 # 或使用donate_argnums优化内存
 ```
+
+---
 
 ### Q: TVM的原理和现状？NPU手写算子 vs 自动生成？
 

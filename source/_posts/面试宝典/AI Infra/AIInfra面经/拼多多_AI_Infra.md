@@ -57,6 +57,8 @@ Transformer (Attention): output = softmax(QK^T/√d) × V
 - 理论分析表明 attention 可以隐式实现梯度下降（attention as gradient descent）
 - MLP 没有这种能力——权重固定后行为固定
 
+---
+
 ### Q: 介绍 MHA、GQA 和 MLA？
 
 三种注意力机制代表了 **KV Cache 效率** 与 **模型表达能力** 之间的不同权衡：
@@ -120,6 +122,8 @@ KV Cache: (latent_dim + rope_dim) × seq_len × bytes
 | 精度保持 | 最好 | 好 | 很好（可学习投影） |
 | 工程实现 | 简单 | 简单 | 复杂（权重吸收+RoPE 分离） |
 
+---
+
 ### Q: 算法和 Infra 工作有什么不同？侧重点是什么？
 
 **AI 算法工程师**：
@@ -155,6 +159,8 @@ Infra: "我来设计 EP + PP + DP 并行策略 + 通信库 + 调度方案"
 算法: "量化到 W4 后 benchmark 下降 3%"
 Infra: "我来实现更高效的 W4 kernel / 或用 per-group scale 减少精度损失"
 ```
+
+---
 
 ### Q: 如何优化模型训练中的访存？
 
@@ -208,6 +214,8 @@ FlashAttention 训练:
   必选: BF16 + FlashAttention + ZeRO-3 + TP + PP
   可选: Sequence Parallel + FP8 训练 (H100) + Offload
 ```
+
+---
 
 ### Q: 介绍下针对 KL 散度算子做了哪些优化？
 
@@ -306,6 +314,8 @@ if (warp_id == 0) {
 // 这种形式数值稳定（log_sum_exp 通过减去 max 实现）
 ```
 
+---
+
 ### Q: PagedAttention 的原理？
 
 PagedAttention 借鉴 OS 虚拟内存的分页机制管理 KV Cache，核心解决 KV Cache 的**显存碎片**和**利用率低**的问题。
@@ -330,6 +340,8 @@ PagedAttention 借鉴 OS 虚拟内存的分页机制管理 KV Cache，核心解�
 - 同等显存下并发量提升 **2-4x**
 - Attention 计算 overhead: ~3-5%（间接寻址开销）
 - vLLM 的核心创新，被广泛采纳（TensorRT-LLM、SGLang 等）
+
+---
 
 ### Q: Triton 和 CUDA 的区别？
 
@@ -402,9 +414,13 @@ def matmul_kernel(A, B, C, M, N, K, BLOCK_M: tl.constexpr, BLOCK_N: tl.constexpr
 - vLLM PagedAttention: CUDA 实现（需要间接寻址的精细控制）
 - 普通 LayerNorm/RMSNorm: Triton 实现即可达到接近最优性能
 
+---
+
 ### Q: 手撕：MHA 实现？
 
 （编程题）
+
+---
 
 ### Q: 手撕：C++ 编程题？
 

@@ -42,6 +42,8 @@ tags: [AIInfra, 推理优化, 算子优化, 大厂面经, 面经]
 - Hopper 架构原生 Tensor Core 支持，无需 dequant 即可直接计算
 - Transformer Engine 自动管理 scale
 
+---
+
 ### Q: 对于量化误差而言，数据应该怎样分布较好？
 
 **对均匀量化（INT8/INT4）而言：数据均匀分布最好**。
@@ -57,6 +59,8 @@ tags: [AIInfra, 推理优化, 算子优化, 大厂面经, 面经]
 **对于有异常值的情况**：
 - 异常值将 [min, max] 撑得很大，大部分数据挤在很小的区间内
 - 解决方案：clip（截断异常值）、per-group 量化（小范围内统计）、或使用非均匀量化格式
+
+---
 
 ### Q: 量化到 FP4 时为什么数据均匀分布不一定最好？
 
@@ -82,6 +86,8 @@ FP4 可表示的正值（E2M1 为例）：
 | NF4（NormalFloat4） | 标准正态分布 | 格点按正态分位数设计 |
 
 **NF4 的巧妙设计**：QLoRA 中使用的 NF4 格式，其 16 个可表示值恰好是标准正态分布的 16 个等概率分位数。这使得对于正态分布的权重，量化误差在信息论意义上最优。
+
+---
 
 ### Q: 如何优化 GEMM？Shared Memory 大小怎么取？
 
@@ -142,6 +148,8 @@ shared_memory_per_block = (BM × BK + BK × BN) × sizeof(element) × buffer_cou
 - 追求高 occupancy：减小 tile 让更多 block 驻留
 - 追求高复用率：增大 tile 但 occupancy 降低
 - 最优点通过 benchmark 确定（通常 occupancy 50-75% 时性能最好）
+
+---
 
 ### Q: 手撕 CUDA：实现一个 Norm 算子（LayerNorm）？
 

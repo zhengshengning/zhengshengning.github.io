@@ -53,6 +53,8 @@ tags: [AIInfra, 算子优化, 面经]
 - 吞吐量：在满足P99延迟约束下最大化tokens/s。
 - 尾延迟：P99 TTFT和P99 TPOT满足SLA。
 
+---
+
 ### Q: NPU的计算过程是怎样的？
 
 以华为昇腾达芬奇架构（Ascend 910B/310）为例，详解NPU的计算流程：
@@ -113,6 +115,8 @@ __aicore__ void kernel() {
 - GPU的并行粒度是Warp（32线程SIMT），NPU的并行粒度是向量/矩阵操作。
 - NPU的编程思维更接近"数据流"——先规划好数据搬运路径，再安排计算。
 
+---
+
 ### Q: CUDA有哪些常见优化方法？
 
 CUDA优化方法按瓶颈类型分类，需要先通过Profiling确定是memory-bound还是compute-bound：
@@ -143,6 +147,8 @@ CUDA优化方法按瓶颈类型分类，需要先通过Profiling确定是memory-
 **6. 异步执行**：
 - CUDA Stream：不同stream的操作可以并行（H2D拷贝 + Kernel执行 + D2H拷贝）。
 - cp.async：Ampere+架构的异步内存拷贝，DMA搬运不占用计算流水线。
+
+---
 
 ### Q: 自动驾驶场景对高性能计算有哪些特殊要求？
 

@@ -47,6 +47,8 @@ tags: [AIInfra, 算子优化, 面经]
 
 **实际示例（CUTLASS）**：ThreadblockTile=128x128x32，WarpTile=64x64x32，InstructionTile=16x8x8。每个 block 有 4 个 warp，每 warp 内线程协作计算 64x64 的输出。
 
+---
+
 ### Q: 用CUDA实现算子的难点在哪（开放性问题）？
 
 CUDA 算子开发看似简单（写个 kernel launch 就行），但要写出高性能算子极具挑战：
@@ -91,6 +93,8 @@ CUDA 算子开发看似简单（写个 kernel launch 就行），但要写出高
 - 编译器行为不可预测（可能自动 unroll/inline 破坏精心设计的策略）
 - 有时需要 PTX/SASS 级别的手动调优
 
+---
+
 ### Q: Bank Conflict的概念？如何减少？
 
 **概念**：
@@ -134,6 +138,8 @@ __shared__ float smem[32][33];  // 列访问 stride=33, 无冲突（33 mod 32 = 
 
 **诊断**：Nsight Compute -> Memory Workload Analysis -> Shared Memory -> Bank Conflicts/Wavefronts。如果 wavefronts/request > 1 说明存在冲突。
 
+---
+
 ### Q: Little's Law在GPU中的应用（访存延迟和计算延迟相关）？
 
 **Little's Law** 是排队论的基本定律：L = λ * W（系统中的请求数 = 到达率 * 平均延迟）。应用到 GPU 的内存子系统：
@@ -176,6 +182,8 @@ Bytes_in_flight = Bandwidth × Latency
 - 需要 8 条独立 MMA 指令（软件流水线/register double buffer）饱和 Tensor Core
 
 **实践意义**：Little's Law 解释了为什么 "增加 occupancy" 和 "增加 ILP" 是 GPU kernel 优化的两大基本手段——本质上都是增加并发请求数来隐藏延迟。
+
+---
 
 ### Q: CUDA实现前缀和（Prefix Sum）的思路？
 

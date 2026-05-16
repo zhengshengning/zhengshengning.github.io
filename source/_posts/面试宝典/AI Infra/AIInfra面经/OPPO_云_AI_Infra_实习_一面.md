@@ -71,6 +71,8 @@ for x in values:
 - **初始化策略**：Xavier/Kaiming初始化确保初始激活值在合理范围
 - **残差连接**：维持梯度在合理量级
 
+---
+
 ### Q: Warp/Block划分策略与SIMT架构的关系？
 
 **SIMT（Single Instruction Multiple Threads）核心约束**：
@@ -122,6 +124,8 @@ int col = blockIdx.x * 32 + threadIdx.x;  // Warp内连续访问列
 int row = blockIdx.y * 8 + threadIdx.y;
 ```
 
+---
+
 ### Q: 如何快速上手全新的大模型推理框架？
 
 一个系统化的学习路径，从宏观到微观逐步深入：
@@ -163,6 +167,8 @@ int row = blockIdx.y * 8 + threadIdx.y;
 - 尝试做小改动：修改调度策略（如改变batch_size上限）、添加一个新的采样参数、修改KV Cache回收阈值
 - 通过改动的效果验证自己对系统行为的理解
 - 贡献小的bug fix或feature是最好的学习方式
+
+---
 
 ### Q: 场景题：如何优化一个云端CV模型推理服务（单卡吞吐/延时）？
 

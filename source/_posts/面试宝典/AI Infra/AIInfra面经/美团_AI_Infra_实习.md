@@ -80,6 +80,8 @@ Stage 3: _ _ _ F B W B W B W B W
 
 **实际收益**：在 P=8、M=24 的配置下，Zero-Bubble 相比 1F1B 可提升训练吞吐 15-30%。
 
+---
+
 ### Q: DeepEP 是什么？
 
 DeepEP（DeepSeek Expert Parallelism Library）是 DeepSeek 开源的高性能 MoE All-to-All 通信库，专门解决 MoE 模型中 Expert Parallel 的通信瓶颈。
@@ -145,6 +147,8 @@ Token Combine (All-to-All):
 | 动态负载 | 不感知 | 内置负载均衡 |
 
 **对 DeepSeek-V3 的意义**：DeepSeek-V3 有 256 个 expert，8 个 GPU 上做 EP=8，每次 MoE 层需要两次 All-to-All。DeepEP 使通信开销从训练时间的 30%+ 降低到 10% 以内。
+
+---
 
 ### Q: RL（强化学习）异步调度有哪些方案？优缺点？
 
@@ -221,6 +225,8 @@ Ray 集群编排:
 | 半异步（OpenRLHF） | 高 | 中 | 低（1-2 步 lag） | 高 | 大规模 |
 | 全异步（IMPALA 式） | 最高 | 高 | 高（需修正） | 最高 | 超大规模 |
 
+---
+
 ### Q: RL 异步调度在算法上需要做哪些改进？
 
 异步调度引入了 **off-policy 问题**：训练使用的经验来自"旧版本"的 policy，而不是当前最新的 policy。这会导致梯度估计有偏，需要算法层面的修正。
@@ -278,6 +284,8 @@ Off-policy 修正: ∇J = E_{π_old}[ρ × A(s,a) × ∇log π_θ(a|s)]
   - 按 staleness 加权
   - 大 replay buffer
 ```
+
+---
 
 ### Q: 手撕：合并 K 个升序链表？
 

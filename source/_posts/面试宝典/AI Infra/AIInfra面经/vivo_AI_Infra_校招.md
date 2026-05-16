@@ -50,6 +50,8 @@ tags: [AIInfra, 算子优化, 面经]
 ```
 图优化减少算子数量和中间数据，算子优化使每个算子内部执行效率最大化。
 
+---
+
 ### Q: TVM的Auto-Tuning方案设计是什么？与手动优化的区别和优劣？
 
 **Auto-Tuning的完整流程**：
@@ -99,6 +101,8 @@ tags: [AIInfra, 算子优化, 面经]
 - **Auto-Tuning最适合**：大量不同shape的算子、非NVIDIA硬件（无高质量库）、快速原型验证
 - **手动优化最适合**：核心热点算子（如FlashAttention）、需要极致性能、复杂的优化模式（如persistent kernel、warp specialization）
 - **最佳实践**：对标准算子用Auto-Tuning快速达到80%性能，对关键算子手动优化追求最后的20%
+
+---
 
 ### Q: 其他编译框架有哪些？对比TVM有何不同？
 

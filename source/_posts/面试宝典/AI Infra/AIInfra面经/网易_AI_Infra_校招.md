@@ -121,6 +121,8 @@ def schedule_step():
 | KV-Cache利用率 | 70-90% | >95% | 即将触发抢占 |
 | Throughput(tokens/s) | 稳定 | 下降>20% | 可能硬件故障 |
 
+---
+
 ### Q: C++程序内存中栈、堆和静态/全局存储区的特点与主要区别？
 
 **进程内存布局（从低地址到高地址）：**
@@ -192,6 +194,8 @@ int g_buffer[4096];        // .bss段(未初始化, 清零)
 | 堆分配(大对象>128KB) | ~1-10 us | mmap系统调用 |
 | 系统调用(brk/mmap) | ~500 ns-2 us | 用户态→内核态切换 |
 
+---
+
 ### Q: C++中new/delete与malloc/free的主要区别？
 
 | 维度 | new/delete | malloc/free |
@@ -233,6 +237,8 @@ delete[] arr;  // 根据存储的100知道要调用100次析构函数
 - 需要原始内存 → `std::aligned_alloc`(C++17)
 - 容器管理 → `std::vector`（RAII自动管理堆内存）
 - 自定义分配器 → `std::pmr::memory_resource`(C++17)
+
+---
 
 ### Q: 深拷贝和浅拷贝的概念？什么情况下必须使用深拷贝？
 
@@ -288,6 +294,8 @@ b2.data ──→ [1, 2, 3, 4, 5]  (独立副本)
 
 **Rule of Zero（推荐）:**
 使用智能指针等RAII类型管理资源，完全不需要自定义上述五个函数。
+
+---
 
 ### Q: std::unique_ptr、std::shared_ptr和std::weak_ptr的设计意图和区别？
 
@@ -384,6 +392,8 @@ auto p = std::make_shared<T>(args);
 // 缺点: 弱引用存在时整块内存不能释放(即使对象已析构)
 ```
 
+---
+
 ### Q: 虚函数表如何实现运行时多态？虚函数与纯虚函数的区别？
 
 **vtable机制的完整细节：**
@@ -456,6 +466,8 @@ delete a;
 // 如果~Animal()是virtual:
 //   通过vtable找到~Dog() → 正确析构
 ```
+
+---
 
 ### Q: 什么是内存对齐？规则是什么？如何计算结构体sizeof？
 
@@ -536,6 +548,8 @@ struct alignas(64) CacheLine {  // 强制64字节对齐(cache line大小)
 // 共享内存数组对齐影响bank conflict
 ```
 
+---
+
 ### Q: C++11中右值引用和移动语义的概念？
 
 **左值 vs 右值：**
@@ -600,6 +614,8 @@ unique_ptr<T> make_unique(Args&&... args) {
 - tensor容器的移动避免大数据拷贝
 - RVO/NRVO(返回值优化)配合移动语义：函数返回大对象零开销
 - emplace_back直接在容器内构造对象，避免临时对象
+
+---
 
 ### Q: CUDA的SIMT编程模型，thread/block/grid的层次关系？
 
@@ -668,6 +684,8 @@ dim3 grid((W+15)/16, (H+15)/16);   // 2D图像
 | 跨Block | 无直接同步 | 全局内存 | 原子操作+fence |
 | 跨Block(全局) | cooperative_groups | 全局内存 | grid.sync() |
 
+---
+
 ### Q: CUDA内核中线程局部变量存储在何处？与寄存器分配的关系？
 
 **线程局部变量的存储决策：**
@@ -729,6 +747,8 @@ kernel() {
 | L1 Cache(local memory命中) | ~28 cycles | 数TB/s | 溢出但被缓存 |
 | L2 Cache(local memory) | ~200 cycles | ~5 TB/s | L1未命中 |
 | HBM(local memory) | ~400 cycles | 2 TB/s | L2也未命中(最坏) |
+
+---
 
 ### Q: 如何使用共享内存减少全局内存的重复访问？以矩阵乘法为例？
 
@@ -799,6 +819,8 @@ __global__ void gemm_shared(float* A, float* B, float* C, int M, int K, int N) {
 | Tiled(TILE=32) | 2MNK/32 float | 减少32x | ~20-25x |
 | 多级Tiling+寄存器 | 更少 | 接近峰值 | ~50-80x |
 
+---
+
 ### Q: 什么是Warp Shuffle指令？在规约操作中有什么优势？
 
 **Warp Shuffle允许warp内32个线程直接交换寄存器数据：**
@@ -867,6 +889,8 @@ if (warp_id == 0) {
     val = warp_reduce_sum(val);  // 最终结果在thread 0
 }
 ```
+
+---
 
 ### Q: 向量化加载（float4/int4）进行合并访存的原理和性能收益？
 
@@ -938,6 +962,8 @@ int remainder = n % 4;
 // 加速比: 通常1.5-2.5x
 ```
 
+---
+
 ### Q: 什么是共享内存的Bank Conflict？如何产生？如何解决？
 
 **Bank的物理结构：**
@@ -1005,6 +1031,8 @@ float val = s[0][0];  // 所有线程读s[0][0] → broadcast, 1个周期
 // 只有同bank不同地址才冲突!
 ```
 
+---
+
 ### Q: 如何通过Padding避免Bank Conflict？
 
 **Padding的数学原理：**
@@ -1042,6 +1070,8 @@ Padding后: s[32][33]
 | 总内存浪费 | TILE行 × 4字节 | 很小 |
 
 实际应用：矩阵转置、GEMM的tile加载、卷积的feature map缓存等场景中广泛使用padding。
+
+---
 
 ### Q: CPU缓存的工作原理？时间局部性、空间局部性和缓存替换策略？
 
@@ -1118,6 +1148,8 @@ for (int j = 0; j < 1024; j++)
 - CPU缓存：大而复杂(多路组相联, coherence协议)，硬件全自动管理
 - GPU L1/L2：较小但带宽极高，部分可由程序员管理(共享内存)
 - GPU设计哲学：用大量线程隐藏延迟，而非用大缓存减少miss
+
+---
 
 ### Q: 手撕：实时找出数据流中出现频率最高的前K个元素？
 

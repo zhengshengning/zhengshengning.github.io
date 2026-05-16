@@ -15,6 +15,8 @@ tags: [AIInfra, 推理优化, 大厂面经, 面经]
 
 （编程题）
 
+---
+
 ### Q: Transformer中从输入到输出的完整流程是什么？
 
 以Decoder-only LLM（如Llama）为例，详细描述一次前向传播的完整数据流：
@@ -53,6 +55,8 @@ tags: [AIInfra, 推理优化, 大厂面经, 面经]
 - Softmax得到词表上的概率分布（训练时用交叉熵loss，推理时sampling/argmax）。
 
 **计算量估算**（对于参数量P的模型）：每个token的前向计算约2P FLOPs，反向约4P FLOPs。
+
+---
 
 ### Q: KV Cache有哪些加载方式？
 
@@ -93,6 +97,8 @@ KV Cache的管理和加载方式直接影响推理系统的显存效率、延迟
 - 适用：超长序列（>128K）、PD分离架构中Prefill机器计算完KV后传输给Decode机器。
 - 挑战：传输延迟、同步开销。
 
+---
+
 ### Q: PD分离（Prefill-Decode分离）机制是什么？
 
 PD分离将大模型推理的两个阶段部署在**不同的硬件实例**上独立运行和优化，本质是针对两个阶段截然不同的计算特征做专门化部署。
@@ -120,6 +126,8 @@ PD分离将大模型推理的两个阶段部署在**不同的硬件实例**上�
 4. **调度灵活**：Prefill可做大batch并行（高效），Decode独立调度不受prefill延迟影响。
 
 **实现挑战**：Prefill到Decode的KV Cache传输带宽需求大（如70B模型一次prefill 1K token产生约2GB KV Cache），需要高速网络支持。
+
+---
 
 ### Q: MTP（Multi-Token Prediction）是什么？
 

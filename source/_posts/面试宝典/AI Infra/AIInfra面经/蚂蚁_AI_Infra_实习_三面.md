@@ -44,6 +44,8 @@ dequant 与 GEMM 融合在同一个 kernel 中，不产生额外 HBM 读写。
 - 下游任务（MMLU/GSM8K）通常下降 1-3%
 - AWQ/GPTQ 是主流 W4 量化方法，精度接近 FP16
 
+---
+
 ### Q: INT8 和 FP8 量化方案有什么区别？
 
 | 维度 | INT8 | FP8 (E4M3/E5M2) |
@@ -64,6 +66,8 @@ dequant 与 GEMM 融合在同一个 kernel 中，不产生额外 HBM 读写。
 **为什么 INT8 仍然重要**：
 - 硬件覆盖广（A100/T4/V100 都支持 INT8）
 - SmoothQuant 的 W8A8 配置可以利用 INT8 Tensor Core 做整数 GEMM，吞吐高
+
+---
 
 ### Q: KV Cache 为什么需要？怎么计算大小？
 
@@ -99,6 +103,8 @@ KV Cache = 2(K和V) × num_layers × num_kv_heads × head_dim × seq_len × batc
 
 可见大 batch + 长序列时 KV Cache 很快占满显存——这就是 PagedAttention 和 KV Cache 压缩的必要性。
 
+---
+
 ### Q: Attention 为什么比权重更难量化？
 
 **四个核心原因**：
@@ -125,6 +131,8 @@ KV Cache = 2(K和V) × num_layers × num_kv_heads × head_dim × seq_len × batc
 - 权重和 KV Cache 优先量化（静态、分布稳定）
 - Attention score 计算保持 FP16/FP32
 - 如需量化 Attention：使用 per-token/per-head 的动态 scale
+
+---
 
 ### Q: 如何判断一个算子是 latency-bound、memory-bound 还是 compute-bound？
 

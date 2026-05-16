@@ -48,6 +48,8 @@ tags: [AIInfra, 推理优化, 算子优化, 大厂面经, 面经]
 - 需要 head_dim 为特定值（64/128/256）
 - 不支持所有 attention mask 模式（需要特殊适配）
 
+---
+
 ### Q: 介绍 TensorRT，底层如何加速？
 
 TensorRT 是 NVIDIA 的推理优化引擎，将训练好的模型转换为高效的 inference engine。底层加速机制：
@@ -83,6 +85,8 @@ TensorRT 是 NVIDIA 的推理优化引擎，将训练好的模型转换为高效
 - 为最常见的 opt 尺寸做最深度优化
 - 运行时根据实际输入在已优化的 kernel 中选择
 
+---
+
 ### Q: 介绍 vLLM 框架和 PagedAttention？
 
 **vLLM** 是面向 LLM 推理的高吞吐引擎，核心设计目标是最大化单 GPU 上能同时服务的请求数：
@@ -115,6 +119,8 @@ Block Table:    phys_block_7       phys_block_2       phys_block_15
 
 **Attention Kernel 适配**：原始 attention kernel 假设 KV 是连续存储的；PagedAttention kernel 需要根据 block table 做间接寻址，获取分散的 KV block 做计算。性能开销约 3-5%，但整体吞吐因 batch 增大而大幅提升。
 
+---
+
 ### Q: Qwen 模型占多少内存？如何部署？
 
 以 Qwen-7B（FP16）为例进行估算：
@@ -138,6 +144,8 @@ Block Table:    phys_block_7       phys_block_2       phys_block_15
 - **单卡 7B**：vLLM + AWQ INT4 量化，单张 RTX 4090 可跑，吞吐约 30-50 tokens/s
 - **生产环境**：vLLM/TensorRT-LLM + Continuous Batching，关注 QPS 和 P99 延迟
 - **多卡大模型**：Tensor Parallel 切分（如 72B 用 4-8 卡 TP）
+
+---
 
 ### Q: PyTorch 核心基础功能是什么？如何对 GPU 进行管理？
 
@@ -175,6 +183,8 @@ with torch.cuda.stream(stream):
 torch.cuda.current_stream().wait_stream(stream)  # 同步
 ```
 
+---
+
 ### Q: 模型训练和推理在资源消耗上有什么区别？训练有哪些性能优化手段？
 
 **资源消耗对比**：
@@ -199,6 +209,8 @@ torch.cuda.current_stream().wait_stream(stream)  # 同步
 5. **梯度 Checkpoint（激活重算）**：不保存中间激活，反向时重新前向计算。时间增加 ~33%，显存可节省 60-70%
 6. **FlashAttention**：Attention 显存从 O(N²) 降至 O(N)，同时加速 1.5-3x
 7. **计算通信重叠**：反向传播时边算梯度边 AllReduce，通信完全隐藏在计算背后
+
+---
 
 ### Q: GPU 基础的物理执行单元是什么？
 
@@ -228,6 +240,8 @@ Thread（标量）→ Warp（32 线程，SIMT 执行）→ Thread Block（多个
 - Warp 是最小调度单位（32 线程锁步执行同一指令）
 - 一个 SM 可同时驻留多个 Block（受寄存器/shared memory 限制）
 - 通过大量 Warp 切换隐藏内存延迟（零开销上下文切换）
+
+---
 
 ### Q: 手撕：将有序数组转化为平衡二叉搜索树？
 

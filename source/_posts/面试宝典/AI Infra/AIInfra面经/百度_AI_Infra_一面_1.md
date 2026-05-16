@@ -27,6 +27,8 @@ Attention 是 Transformer 的核心组件，实现了序列中任意位置间的
 
 **复杂度**：O(N^2 * d)，N 为序列长度，d 为维度。N^2 是 Transformer 处理长序列的主要瓶颈。
 
+---
+
 ### Q: QKV为什么需要K，直接用V不行吗？
 
 **核心原因：解耦"匹配函数"和"信息内容"**。
@@ -41,6 +43,8 @@ Attention 是 Transformer 的核心组件，实现了序列中任意位置间的
 **类比**：图书馆检索。K 是书的索引标签（用于匹配搜索词），V 是书的实际内容（匹配后返回的信息）。好的索引标签和好的内容是两个独立的维度。
 
 **实验验证**：如果强制 K=V（将 Attention 退化为 K/V 共享），模型表达力下降 2-5%，尤其在需要细粒度注意力区分的任务上。
+
+---
 
 ### Q: BN、LN、RMSNorm的区别？
 
@@ -57,6 +61,8 @@ Attention 是 Transformer 的核心组件，实现了序列中任意位置间的
 **LayerNorm**：对单个样本的所有特征维度计算 mean/var。与 batch 大小无关，适合 NLP。公式：y = (x - mean) / sqrt(var + eps) * gamma + beta。
 
 **RMSNorm**：去掉 LN 中的 mean subtraction，只做 RMS 归一化：y = x / RMS(x) * gamma。计算更少（省一次 reduction 和减法），实验证明均值中心化贡献可忽略。LLaMA/Mistral/Qwen 等现代 LLM 全部采用。
+
+---
 
 ### Q: 位置编码有哪些方式？
 
@@ -75,6 +81,8 @@ Attention 是 Transformer 的核心组件，实现了序列中任意位置间的
 - 使内积 <q_m, k_n> 天然只依赖相对位置 (m-n)
 - 优点：相对位置 + 无额外参数 + 实现简单（element-wise 乘法）
 - LLaMA/Mistral/GPT-NeoX 等均采用
+
+---
 
 ### Q: PPO、DPO、GRPO的区别？
 
@@ -99,6 +107,8 @@ Attention 是 Transformer 的核心组件，实现了序列中任意位置间的
 - 无需 Critic 网络（用组内排名代替基线估计）
 - 适合 outcome-based reward（如数学答案对错）
 - 优点：简单高效，在推理类任务上效果好
+
+---
 
 ### Q: 为什么Decoder-only模型比Encoder-Decoder用得多？
 

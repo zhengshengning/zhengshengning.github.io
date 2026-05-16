@@ -41,6 +41,8 @@ PagedAttention是vLLM提出的KV Cache内存管理机制，借鉴操作系统虚
 
 **对Beam Search的支持**：不同beam可以共享公共前缀的block，只在分叉点创建新block，显著减少beam search的显存开销。
 
+---
+
 ### Q: FlashAttention的算法流程？
 
 FlashAttention通过分块计算和online softmax实现IO-efficient的精确注意力，以下是详细的算法流程：
@@ -89,6 +91,8 @@ For each Q block i (外层循环):
 **反向传播**：不存储中间的N×N注意力矩阵P，只存储统计量m和l（O(N)空间）。反向时从HBM重新加载Q、K、V重计算P（用saved的m、l验证），然后计算梯度。
 
 **性能数据**：A100上seq_len=2048时，FlashAttention-2比PyTorch标准实现快约3倍，内存使用降低10-20倍。
+
+---
 
 ### Q: 量化的原理是什么？
 

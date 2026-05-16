@@ -19,6 +19,8 @@ tags: [AIInfra, 训练优化, 大厂面经, 面经]
 3. **训练框架**：DeepSpeed ZeRO（大模型分片）、Megatron-LM（3D并行）、LLaMA-Factory/Axolotl（轻量微调工具）。
 4. **训练配置**：学习率1e-5~5e-5、cosine schedule、FP16/BF16混合精度。
 
+---
+
 ### Q: PPO训练流程？包括数据、奖励模型训练、各模型的Loss？
 
 **PPO（Proximal Policy Optimization）在RLHF中的流程**：
@@ -33,6 +35,8 @@ tags: [AIInfra, 训练优化, 大厂面经, 面经]
    - 加KL惩罚防止策略偏离参考模型太远。
 3. **训练资源**：通常需要4个模型（Actor/Critic/RM/Reference），多卡训练。
 
+---
+
 ### Q: DPO训练流程？PPO和DPO的区别？
 
 **DPO（Direct Preference Optimization）**：
@@ -46,6 +50,8 @@ tags: [AIInfra, 训练优化, 大厂面经, 面经]
 - PPO效果通常更好（在线探索）但训练不稳定，DPO简单稳定但探索能力弱。
 - 多轮DPO（Iterative DPO）可弥补离线局限。
 
+---
+
 ### Q: 怎么评估微调后模型有提升？
 
 1. **自动指标**：特定任务的benchmark得分（如MMLU/GSM8K/HumanEval）。
@@ -54,6 +60,8 @@ tags: [AIInfra, 训练优化, 大厂面经, 面经]
 4. **A/B测试**：线上真实用户流量对比。
 5. **领域专项评估**：针对具体应用的测试集。
 6. **安全评估**：毒性/偏见/越狱测试。
+
+---
 
 ### Q: PPO为什么效果比DPO强？多轮DPO为什么有提升？
 
@@ -67,6 +75,8 @@ tags: [AIInfra, 训练优化, 大厂面经, 面经]
 - 逐轮缩小on-policy/off-policy gap。
 - 类似self-play的迭代改进。
 
+---
+
 ### Q: CLIP训练原理？
 
 CLIP（Contrastive Language-Image Pre-training）：
@@ -75,6 +85,8 @@ CLIP（Contrastive Language-Image Pre-training）：
 - 训练数据：400M互联网图文对。
 - 推理：计算图像和文本embedding的余弦相似度，实现零样本分类/检索。
 
+---
+
 ### Q: 讲几种优化器？
 
 - **Adam**：自适应学习率，结合一阶矩（动量）和二阶矩（RMSProp），加bias correction。
@@ -82,6 +94,8 @@ CLIP（Contrastive Language-Image Pre-training）：
 - **SGD+Momentum**：传统方法，泛化性好，大模型微调时也常用。
 - **LAMB**：Layer-wise Adaptive Moments for Batch training，大batch训练用。
 - **Adafactor**：内存高效的Adam变体，分解二阶矩为行列，省显存。
+
+---
 
 ### Q: MHA（Multi-Head Attention）原理？
 
@@ -92,6 +106,8 @@ CLIP（Contrastive Language-Image Pre-training）：
 
 多头的好处：不同头可以关注不同位置/不同语义子空间的信息，增强表达能力。
 
+---
+
 ### Q: GRPO（Group Relative Policy Optimization）原理？
 
 GRPO是DeepSeek提出的RLHF算法，改进点：
@@ -101,6 +117,8 @@ GRPO是DeepSeek提出的RLHF算法，改进点：
 4. **PPO-Clip更新**：使用标准PPO loss但用组相对优势替代传统advantage。
 
 优势：减少一半模型显存（无Critic），训练更稳定（组归一化减少reward scale敏感性）。
+
+---
 
 ### Q: LoRA原理？r大小对模型训练的影响？
 
@@ -115,6 +133,8 @@ GRPO是DeepSeek提出的RLHF算法，改进点：
 - 经验值：通用任务r=8-16足够；复杂任务（如代码生成）可用r=64-128。
 - QLoRA用NF4量化基础模型+FP16 LoRA，进一步省显存。
 
+---
+
 ### Q: ViT训练原理？
 
 **ViT（Vision Transformer）**：
@@ -127,6 +147,8 @@ GRPO是DeepSeek提出的RLHF算法，改进点：
 
 训练：通常需要大规模数据预训练（如ImageNet-21K或JFT-300M），小数据上不如CNN。DeiT通过知识蒸馏和数据增强让ViT在ImageNet上也有好效果。
 
+---
+
 ### Q: Swin Transformer原理？
 
 Swin Transformer引入层次化结构和局部注意力：
@@ -136,6 +158,8 @@ Swin Transformer引入层次化结构和局部注意力：
 4. **相对位置编码**：不用绝对位置，用窗口内的相对位置bias。
 
 优势：线性复杂度（相对于序列长度）、多尺度特征、适用于检测/分割等密集预测任务。
+
+---
 
 ### Q: Qwen3快思考和慢思考的原理？
 

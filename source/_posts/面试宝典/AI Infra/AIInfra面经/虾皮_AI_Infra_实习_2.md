@@ -76,6 +76,8 @@ results = evaluate(
    3. 简洁性: 是否有冗余信息"
 ```
 
+---
+
 ### Q: 如何训练用于RAG场景的生成模型？
 
 **RAG生成模型训练的完整策略：**
@@ -130,6 +132,8 @@ if random.random() < 0.3:
 # - 在长序列上继续预训练
 # - Flash Attention支持长序列
 ```
+
+---
 
 ### Q: vLLM的核心原理是什么？
 
@@ -198,6 +202,8 @@ while True:
 | 结构化输出 | 基准 | +30-50% | SGLang原生支持 |
 | Beam Search | +CoW优化 | +CoW+树验证 | SGLang树形结构更优 |
 
+---
+
 ### Q: 如何增强模型的多轮对话能力？
 
 **多轮对话的核心挑战：**
@@ -255,6 +261,8 @@ RLHF奖励:
   引用奖励: 正确引用前文信息 +0.5
   澄清奖励: 不确定时主动确认 +0.3
 ```
+
+---
 
 ### Q: CoT（Chain-of-Thought）训练数据如何构造？
 
@@ -338,6 +346,8 @@ Prompt: "以下问题的答案是{answer}，请反推出完整的解题步骤"
 - 错误推理也有价值(可以做DPO中的rejected)
 - 推理链不宜过长(>1000 token时模型容易迷失)
 
+---
+
 ### Q: 介绍vLLM、量化、KV-Cache优化技巧？
 
 **三大优化技术的协同关系：**
@@ -382,6 +392,8 @@ Prompt: "以下问题的答案是{answer}，请反推出完整的解题步骤"
 | Sliding Window | 只保留最近W个token | KV上限=W | 训练时设计 |
 | KV Offloading | 长期KV移到CPU/NVMe | 支持更长序列 | 延迟容忍 |
 | MLA(低秩KV) | 投影到低维存储 | KV减少8-16x | DeepSeek架构 |
+
+---
 
 ### Q: "packing"形式和"多轮对话"形式训练有何区别？
 
@@ -430,6 +442,8 @@ Packing方式(高效):
 | Loss计算 | 所有token(或各样本的target) | 只有assistant token |
 | Position ID | 每个样本独立从0开始 | 整个对话连续递增 |
 | 典型场景 | 预训练/SFT短样本 | 对话SFT/RLHF |
+
+---
 
 ### Q: 手撕：LeetCode 72 编辑距离？
 

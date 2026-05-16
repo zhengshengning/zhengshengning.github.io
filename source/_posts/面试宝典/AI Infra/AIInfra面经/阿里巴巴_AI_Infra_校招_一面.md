@@ -60,6 +60,8 @@ L(C) ∝ C^(-0.050)    # C = 训练计算量(FLOPs)
 - Chinchilla（2022）修正了最优计算分配策略：更多数据、更小模型性价比更高
 - 推理时Scaling（Test-time Compute Scaling）：2024年发现通过增加推理时的思考步骤也能scaling提升
 
+---
+
 ### Q: 推理优化中的Flash Attention和KV Cache分别是什么？
 
 **Flash Attention — IO感知的精确注意力算法**：
@@ -115,6 +117,8 @@ Flash Attention: 将Q/K/V按block分块，在SRAM中逐块计算：
 - KV Cache优化的是**Decode阶段**（逐token生成时避免重复计算）
 - 二者互补：Prefill用Flash Attention高效计算，Decode用KV Cache避免重复
 
+---
+
 ### Q: KV Cache出现在训练中还是推理中？为什么训练中不使用？
 
 KV Cache**只用于推理**（自回归生成阶段）。
@@ -145,6 +149,8 @@ attn = softmax(Q @ K.T / sqrt(d) + mask * (-inf))  @ V
 **4. 反向传播的需求**
 - 训练需要保存中间激活用于反向传播
 - KV Cache的设计是为了避免存储中间结果（空间换时间），与训练的需求矛盾
+
+---
 
 ### Q: 注意力机制的优化方法有哪些？
 
@@ -201,6 +207,8 @@ attn = softmax(Q @ K.T / sqrt(d) + mask * (-inf))  @ V
   - 将不活跃的KV Cache卸载到CPU内存/NVMe SSD
   - 需要时异步预取到GPU
   - 适合超长序列但低频访问的场景
+
+---
 
 ### Q: 手撕：接雨水？
 

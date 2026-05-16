@@ -76,6 +76,8 @@ HTTP/gRPC请求 → AsyncLLMEngine
 
 vLLM的显著优势主要来自PagedAttention的高显存利用率 + Continuous Batching的调度效率。
 
+---
+
 ### Q: KV Cache原理与优化？
 
 **原理核心**：
@@ -122,6 +124,8 @@ MLA:  c = X × W_down [d → d_compress(512)]  # 压缩
 ```
 
 KV Cache只存压缩后的c（512维 vs 原始1024维），但attention计算时等效于全维度KV。效果：KV Cache减少50-90%，精度无损（训练时学习最优压缩）。
+
+---
 
 ### Q: 推理加速的综合策略有哪些？
 

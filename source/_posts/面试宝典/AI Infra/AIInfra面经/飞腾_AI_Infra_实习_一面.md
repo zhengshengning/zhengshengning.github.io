@@ -34,6 +34,8 @@ tags: [AIInfra, 推理优化, 算子优化, 面经]
 - RoPE 的优势：(1) 相对位置信息自然编码在 Q*K^T 中；(2) 可外推到训练时未见过的长度（配合 NTK-aware scaling）；(3) 不增加参数量
 - **对比**：绝对位置编码（GPT-2）在 embedding 层加入（投影之前）；ALiBi 在 attention score 上直接加距离偏置
 
+---
+
 ### Q: RMSNorm公式、计算访存特性及优化方法？
 
 **RMSNorm（Root Mean Square Layer Normalization）**：
@@ -65,6 +67,8 @@ tags: [AIInfra, 推理优化, 算子优化, 面经]
 5. **Double Buffer / Prefetch**：在计算当前行的 RMSNorm 时，预取下一行的数据到寄存器，隐藏访存延迟。
 
 6. **与 Residual 融合**：Pre-Norm 架构中 `x = x + sublayer(RMSNorm(x))` 的 residual add 和 RMSNorm 可融合为单个 kernel。
+
+---
 
 ### Q: Softmax数值稳定性处理与Online实现？
 
@@ -106,6 +110,8 @@ Online Softmax 是 FlashAttention 的数学基础。FlashAttention 将 attention
 
 **性能影响**：3-pass -> 2-pass 减少一次全局内存遍历，对 memory-bound 的 softmax 操作直接节省 33% 的内存带宽消耗。
 
+---
+
 ### Q: 矩阵乘与反量化融合算子的内存优化策略？
 
 **问题背景**：W4A16/W8A16 量化方案中，权重以 INT4/INT8 格式存储，推理时需要反量化为 FP16 再做 GEMM。如果反量化和 GEMM 是两个独立 kernel：
@@ -134,6 +140,8 @@ Online Softmax 是 FlashAttention 的数学基础。FlashAttention 将 attention
 - 需要保证 tile 边界与 quantization group 边界对齐
 
 **典型实现**：GPTQ/AWQ 的推理 kernel（如 exllama/AutoGPTQ）、TensorRT-LLM 的 W4A16 kernel、Marlin kernel（4-bit GEMM，达到接近 FP16 GEMM 4x 加速）。
+
+---
 
 ### Q: 稀疏矩阵SpMV的负载均衡与带宽优化？
 
@@ -173,6 +181,8 @@ Online Softmax 是 FlashAttention 的数学基础。FlashAttention 将 attention
 
 **性能参考**：稀疏矩阵的实际带宽利用率通常只有理论峰值的 30-60%（因为不规则访存和索引开销），远低于密集矩阵运算（可达 80-90%）。
 
+---
+
 ### Q: IEEE浮点标准中FP16/32/64的位分配？
 
 IEEE 754 浮点标准定义了不同精度的浮点数格式，位分配决定了数值范围和精度：
@@ -197,6 +207,8 @@ IEEE 754 浮点标准定义了不同精度的浮点数格式，位分配决定�
 - **FP64**：科学计算、金融计算，深度学习中几乎不用
 
 **精度对训练的影响**：FP16 训练需要 loss scaling（防止梯度下溢到 0）；BF16 通常无需 loss scaling（范围足够大）；FP8 需要更精细的 per-tensor scaling。
+
+---
 
 ### Q: 快速排序步骤、堆性质、拓扑排序适用场景？
 
@@ -249,6 +261,8 @@ IEEE 754 浮点标准定义了不同精度的浮点数格式，位分配决定�
 
 **检测环**：如果图有环则无法完成拓扑排序（Kahn 算法中最终结果节点数 < 总节点数说明有环）。
 
+---
+
 ### Q: 进程和线程的区别？Cache层级与替换策略？
 
 **进程 vs 线程**：
@@ -283,6 +297,8 @@ IEEE 754 浮点标准定义了不同精度的浮点数格式，位分配决定�
 - **RRIP（Re-Reference Interval Prediction）**：Intel 的改进策略，预测 re-reference 间隔而非简单的最近使用时间
 
 **对 AI 计算的影响**：矩阵乘的 tiling 策略本质上就是让 tile 大小适配 L1/L2 容量，最大化 cache hit rate。GEMM 的峰值性能与 tile 匹配 cache 层级的程度直接相关。
+
+---
 
 ### Q: Git分支操作：fetch+checkout vs pull？
 

@@ -15,9 +15,13 @@ tags: [AIInfra, 算子优化, 面经]
 
 （编程题）
 
+---
+
 ### Q: 手撕：二叉树根节点到叶节点组成数字的和？
 
 （编程题）
+
+---
 
 ### Q: CUDA算子优化的通用方法？
 
@@ -60,6 +64,8 @@ CUDA 算子优化遵循"分析瓶颈 -> 针对性优化"的原则，以下是系
 - 典型融合：LayerNorm = reduce(mean) + reduce(var) + normalize + scale，可融合为单 kernel
 
 **优化效果参考**：一个 naive GEMM 可能只有峰值性能的 1-5%，经过 tiling + shared memory + 向量化 + double buffer 可达 50-70%，再加 Tensor Core 可达 80-90%（接近 cuBLAS 水平）。
+
+---
 
 ### Q: CUDA Reduce优化过程？
 
@@ -119,6 +125,8 @@ if (tid < 32) {
 - 实践中方案 A 最稳定（两个 kernel 的 launch 开销在大数组时可忽略）
 
 **最终性能**：优化后的 reduce kernel 可达 HBM 带宽的 85-95%（因为 reduce 本身就是 memory-bound），此时成为真正的带宽受限——无法进一步优化。
+
+---
 
 ### Q: CUDA中blockDim和blockIdx的含义？
 

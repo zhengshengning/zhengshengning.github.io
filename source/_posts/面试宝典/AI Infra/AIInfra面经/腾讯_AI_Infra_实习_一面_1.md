@@ -46,6 +46,8 @@ Chunked Prefill：
 - 后续chunk的Attention需要关注前面所有chunk的KV（cross-chunk attention）
 - 调度器在每个iteration判断：当前step执行prefill chunk还是decode
 
+---
+
 ### Q: Reduce-Scatter和All-to-All通信的区别？
 
 **Reduce-Scatter：规约 + 分发**
@@ -93,6 +95,8 @@ Expert Parallelism中，每个rank负责不同expert：
 3. Backward All-to-All: 将expert输出发回token所属的原始rank
 ```
 
+---
+
 ### Q: 怎么减少Launch Kernel的开销？
 
 每次kernel launch涉及CPU端的驱动调用和GPU端的任务分发，有**固定开销约5-10微秒/次**。当kernel本身很小（如element-wise操作处理少量数据）时，launch开销占比可能超过50%。
@@ -138,6 +142,8 @@ __global__ void persistent_kernel(WorkQueue* queue) {
 - 减少不必要的`cudaDeviceSynchronize()`（同步会强制等待所有kernel完成）
 - 使用多Stream并发launch（CPU可以连续提交而不阻塞）
 - 增大单个kernel的工作量（少量大kernel优于大量小kernel）
+
+---
 
 ### Q: CUDA编程中Bank Conflict是什么？怎么解决？
 
@@ -188,6 +194,8 @@ float4 val = reinterpret_cast<float4*>(&s[row][col])[0];
 
 **判断是否有bank conflict：** Nsight Compute中查看`Shared Memory Bank Conflicts`指标。
 
+---
+
 ### Q: 场景题：大集群中节点内有NVLink，节点间部分机器有RDMA，如何设计分布式推理方案？
 
 **设计思路——感知网络拓扑，匹配通信需求与互联能力：**
@@ -229,6 +237,8 @@ float4 val = reinterpret_cast<float4*>(&s[row][col])[0];
    - 维护集群拓扑图（NVLink/RDMA/TCP连接关系）
    - 请求路由时做亲和性调度：同一推理任务的TP组绑定到NVLink节点
    - 监控链路健康状态，动态调整路由
+
+---
 
 ### Q: 手撕：K个一组翻转链表？
 

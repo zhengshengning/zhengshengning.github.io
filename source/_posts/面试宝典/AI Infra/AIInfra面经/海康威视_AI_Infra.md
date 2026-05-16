@@ -44,6 +44,8 @@ Shared Memory 被划分为 32 个等宽的 bank（每个 bank 宽 4 字节），
 
 **诊断工具**：Nsight Compute 的 Shared Memory 面板直接显示 bank conflict 的次数和 wavefronts，可定量评估优化效果。
 
+---
+
 ### Q: CUDA实现Softmax的要点？
 
 CUDA Softmax 实现需要处理数值稳定性和高效 reduction 两个核心问题：
@@ -83,6 +85,8 @@ for (int offset = 16; offset > 0; offset >>= 1)
 
 **性能参考**：对 hidden_dim=4096、batch*seq=4096 的 softmax，优化后 kernel 可达 HBM 带宽的 80%+（因为 softmax 是典型的 memory-bound 操作）。
 
+---
+
 ### Q: Online Softmax与FlashAttention的关系？
 
 Online Softmax 是 FlashAttention 能够实现"精确 attention + 分块计算"的数学基础：
@@ -120,6 +124,8 @@ FlashAttention 将 K/V 分为多个块（如每块 128 个 token），逐块计�
 - 下一块 K/V 覆盖当前 SRAM 内容，无需保留
 
 **性能收益链**：Online Softmax -> 允许分块 -> 小块在 SRAM 中计算 -> 避免 N*N 矩阵写入 HBM -> IO 从 O(N^2) 降为 O(N^2*d/M) -> 实际 2-4x 加速
+
+---
 
 ### Q: 大模型的端侧部署挑战和方法？
 
@@ -168,6 +174,8 @@ FlashAttention 将 K/V 分为多个块（如每块 128 个 token），逐块计�
 
 **实际性能参考**：iPhone 15 Pro 运行 LLaMA-2 7B Q4_K_M，约 15-20 tokens/s（Metal GPU 加速）。这是目前端侧大模型的实用水平。
 
+---
+
 ### Q: 模型导出时的动态维度问题？
 
 模型导出（如 PyTorch -> ONNX -> TensorRT）时，动态维度是最常遇到的工程问题：
@@ -205,6 +213,8 @@ torch.onnx.export(model, dummy_input, "model.onnx",
   - Bucketing（将请求按长度分桶，每个桶一个编译好的 engine）
   - 完全动态（灵活但性能略差）
 - 生产环境常用 bucketing：如 seq_len 分为 [128, 256, 512, 1024, 2048] 五个桶
+
+---
 
 ### Q: 量化相关技术？
 
@@ -244,6 +254,8 @@ torch.onnx.export(model, dummy_input, "model.onnx",
 - **AWQ**：识别对输出贡献大的"重要"权重通道（通过激活值大小判断），保护这些通道的量化精度
 - **SmoothQuant**：将激活的量化困难（outlier）通过数学等价变换迁移到权重侧，使 W8A8 PTQ 可行
 
+---
+
 ### Q: 多线程、OpenMP、MPI的区别？
 
 三种并行编程模型针对不同的硬件架构和应用场景：
@@ -282,6 +294,8 @@ torch.onnx.export(model, dummy_input, "model.onnx",
 | AI Infra 应用 | 推理线程池 | CPU 算子 | 分布式训练（via NCCL） |
 
 **混合使用**：大规模并行程序常用 MPI+OpenMP 混合模式——节点间 MPI 通信，节点内 OpenMP 多线程共享内存。类比分布式训练：节点间 NCCL AllReduce，节点内 NVLink TP。
+
+---
 
 ### Q: NCNN交叉编译？
 

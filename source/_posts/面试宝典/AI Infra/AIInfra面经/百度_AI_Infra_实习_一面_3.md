@@ -33,6 +33,8 @@ tags: [AIInfra, 推理优化, 算子优化, 大厂面经, 面经]
 - 通信：每步一次 AllReduce（全部参数的梯度），可与反向计算重叠
 - 特点：最简单的并行方式，通信量 = 参数量 * dtype_size。DDP/FSDP 是其变种
 
+---
+
 ### Q: 如何根据TP和PP的通信量进行取舍？
 
 **核心原则：通信频率与互联带宽匹配**。
@@ -51,6 +53,8 @@ tags: [AIInfra, 推理优化, 算子优化, 大厂面经, 面经]
 
 **实际案例**：LLaMA-2 70B 训练使用 TP=8（节点内）+ PP=4（跨节点）+ DP=16，共 512 GPU。
 
+---
+
 ### Q: 量化中per-tensor、per-channel、per-group的区别？为什么group-wise能降低量化误差？
 
 三者的区别在于量化参数（scale/zero_point）的共享粒度：
@@ -68,6 +72,8 @@ tags: [AIInfra, 推理优化, 算子优化, 大厂面经, 面经]
 
 **代价**：每组需要额外存储 scale（FP16，2B）和可能的 zero_point，增加元数据开销。GPTQ/AWQ 等方法通常使用 group_size=128。
 
+---
+
 ### Q: 不同量化方法的区别及如何降低开销？
 
 **主流 PTQ 量化方法对比**：
@@ -84,6 +90,8 @@ tags: [AIInfra, 推理优化, 算子优化, 大厂面经, 面经]
 2. **减少反量化频率**：将反量化融合到 GEMM kernel 中（在 shared memory 层面做）
 3. **权重预打包**：将量化权重按 kernel 计算顺序排列，减少运行时地址计算
 4. **INT8 GEMM 直接计算**：使用 Tensor Core 的 INT8 模式直接做矩阵乘（如 FP8 E4M3）
+
+---
 
 ### Q: 量化中的异常值问题及消除方法？
 
@@ -103,6 +111,8 @@ tags: [AIInfra, 推理优化, 算子优化, 大厂面经, 面经]
 3. **Clipping/Percentile**：截断极端值到 99.9% 分位数。简单但有信息损失。适合异常值不那么极端的情况。
 
 4. **QuIP/QuIP#**：通过正交变换使权重分布更均匀后再量化，从数学上消除异常值。
+
+---
 
 ### Q: FlashAttention为什么能加速？FlashAttention 1和2的区别？
 
@@ -124,6 +134,8 @@ FlashAttention 通过 tiling 将 Q/K/V 分块加载到 SRAM（~200KB），在片
 
 FA2 的核心改进：将外层循环改为遍历 Q 使得每个 thread block 的输出是最终的（无需全局 reduce），天然支持更多并行；减少 warp 间同步和非 matmul 计算。
 
+---
+
 ### Q: FlashAttention中Bc块的切分思路？1-loop FlashAttention？
 
 **Bc（K/V 块大小）的确定**：
@@ -142,6 +154,8 @@ FA2 的核心改进：将外层循环改为遍历 Q 使得每个 thread block �
 - 无需跨 block 的全局 reduce，输出直接写回 HBM
 
 这与 FA1 的 2-loop（外层 KV，内层 Q，需要全局累加）形成对比。
+
+---
 
 ### Q: PagedAttention的思路？
 
@@ -164,6 +178,8 @@ PagedAttention（vLLM 提出）借鉴**操作系统虚拟内存分页**思想管
 
 **代价**：Attention kernel 需要按 block table 做间接寻址读取 KV，比连续访问略慢。但显存利用率从 ~50% 提升到 >95%，支持同时服务更多请求。
 
+---
+
 ### Q: Prefill和Decoding阶段的区别？
 
 自回归 LLM 推理分为两个性质完全不同的阶段：
@@ -182,6 +198,8 @@ PagedAttention（vLLM 提出）借鉴**操作系统虚拟内存分页**思想管
 - Decoding 应尽量增大 batch size 提高 GPU 利用率（但受 KV Cache 显存限制）
 - Splitwise/Disaggregation：将 Prefill 和 Decode 分离到不同 GPU 上独立优化
 
+---
+
 ### Q: Prefill阶段的FlashAttention在Decoding阶段有什么问题？Flash Decoding的思路？
 
 **问题**：Decoding 时 Q 只有 1 个 token（形状 [1, d]），但 KV Cache 可能有数千个 token。标准 FlashAttention 的外层循环遍历 Q 块——当 Q 只有 1 行时，只有一个 thread block 参与计算，GPU 大量 SM 闲置，并行度严重不足。
@@ -193,6 +211,8 @@ PagedAttention（vLLM 提出）借鉴**操作系统虚拟内存分页**思想管
 3. 最后用一个额外的 reduce kernel 合并所有段的结果（利用 online softmax 的修正公式）
 
 **效果**：即使 Q 只有 1 行，也能启动数十个 thread block 并行计算，充分利用 GPU。在长序列（seq>4096）场景下 decode 速度提升 3-8x。
+
+---
 
 ### Q: RMSNorm是如何实现的（CUDA kernel层面）？
 
@@ -206,6 +226,8 @@ PagedAttention（vLLM 提出）借鉴**操作系统虚拟内存分页**思想管
 - **Warp Shuffle 优化**：使用 `__shfl_down_sync` 做 warp 内归约，减少 shared memory 使用和 `__syncthreads` 同步次数
 - **向量化加载**：使用 `float4` 或 `half2` 加载连续元素，一次读 128bit，提升内存带宽利用
 - **Kernel 融合**：RMSNorm 是 memory-bound 操作（算术强度极低），通常与前后的算子融合（如 RMSNorm + Linear 的输入预处理）
+
+---
 
 ### Q: 如何优化一个CUDA kernel的思路？
 
@@ -236,6 +258,8 @@ PagedAttention（vLLM 提出）借鉴**操作系统虚拟内存分页**思想管
    - 减少原子操作
    - Kernel fusion 消除中间读写
 
+---
+
 ### Q: Conv2D的参数量和FLOPs计算？
 
 以输入 [C_in=64, H=128, W=64]，3x3 卷积，输出 [C_out=128, H=128, W=64]（stride=1, padding=1）为例：
@@ -247,6 +271,8 @@ PagedAttention（vLLM 提出）借鉴**操作系统虚拟内存分页**思想管
 = 2 * 128 * 64 * 3 * 3 * 128 * 64 ≈ **1.21 GFLOPs**
 
 **算术强度** = FLOPs / 内存访问字节数。对于大 feature map，Conv2D 通常是 compute-bound；小 batch/小 feature map 时可能变为 memory-bound。
+
+---
 
 ### Q: CPU算子优化方法（AVX512等）？
 
@@ -264,9 +290,13 @@ CPU 算子优化的核心是充分利用现代 CPU 的并行能力：
 
 6. **内存布局优化**：AoS -> SoA 变换使 SIMD 加载连续数据；矩阵按计算顺序排列（如 GEMM 的 B 矩阵转置/packed 布局）。
 
+---
+
 ### Q: C++智能指针？
 
 shared_ptr（引用计数共享，原子操作保证计数线程安全，make_shared 一次分配更高效）、unique_ptr（独占零开销，delete 拷贝只允许 move，默认首选）、weak_ptr（弱引用不增计数，lock() 提升，打破循环引用/缓存探测）。
+
+---
 
 ### Q: 手撕：CUDA实现LayerNorm？
 

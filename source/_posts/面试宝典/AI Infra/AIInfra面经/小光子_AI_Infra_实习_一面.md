@@ -60,6 +60,8 @@ float4 val4 = reinterpret_cast<float4*>(input)[tid];
 - 算子融合: 多个小kernel合并为一个，减少中间tensor的HBM读写
 - 计算通信Overlap: NCCL通信与kernel计算在不同stream并行
 
+---
+
 ### Q: Socket编程的过程？
 
 **TCP Socket编程完整流程：**
@@ -108,6 +110,8 @@ int n = epoll_wait(epfd, events, MAX_EVENTS, timeout);  // 只返回就绪的fd
 // 不需要遍历所有fd，O(就绪数)而非O(总fd数)
 ```
 
+---
+
 ### Q: Linux内核虚拟地址空间布局？
 
 **64位Linux进程虚拟地址空间（从低地址到高地址）：**
@@ -148,6 +152,8 @@ int n = epoll_wait(epfd, events, MAX_EVENTS, timeout);  // 只返回就绪的fd
 - 传统CUDA: 全局内存地址是物理地址(通过驱动分配)
 - CUDA Unified Memory: 提供虚拟地址抽象，页面按需在CPU↔GPU迁移
 - vLLM的PagedAttention: 在应用层实现了类似虚拟内存的分页管理
+
+---
 
 ### Q: 零拷贝（Zero-Copy）技术？
 

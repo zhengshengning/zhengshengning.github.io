@@ -55,6 +55,8 @@ SLA 示例: TTFT < 500ms (P99), TPOT < 50ms (P99)
 - 关注 benchmark 下降幅度（< 2% 通常可接受）
 - 特别关注数学和代码任务（对精度最敏感）
 
+---
+
 ### Q: 如何对大模型进行优化以提高性能和效率？
 
 大模型优化是一个多层次的系统工程，需要从模型、系统、算子三个维度协同：
@@ -116,6 +118,8 @@ SLA 示例: TTFT < 500ms (P99), TPOT < 50ms (P99)
   → 量化 + 大 batch
 ```
 
+---
+
 ### Q: 大模型中注意力机制是如何工作的？起什么作用？
 
 **注意力机制的完整工作流程**（Multi-Head Self-Attention）：
@@ -167,6 +171,8 @@ reshape + 输出投影: O = concat(heads) × W_O  [batch, seq, d_model]
    - 经过多层后，每个位置的表示融合了全序列的信息
    - 残差连接确保原始信息不丢失
 
+---
+
 ### Q: 大模型中的优化算法有哪些？各有什么优缺点？
 
 **训练优化器对比**（以 LLM 训练为场景）：
@@ -210,6 +216,8 @@ FP32 主权重:  7B × 4 bytes = 28 GB
 - 显存极度紧张 → **Adafactor** 或 **8-bit Adam**
 - 超大 batch 分布式 → **LAMB**（自动调节层级 lr）
 - 实验探索 → **Lion**（更新更简单，可能在某些任务优于 Adam）
+
+---
 
 ### Q: 如何处理大模型训练中的梯度消失或梯度爆炸问题？
 
@@ -266,6 +274,8 @@ torch.nn.utils.clip_grad_value_(model.parameters(), clip_value=0.5)
 - Loss spike 是常见问题：通常通过 skip batch（丢弃异常梯度的 step）处理
 - DeepSeek 等报告中提到每 ~100B tokens 训练可能出现 1-3 次 loss spike
 
+---
+
 ### Q: 如何权衡模型复杂度和性能？
 
 这是 LLM 设计的核心决策，需要在**参数效率**、**计算效率**和**最终效果**之间找到最优点。
@@ -311,6 +321,8 @@ MoE 模型:   671B 参数 (256 expert + shared), 每 token 只激活 37B
   - 通信：Expert Parallel 需要 All-to-All
   - 负载均衡：router 可能导致部分 expert 过载
 ```
+
+---
 
 ### Q: 面对大模型训练和推理的庞大计算资源，有什么解决建议？
 
@@ -362,6 +374,8 @@ MoE 模型:   671B 参数 (256 expert + shared), 每 token 只激活 37B
 - DualPipe（双向流水线）减少 PP bubble
 - DeepEP 自定义 MoE 通信库
 - 总训练成本仅 $5.6M（远低于同等规模的其他模型）
+
+---
 
 ### Q: Reward Model 分哪几类？如何训练？
 
@@ -416,6 +430,8 @@ DPO 训练后的模型 π_θ 隐含了 reward:
 即: 模型相比 reference 更倾向生成的回答 = 高 reward
 可以直接用 log_prob ratio 作为 reward signal
 ```
+
+---
 
 ### Q: DPO 的损失函数和训练目标？DPO 如何改进？
 

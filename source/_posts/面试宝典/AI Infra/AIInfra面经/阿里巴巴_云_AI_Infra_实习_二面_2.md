@@ -77,6 +77,8 @@ vLLM是当前最流行的开源LLM推理引擎，其核心优化技术涵盖内�
          → KV Cache Free (完成的请求释放page)
 ```
 
+---
+
 ### Q: 如何利用大模型蒸馏一个3B的小模型？
 
 **知识蒸馏（Knowledge Distillation）的完整Pipeline**：
@@ -143,6 +145,8 @@ total_loss = alpha * hard_loss + (1-alpha) * T^2 * soft_loss
 - 好的蒸馏3B模型可能接近6-7B预训练模型的效果
 - 在特定垂直领域蒸馏效果更好（领域收窄后知识更容易压缩）
 
+---
+
 ### Q: Logistic回归的模型原理和Loss？
 
 **模型原理**：
@@ -195,6 +199,8 @@ L = -[y * log(p) + (1-y) * log(1-p)]
 - 多类扩展：Softmax回归（Cross-entropy loss在K类上的自然推广）
 - LLM的最后一层本质上就是一个超大规模的Softmax回归（vocab_size维）
 - 每个token位置的loss = Cross-entropy(predicted_logits, true_token)
+
+---
 
 ### Q: 给定时间序列如何进行特征筛选和基于规则的建模？
 
@@ -274,6 +280,8 @@ rules = {
 - 确保规则可解释且可维护（每条规则需有业务含义）
 - 建立规则白名单/黑名单机制处理例外情况
 
+---
+
 ### Q: DeepSeek-MTP是用在训练阶段还是推理阶段？具体过程？
 
 **训练和推理都用，但目的不同**：
@@ -337,6 +345,8 @@ MTP-based Speculative Decoding:
 | 加速比 | 1.5-2.0x | 1.8-2.4x |
 | 部署复杂度 | 需要管理两个模型 | 集成在一个模型中 |
 | Draft质量 | 独立训练，可能与大模型分布不一致 | 与主模型联合训练，分布一致性好 |
+
+---
 
 ### Q: 如何通过Agent方法训练金融领域Coder模型？
 

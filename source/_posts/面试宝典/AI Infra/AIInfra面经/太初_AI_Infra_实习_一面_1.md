@@ -50,6 +50,8 @@ tags: [AIInfra, 训练优化, 面经]
 - Ring AllReduce：每个设备发送和接收 2×(N-1)/N × model_size ≈ 2×model_size的数据
 - 8卡DDP训练7B模型(FP16)：每步通信约2×7B×2bytes = 28GB数据
 
+---
+
 ### Q: FasterTransformer(FT)框架的特点？
 
 FasterTransformer是NVIDIA开源的Transformer推理加速库（现已被**TensorRT-LLM**取代），代表了LLM推理优化的核心技术集合。
@@ -88,6 +90,8 @@ FasterTransformer是NVIDIA开源的Transformer推理加速库（现已被**Tenso
 | 量化 | INT8/FP16 | INT4/INT8/FP8全系列 |
 | 维护状态 | 已停止维护 | NVIDIA主推 |
 
+---
+
 ### Q: 随机森林的原理？
 
 随机森林是基于**Bagging**思想的集成学习方法，通过构建多棵随机化的决策树并聚合预测结果。
@@ -118,6 +122,8 @@ FasterTransformer是NVIDIA开源的Transformer推理加速库（现已被**Tenso
 - 对缺失值和异常值鲁棒
 - 支持并行训练（各树独立）
 - 自带交叉验证（OOB数据可估计泛化误差）
+
+---
 
 ### Q: GBDT的原理？
 
@@ -150,6 +156,8 @@ For m = 1 to M:
 **XGBoost/LightGBM的改进：**
 - XGBoost：加入正则化项（叶节点数+叶值L2），二阶泰勒展开更精确
 - LightGBM：GOSS(梯度采样)+EFB(互斥特征捆绑)加速训练，Histogram-based分裂
+
+---
 
 ### Q: 优化器了解哪些？
 
@@ -184,6 +192,8 @@ w = w - lr * m/(√v+ε) - λ*w     # weight decay独立于adam更新
 ```
 AdamW中weight decay不经过Adam的自适应缩放，正则化效果更稳定。
 
+---
+
 ### Q: BERT和GPT的区别？
 
 **架构与训练范式对比：**
@@ -207,6 +217,8 @@ AdamW中weight decay不经过Adam的自适应缩放，正则化效果更稳定�
 - 分类/检索任务（双向编码信息更丰富）
 - 推理延迟敏感（一次前向vs逐token生成）
 - Embedding生成（句子向量表示）
+
+---
 
 ### Q: Transformer的结构？
 
@@ -246,6 +258,8 @@ Linear → Softmax → 输出概率
 | 注意力 | MHA | GQA(减少KV-Cache) |
 | Norm类型 | LayerNorm | RMSNorm(更快,无bias) |
 
+---
+
 ### Q: 线上服务推理如何提高吞吐量？
 
 **系统级优化——从请求到响应的完整优化链：**
@@ -280,6 +294,8 @@ Linear → Softmax → 输出概率
 - 张量并行(TP)：单次推理延迟降低
 - Disaggregated Serving：prefill和decode节点池化，弹性伸缩
 - 负载均衡：请求路由到负载最低的实例
+
+---
 
 ### Q: 手撕：链表加法？
 

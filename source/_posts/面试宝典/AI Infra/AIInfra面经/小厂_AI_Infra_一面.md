@@ -105,6 +105,8 @@ class Scheduler:
 - 弹性扩缩: 根据QPS动态增减推理实例(K8s HPA)
 - 请求重试: 客户端超时自动重试到其他实例
 
+---
+
 ### Q: 算子优化的一般方法？
 
 **算子优化的系统方法论：**
@@ -194,6 +196,8 @@ Occupancy不是越高越好!
   Compute-bound kernel: 中等occupancy即可(寄存器更重要)
 ```
 
+---
+
 ### Q: C++反射机制？
 
 **C++缺乏原生反射的问题和解决方案：**
@@ -249,6 +253,8 @@ if (typeid(*b) == typeid(Derived)) { ... }
 - PyTorch C++算子注册: `TORCH_LIBRARY(myops, m) { m.def("my_op", ...); }`
 - TensorRT plugin注册: 工厂模式 + 注册表
 - ONNX Runtime: 自定义算子通过字符串名字注册
+
+---
 
 ### Q: 工厂模式是什么？
 
@@ -310,6 +316,8 @@ LayerRegistry::reg<PagedAttention>("paged_attn");
 - 方便扩展新类型（不修改已有代码）
 - 支持配置驱动（根据config字符串创建对象）
 - AI框架中广泛使用：TensorRT plugin、ONNX Runtime、PyTorch算子注册
+
+---
 
 ### Q: C++模板编程的作用和特点？
 
@@ -373,6 +381,8 @@ public:
 - 零开销的kernel参数化(不同精度/不同策略同一模板)
 - cuBLAS/cutlass中大量使用模板元编程生成特化kernel
 
+---
+
 ### Q: C++右值引用的应用场景？
 
 **四大核心应用场景：**
@@ -409,6 +419,8 @@ std::vector<std::pair<std::string, Tensor>> cache;
 cache.emplace_back("layer_0", Tensor(4096));
 // 直接在vector内部构造pair, 不创建临时对象再移动
 ```
+
+---
 
 ### Q: C++ static变量的初始化规则？
 
@@ -452,6 +464,8 @@ int& get_a() {
 static int b = get_a() + 1;  // 保证a已初始化
 ```
 
+---
+
 ### Q: C++内存泄漏的原因与解决？
 
 **常见泄漏场景和解决：**
@@ -493,6 +507,8 @@ class SafeModel {
 };
 ```
 
+---
+
 ### Q: 有符号和无符号字符的最值？
 
 ```cpp
@@ -525,6 +541,8 @@ if (x < y) { ... }  // 可能为false!
 - INT8量化: signed范围[-128, 127], 对称量化用[-127, 127]
 - UINT8: 某些框架的激活量化用[0, 255]
 - 量化计算: INT8×INT8→INT32避免溢出
+
+---
 
 ### Q: 链接两个库中有同名函数会怎样？
 

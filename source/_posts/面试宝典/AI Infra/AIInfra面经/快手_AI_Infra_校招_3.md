@@ -49,6 +49,8 @@ AI 编译器负责将深度学习模型从框架级表示（如 PyTorch 计算�
 | XLA | Google 生态，JAX 后端 | TPU + 大规模训练 |
 | torch.compile (Inductor) | PyTorch 原生，动态图编译 | PyTorch 用户透明加速 |
 
+---
+
 ### Q: 异构平台优化（NVIDIA/AMD）的挑战？
 
 **核心挑战**：
@@ -81,6 +83,8 @@ AI 编译器负责将深度学习模型从框架级表示（如 PyTorch 计算�
 - **HIP 兼容层**：hipify-clang 自动翻译 CUDA→HIP（大部分 API 一一对应）
 - **性能调优**：热点 kernel 需要针对目标架构重新调优参数（tile size、unroll factor）
 - **统一框架**：PyTorch 的 dispatcher 机制支持多后端透明切换
+
+---
 
 ### Q: Triton 与 CUDA 的区别？
 

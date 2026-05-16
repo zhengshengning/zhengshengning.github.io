@@ -49,9 +49,13 @@ MPI_Finalize();                   // 清理
 - MoE专家并行token路由 → AlltoAll
 - 流水线并行层间传递 → Send/Recv
 
+---
+
 ### Q: 将一个无序数组插入一个有序数组，保持有序，无序数组长度小于有序数组？
 
 （编程题）
+
+---
 
 ### Q: 了解多线程吗？
 
@@ -96,6 +100,8 @@ counter.fetch_add(1, std::memory_order_relaxed);  // 原子递增
 - CUDA线程：轻量级（主要状态是寄存器），数量巨大（数万~百万），切换几乎零开销
 - CPU线程靠时间片切换实现并发；CUDA线程靠硬件同时调度实现真并行
 
+---
+
 ### Q: 操作系统中死锁是什么？产生条件和解决方法？
 
 **死锁定义：** 多个进程/线程各自持有某些资源，同时等待其他进程/线程持有的资源，形成环形等待，所有进程永久阻塞。
@@ -136,6 +142,8 @@ mutex2.lock(); // 等B    mutex1.lock(); // 等A
    - 层次化锁：定义锁的level，只允许从低level向高level获取
    - 减少锁持有时间：临界区最小化
 
+---
+
 ### Q: 介绍一下UDP和TCP的区别？
 
 **核心对比：**
@@ -163,6 +171,8 @@ mutex2.lock(); // 等B    mutex1.lock(); // 等A
 - 需要可靠传输 → TCP（或QUIC = UDP + 自实现可靠性）
 - 实时性优先（允许丢包） → UDP
 - RDMA通信 → 基于UDP的InfiniBand/RoCE协议
+
+---
 
 ### Q: TCP怎么保证可靠传输？
 
@@ -197,6 +207,8 @@ TCP通过**多层机制协同**保证可靠传输：
 - 检测传输过程中的比特错误
 - 错误的报文直接丢弃（等待重传）
 
+---
+
 ### Q: C++ STL中除了优先队列还有什么可以实现堆？
 
 **STL堆操作函数（可在任意RandomAccessIterator上操作）：**
@@ -226,6 +238,8 @@ std::sort_heap(v.begin(), v.end());     // 反复pop_heap实现排序 O(n log n)
 | make_heap系列 | 任意随机访问容器 | 灵活，可自定义比较函数 |
 | set/multiset | 红黑树 | 有序，支持任意位置删除，O(log n) |
 | Boost.Heap | 多种堆实现 | Fibonacci/Binomial/d-ary heap |
+
+---
 
 ### Q: 什么是POD类型？
 
@@ -259,6 +273,8 @@ static_assert(std::is_trivial_v<MyType>);         // 平凡性
 static_assert(std::is_standard_layout_v<MyType>); // 标准布局
 static_assert(std::is_trivially_copyable_v<MyType>); // 可memcpy
 ```
+
+---
 
 ### Q: CUDA相关概念：Shuffle、Warp Reduce、SM？
 
@@ -299,6 +315,8 @@ __device__ float warpReduceSum(float val) {
 - 多个warp在SM上**时分复用**：一个warp等待数据时，调度器切换到另一个warp执行
 - Block被映射到SM上执行，一个SM可同时驻留多个Block（受资源限制）
 - A100有108个SM，H100有132个SM
+
+---
 
 ### Q: 什么是TVM和Halide？
 
@@ -342,6 +360,8 @@ blur_x.compute_at(blur_y, x).vectorize(x, 8);
 | 前端 | C++ DSL | Python(Relay/TE) |
 | 算子融合 | 有限 | 自动图级融合 |
 | 模型导入 | 无 | ONNX/PyTorch/TF |
+
+---
 
 ### Q: AoS和SoA数据布局的区别？
 

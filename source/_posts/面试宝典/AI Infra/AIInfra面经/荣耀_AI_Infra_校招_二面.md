@@ -68,6 +68,8 @@ NVIDIA 推理栈:                    NPU 推理栈:
 - 实现类 PagedAttention 的 KV Cache 分页管理
 - 利用 NPU 的特有优势（如某些 NPU 有更大的片上缓存）
 
+---
+
 ### Q: Prefill 和 Decoding 的 Matmul 优化方法有什么不同？
 
 两个阶段的矩阵乘法有本质不同的形状特征和瓶颈类型，需要完全不同的优化策略：
@@ -139,6 +141,8 @@ Split-K (将 K 维切分):
 | 量化收益 | FP8 加速计算（TC 吞吐 2x） | INT4 减少读取量（带宽收益 4x） |
 | Batch 影响 | batch 越大越好（更大 M） | batch 增大可过渡到 compute-bound |
 
+---
+
 ### Q: 分块策略如何保证数据在缓存中的连续性？
 
 **问题本质**：Tiling 将大矩阵分块后，每个 tile 在原始矩阵中可能不是内存连续的（如行优先存储时列方向的 tile）。需要确保加载到片上缓存后的访问是高效的。
@@ -207,6 +211,8 @@ cuBLAS/TensorRT 在初始化时会做 weight packing
 - 更大的片上缓存意味着可以存更大的 tile → 更少的全局访存次数
 - 但 DMA 传输与计算的并行需要手动编排（PIPE_M/PIPE_V 分离）
 
+---
+
 ### Q: 昇腾 NPU 架构对 Transformer 友好吗？
 
 **昇腾 NPU（如 Ascend 910B）的核心架构**：
@@ -254,6 +260,8 @@ Ascend 910B:
   - 大 Local Memory: tiling 块可以更大 → 复用率更高 → 可能反超 GPU
   - 如果 Local Memory 足以放完整的 K/V block → 比 GPU 的 shared memory 更宽裕
 ```
+
+---
 
 ### Q: 量化后的大模型运行时内存占用大概多少？
 

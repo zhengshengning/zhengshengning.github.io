@@ -47,6 +47,8 @@ for k = 0 to K/TILE_K:
 
 **性能参考：** A100上cuBLAS的GEMM峰值可达硬件理论算力的90%+，手写kernel在标准shape上通常能达到85-95%（Cutlass模板库水平）。
 
+---
+
 ### Q: 深度学习框架前端怎么注册算子的？为什么加个宏定义就能注册了？
 
 框架使用**静态注册机制**，利用C++全局/静态对象在程序加载时（main函数之前）自动执行构造函数的语言特性。
@@ -91,6 +93,8 @@ REGISTER_OP(MyCustomOp, MyCustomOpImpl);
 - 动态库(DSO)中的注册对象在dlopen时构造，dlclose时析构
 - PyTorch使用`TORCH_LIBRARY`宏（基于相同原理），TensorFlow使用`REGISTER_OP`宏
 
+---
+
 ### Q: 有向无环图（DAG）用什么数据结构实现？
 
 **常用表示方式：**
@@ -115,6 +119,8 @@ vector<vector<pair<int,int>>> adj;  // adj[u] = {(v, weight), ...}
 - 最长/最短路径可用拓扑排序+DP在O(V+E)内解决
 
 **应用场景：** 任务调度（依赖关系）、编译系统（Makefile依赖）、深度学习计算图、版本控制(git commit graph)、Course prerequisite
+
+---
 
 ### Q: 拓扑排序的实现？
 
@@ -165,6 +171,8 @@ void dfs(int u, vector<vector<int>>& adj, vector<bool>& visited, stack<int>& st)
 | 多个有效排序 | 用优先队列可得字典序最小 | 不方便控制 |
 | 并行性发现 | 自然发现可并行的节点（同时入度为0） | 不直观 |
 
+---
+
 ### Q: 二叉树中序遍历？
 
 中序遍历(Inorder Traversal)的访问顺序为：**左子树 → 根节点 → 右子树**。
@@ -203,6 +211,8 @@ vector<int> inorderIterative(TreeNode* root) {
 - Morris遍历可以O(1)空间完成中序遍历（利用线索化——将空的右指针指向后继）
 - 时间复杂度O(n)，递归空间O(h)，Morris空间O(1)
 
+---
+
 ### Q: 满二叉树的定义和性质？
 
 满二叉树(Full Binary Tree/Perfect Binary Tree)是每一层节点数都达到最大值的二叉树。
@@ -223,6 +233,8 @@ vector<int> inorderIterative(TreeNode* root) {
 | 真二叉树 | Full/Proper Binary Tree | 每个节点要么0个要么2个子节点 |
 
 完全二叉树适合用数组存储（堆的底层结构），满二叉树是完全二叉树的特例。
+
+---
 
 ### Q: 单例模式如何实现？
 
@@ -264,6 +276,8 @@ if (!__guard) {  // 实际用原子操作+互斥锁实现
 }
 ```
 
+---
+
 ### Q: C++模板函数是怎么编译的？
 
 模板函数采用**编译时实例化**（instantiation）机制——编译器遇到模板被具体类型使用时，为该类型生成一份特化代码。
@@ -289,6 +303,8 @@ if (!__guard) {  // 实际用原子操作+互斥锁实现
 - 每种类型组合生成一份代码（`vector<int>`和`vector<double>`是完全不同的类）
 - 大量模板实例化导致编译时间长、目标文件大
 - 缓解方法：extern template（C++11）声明在其他编译单元已实例化、减少不必要的模板参数组合
+
+---
 
 ### Q: C++ STL迭代器怎么安全删除元素？
 
@@ -338,6 +354,8 @@ for (auto it = myMap.begin(); it != myMap.end(); ) {
 ```cpp
 std::erase_if(vec, [](int x) { return x % 2 == 0; });
 ```
+
+---
 
 ### Q: C++ STL基本容器有哪些？
 

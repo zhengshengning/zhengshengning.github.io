@@ -24,6 +24,8 @@ tags: [AIInfra, 算子优化, 面经]
 - 并行策略优化：TP放机内（通信密集）、PP/DP跨机（通信稀疏）。
 - 容错机制：checkpoint、弹性训练。
 
+---
+
 ### Q: 请介绍Roofline模型，如何判断性能已达到计算瓶颈？
 
 Roofline模型以算术强度（Arithmetic Intensity = FLOPs/Bytes）为x轴，可达性能（FLOPS）为y轴，画出一条由内存带宽和计算能力决定的"屋顶线"。
@@ -33,6 +35,8 @@ Roofline模型以算术强度（Arithmetic Intensity = FLOPs/Bytes）为x轴，�
 - 若算子的算术强度 > 拐点，则受计算限制（compute-bound）。
 
 判断是否达到计算瓶颈：实际性能接近峰值算力（如达到80%+），且进一步优化访存无法带来性能提升。
+
+---
 
 ### Q: C++中数组越界写导致其他数据结构被写坏，保留了coredump文件，如何排查？
 
@@ -44,6 +48,8 @@ Roofline模型以算术强度（Arithmetic Intensity = FLOPs/Bytes）为x轴，�
 6. 使用Valgrind的memcheck工具检测内存错误。
 7. 审查coredump中堆栈相邻变量的内存布局，判断越界方向和偏移量。
 
+---
+
 ### Q: 请介绍Flash Attention？
 
 Flash Attention通过IO感知（IO-aware）的方式实现精确注意力计算，核心思想是避免将完整的N*N注意力矩阵写入HBM。
@@ -54,6 +60,8 @@ Flash Attention通过IO感知（IO-aware）的方式实现精确注意力计算�
 - **重计算（Recomputation）**：反向传播时不存储注意力矩阵，而是重新计算，用计算换显存。
 
 效果：将注意力计算的IO复杂度从O(N²)降至O(N²d/M)（M为SRAM大小），显存从O(N²)降至O(N)。
+
+---
 
 ### Q: GEMM一定是计算瓶颈算子吗？如果要优化它，思路是什么？
 
@@ -67,6 +75,8 @@ Flash Attention通过IO感知（IO-aware）的方式实现精确注意力计算�
 - **利用Tensor Core**：使用wmma/mma指令利用硬件矩阵计算单元。
 - **减少Bank Conflict**：共享内存padding或swizzle。
 
+---
+
 ### Q: 性能优化的定位和瓶颈检测有什么方法？
 
 - **Profiling工具**：NVIDIA Nsight Compute（kernel级分析）、Nsight Systems（系统级时间线）。
@@ -74,6 +84,8 @@ Flash Attention通过IO感知（IO-aware）的方式实现精确注意力计算�
 - **Roofline分析**：判断是compute-bound还是memory-bound。
 - **Timeline分析**：检查kernel间空隙、CPU-GPU同步等待、通信开销。
 - **对比理论峰值**：实际FLOPS vs 峰值FLOPS，实际带宽 vs 峰值带宽。
+
+---
 
 ### Q: 手撕：手写包含GQA的Attention模块实现？
 

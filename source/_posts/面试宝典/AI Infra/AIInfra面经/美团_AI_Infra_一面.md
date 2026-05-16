@@ -48,6 +48,8 @@ tags: [AIInfra, 推理优化, 算子优化, 大厂面经, 面经]
 - 但规模扩展不如 Decoder-only 经济（编码器的计算不能被 KV Cache 复用）
 - 逐渐被 Decoder-only 取代（GPT-4 做翻译/摘要同样出色）
 
+---
+
 ### Q: 介绍一下 LLaMA 模型？
 
 LLaMA（Large Language Model Meta AI）是 Meta 开源的 Decoder-only Transformer 系列，是当前开源 LLM 生态的基石模型。
@@ -87,6 +89,8 @@ LLaMA（Large Language Model Meta AI）是 Meta 开源的 Decoder-only Transform
 - 词表 128,256，BPE tokenizer
 - 训练数据 15T tokens
 - 总参数量 ~8B（其中 Embedding 0.5B，每层 ~0.23B）
+
+---
 
 ### Q: CUDA 编程模型和内存模型？
 
@@ -143,6 +147,8 @@ Global Memory（慢） → Shared Memory（中） → 寄存器（快）
     (合并访存,           (tiling)         (寄存器 tiling)
      向量化 float4)
 ```
+
+---
 
 ### Q: 使用共享内存时需要注意什么？怎么避免 Bank Conflict？
 
@@ -222,6 +228,8 @@ float4* shared_vec = reinterpret_cast<float4*>(shared_mem);
 float4 val = shared_vec[threadIdx.x];  // 天然无冲突
 ```
 
+---
+
 ### Q: 使用寄存器时需要注意什么？怎么避免 Register Spilling？
 
 **寄存器的核心约束**：
@@ -279,6 +287,8 @@ float4 val = shared_vec[threadIdx.x];  // 天然无冲突
    - TM=TN=8 → 64 个结果寄存器 + 加载缓冲 → 可能接近上限
    - 如果 spilling 严重，减小到 TM=TN=4
 
+---
+
 ### Q: GPU 多线程和 CPU 多线程有什么区别？
 
 两者的设计哲学完全不同——CPU 追求**单线程低延迟**，GPU 追求**大规模高吞吐**：
@@ -319,6 +329,8 @@ HBM 访问延迟: ~400 cycles
 如果 occupancy = 12.5%（如 4 warp/SM）:
   可能无法隐藏延迟 → 性能下降
 ```
+
+---
 
 ### Q: FlashAttention 的原理？
 
@@ -371,6 +383,8 @@ Tiling 实现:
 | Seq=2K FP16 | ~32 MB/head | ~16 KB/head |
 
 **为什么减少 HBM 读写能加速**：Attention 的算术强度很低（~O(N) FLOPS / O(N²) bytes），是典型的 memory-bound 算子。减少 HBM 读写直接提升性能。
+
+---
 
 ### Q: PagedAttention 的原理？
 

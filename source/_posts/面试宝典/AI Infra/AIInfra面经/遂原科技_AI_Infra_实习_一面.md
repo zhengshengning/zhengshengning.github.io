@@ -59,6 +59,8 @@ Scale确定方法：
 - **KL散度校准**：TensorRT方法，搜索使量化后分布与原始分布KL散度最小的阈值
 - **学习scale(LSQ)**：QAT中将scale作为可学习参数
 
+---
+
 ### Q: Triton算子实现逻辑和分块策略？
 
 Triton是OpenAI开发的GPU编程语言，以**block（数据块）**为基本计算粒度，介于CUDA（线程级）和高层框架（算子级）之间。
@@ -120,6 +122,8 @@ def matmul_kernel(...):
    - Program的启动顺序影响L2 cache重用
    - Swizzle/reorder program_id使相邻program访问相邻数据
 
+---
+
 ### Q: Decode阶段是compute bound还是memory bound？KV-Cache量化提升的是什么？
 
 **Decode阶段是典型的memory-bound。**
@@ -154,6 +158,8 @@ A100 Roofline拐点 = 312 TFLOPS / 2 TB/s ≈ 156 FLOPs/byte
 - 更大的batch → 提高算术强度 → 更好的GPU利用率
 - 更多请求可以同时服务 → 提高系统吞吐
 
+---
+
 ### Q: A100的理论带宽上限？
 
 **A100各级内存/互联带宽：**
@@ -182,6 +188,8 @@ A100 Roofline拐点 = 312 TFLOPS / 2 TB/s ≈ 156 FLOPs/byte
 | NVLink | 600 GB/s (12x NVLink3) | 900 GB/s (18x NVLink4) |
 | SM数量 | 108 | 132 |
 
+---
+
 ### Q: 有没有想过用CUDA开发算子？为什么使用Triton？
 
 **选择Triton而非CUDA的核心考量——开发效率与性能的权衡：**
@@ -208,6 +216,8 @@ A100 Roofline拐点 = 312 TFLOPS / 2 TB/s ≈ 156 FLOPs/byte
 - Triton实现的FlashAttention达到手写CUDA版本90-95%的性能
 - Triton实现的FusedAttention已被PyTorch torch.compile采用
 - 对于element-wise和reduce类kernel，Triton通常能达到理论峰值带宽
+
+---
 
 ### Q: 有没有做过profile？测出来性能指标如何？后续优化思路？
 

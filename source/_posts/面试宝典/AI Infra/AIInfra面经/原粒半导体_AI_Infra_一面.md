@@ -42,6 +42,8 @@ CUDA kernel优化遵循"Profile→Analyze→Optimize→Verify"循环，根据瓶
 - **Nsight Compute**：分析compute/memory throughput比值定位bound类型，查看stall原因分布。
 - **Roofline Model**：可视化kernel离峰值的距离，明确优化方向。
 
+---
+
 ### Q: Reduce计算顺序会影响精度吗？
 
 **会**。浮点数运算不满足结合律（(a+b)+c ≠ a+(b+c)），不同的累加顺序会产生不同的舍入误差。
@@ -69,6 +71,8 @@ CUDA kernel优化遵循"Profile→Analyze→Optimize→Verify"循环，根据瓶
 4. **分块Reduce**：先在小块内FP32累加，块间再累加。
 
 **实践中**：对于深度学习，通常要求的精度是"模型收敛+推理质量可接受"，而非bit-exact。因此并行Reduce的非确定性舍入误差通常是可接受的，但需要监控（如loss异常或模型输出NaN）。
+
+---
 
 ### Q: 怎么确定计算精度是否满足要求？
 
@@ -109,6 +113,8 @@ CUDA kernel优化遵循"Profile→Analyze→Optimize→Verify"循环，根据瓶
 - NaN/Inf检测：`torch.isnan(output).any()`。
 - 大值/溢出检测：检查输出范围是否在类型表示范围内。
 - Subnormal数处理：部分GPU对denormalized数flush to zero，与CPU行为不同。
+
+---
 
 ### Q: pytest有哪些常用命令？
 
@@ -155,6 +161,8 @@ pytest tests/ --cov=my_module --maxfail=5 -n 4
 # 只跑GPU相关测试
 pytest -m "gpu" -v --durations=20
 ```
+
+---
 
 ### Q: 常见的非线性算子有哪些？
 

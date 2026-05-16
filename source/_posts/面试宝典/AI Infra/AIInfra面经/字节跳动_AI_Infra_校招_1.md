@@ -93,6 +93,8 @@ tags: [AIInfra, 推理优化, 大厂面经, 面经]
 | 张量并行 | 单卡延迟 | 延迟↓近线性 |
 | PD分离 | 混合调度干扰 | 各阶段独立优化 |
 
+---
+
 ### Q: 模型压缩量化方法有哪些？量化的优点有哪些？
 
 **量化方法分类**：
@@ -163,6 +165,8 @@ Per-token:   每个token一个scale → 激活量化的标准选择（因为不�
 - 激活中的outlier：某些channel的值可能是其他的100x，INT8无法表示→需要SmoothQuant/LLM.int8()特殊处理。
 - 过度量化（如W2/W3）在小模型上精度崩溃严重，大模型容忍度更高。
 - KV Cache量化（INT8/FP8）需注意attention score的数值精度影响。
+
+---
 
 ### Q: 权重量化、激活值量化、KV Cache量化分别有什么好处？
 
@@ -237,6 +241,8 @@ KV Cache量化的额外收益：减少Attention计算时KV的读取带宽需求�
 - 生产环境最常见：W4A16 + FP16 KV（简单有效）。
 - 高吞吐追求：W8A8 + INT8 KV（SmoothQuant全链路量化）。
 - 极致压缩：W4A8 + INT4 KV（需要精心校准）。
+
+---
 
 ### Q: KV Cache原理？PagedAttention为什么效果好？
 
@@ -325,6 +331,8 @@ for block_idx in block_table[request_id]:
 
 vLLM的实现中，这个Attention kernel经过高度优化（CUDA手写），性能接近连续内存的FlashAttention。
 
+---
+
 ### Q: Prefix Cache的作用？
 
 **Prefix Cache的原理和收益详解**：
@@ -376,6 +384,8 @@ vLLM的实现中，这个Attention kernel经过高度优化（CUDA手写），�
 - 多轮对话（前几轮对话历史作为prefix）。
 
 **与PagedAttention的协同**：Prefix Cache本质是PagedAttention框架下的一个优化——通过block table的物理block共享（reference counting）实现prefix复用，是虚拟内存"共享库映射"思想在推理系统中的应用。
+
+---
 
 ### Q: AI Agent的构建包含哪些模块？
 
@@ -459,6 +469,8 @@ tools = [{
     → 工具系统(执行action) → 记忆系统(存储结果)
     → LLM引擎(总结/继续) → 安全护栏(输出过滤) → 用户
 ```
+
+---
 
 ### Q: 手撕：环上n步回到原点的走法数（DP）？
 

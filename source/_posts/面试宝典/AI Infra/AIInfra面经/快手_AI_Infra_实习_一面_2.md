@@ -81,6 +81,8 @@ tags: [AIInfra, 推理优化, 算子优化, 大厂面经, 面经]
 
 4. **精度测试**：不同量化配置下的 PPL、MMLU、GSM8K 等 benchmark 指标
 
+---
+
 ### Q: vLLM 的 PagedAttention、Chunked Prefill 和 Continuous Batching？
 
 **PagedAttention**：
@@ -112,6 +114,8 @@ Continuous Batching 改进：
 - 已完成的请求立即移除，腾出的 KV Cache 空间立即给等待队列中的新请求
 - 新请求可以在任意 iteration 加入（无需等整个 batch 完成）
 - 效果：GPU 始终满载，吞吐提升 2-10x（取决于请求长度分布的不均匀程度）
+
+---
 
 ### Q: 手撕：二维数组每行有序，求第 K 小的元素？
 

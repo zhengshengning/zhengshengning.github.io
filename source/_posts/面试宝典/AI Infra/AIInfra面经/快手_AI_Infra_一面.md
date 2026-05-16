@@ -46,6 +46,8 @@ Decode 请求 → Attention Node (高带宽) ← KV Cache 存储
 
 **挑战**：Attention→FFN 之间的中间激活传输延迟，需要高速网络（NVLink/RDMA）。
 
+---
+
 ### Q: FlashAttention V2 相比 V1 做了哪些改进？V4 版本了解吗？
 
 **FlashAttention-2 的四大改进**：
@@ -79,6 +81,8 @@ Decode 请求 → Attention Node (高带宽) ← KV Cache 存储
 - **FP8 Tensor Core**：支持 FP8 attention 计算，吞吐再翻倍
 
 注意：目前公开文献中没有 "FlashAttention-4" 的正式版本（截至 2025）。
+
+---
 
 ### Q: 大模型一层有几个线性层？TP 怎么切？为什么这样切？如何优化中间的 AllReduce？
 
@@ -118,6 +122,8 @@ Decode 请求 → Attention Node (高带宽) ← KV Cache 存储
    - 好处：LayerNorm 计算也被分摊，activation memory 减少
 3. **通信压缩**：AllReduce 的数据用 FP8 传输，接收端再转回 FP16/BF16
 4. **Ring → Tree AllReduce**：小消息时 Tree 延迟更低
+
+---
 
 ### Q: Ray 的底层实现和特性？
 
@@ -162,6 +168,8 @@ Ray 是一个通用分布式计算框架，在 AI Infra 中广泛用于推理服
    - vLLM 用 Ray 做多节点推理的 worker 管理和请求分发
    - OpenRLHF/veRL 用 Ray 编排 generation + reward + training 多组件
    - 超参搜索（Ray Tune）
+
+---
 
 ### Q: CUDA GEMM 的优化方法有哪些？
 
@@ -212,6 +220,8 @@ Ray 是一个通用分布式计算框架，在 AI Infra 中广泛用于推理服
 - 将 K 维也切分到多个 block，每个 block 计算部分 K 的累加
 - 最后用额外 kernel 做 K 维归约
 - 适合 Decode 阶段的瘦矩阵乘
+
+---
 
 ### Q: 手撕：LeetCode 单词接龙（BFS 最短路径）？
 

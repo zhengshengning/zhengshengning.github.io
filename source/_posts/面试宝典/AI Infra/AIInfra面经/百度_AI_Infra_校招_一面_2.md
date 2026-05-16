@@ -27,6 +27,8 @@ tags: [AIInfra, 大厂面经, 面经]
 
 **补充**：堆栈之间有大量未映射空间（ASLR 随机化）和 mmap 区域（用于动态库和大块分配）。
 
+---
+
 ### Q: new和malloc的区别？
 
 | 维度 | new | malloc |
@@ -41,6 +43,8 @@ tags: [AIInfra, 大厂面经, 面经]
 | **底层实现** | 通常内部调用 `malloc` + 构造 | 直接系统调用 |
 
 **使用建议**：C++ 中优先用 `make_unique/make_shared` > `new` > `malloc`。现代 C++ 几乎不需要直接使用 new/malloc（RAII 智能指针管理）。
+
+---
 
 ### Q: vector在内存中怎么存的？new的vector存储方式一样吗？
 
@@ -59,6 +63,8 @@ vector<int>* pv = new vector<int>;  // vector对象也在堆上，元素在另�
 
 两种情况下元素的存储方式完全相同（堆上连续内存），区别仅在于 vector 对象本身（24B 的 header）的位置。实践中几乎不需要 `new vector`——直接在栈上或作为成员变量声明即可。
 
+---
+
 ### Q: 给定卷积参数，计算时间复杂度？
 
 标准 2D 卷积的计算复杂度：
@@ -73,6 +79,8 @@ vector<int>* pv = new vector<int>;  // vector对象也在堆上，元素在另�
 - 总计：C_out * H_out * W_out * C_in * K_h * K_w 次 MAC（乘加）
 
 **实际执行时间**取决于：(1) 硬件峰值 TFLOPS；(2) 算法实现的效率（Im2col/Winograd/Direct）；(3) 数据搬运效率（memory-bound vs compute-bound）。相同 FLOPs 的卷积在不同 shape 下实际延迟可能差数倍。
+
+---
 
 ### Q: 手撕：二叉树镜像翻转？
 

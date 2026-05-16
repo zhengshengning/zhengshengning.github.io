@@ -90,6 +90,8 @@ def schedule():
 - SGLang: 支持PD分离模式
 - TensorRT-LLM: 支持配置Prefill/Decode分离
 
+---
+
 ### Q: vLLM如何优化显存？
 
 **vLLM显存优化的全方位策略：**
@@ -173,6 +175,8 @@ GPU 80GB显存分配:
   → 125个请求×1000 tokens 或 25个请求×5000 tokens
 ```
 
+---
+
 ### Q: Chunked Prefill是什么？
 
 **问题背景：长Prefill阻塞Decode**
@@ -234,6 +238,8 @@ decode延迟影响:
 - 在decode延迟约束下最大化prefill吞吐
 - 实验显示P99延迟改善3-5倍
 
+---
+
 ### Q: 什么是虚拟内存？
 
 **虚拟内存的核心机制：**
@@ -286,6 +292,8 @@ TLB加速:
 - CUDA Unified Memory: 提供虚拟地址抽象，页面按需在CPU↔GPU迁移
 - vLLM PagedAttention: 在应用层模拟虚拟内存分页(逻辑block→物理block)
 
+---
+
 ### Q: 进程和线程的区别？操作系统如何调度？
 
 **核心对比：**
@@ -331,6 +339,8 @@ CFS核心: 虚拟运行时间(vruntime)
 - SCHED_FIFO: 一直运行直到主动让出
 - SCHED_RR: 相同优先级间轮转
 - 用于延迟敏感场景(如GPU driver中断处理线程)
+
+---
 
 ### Q: TCP/IP分层模型？如何通过IP地址找到目标进行通信？
 
@@ -392,6 +402,8 @@ Step 5: 最后一跳
 | TCP | 传输层 | 可靠有序传输 | 三次握手, 重传, 流控 |
 | UDP | 传输层 | 不可靠但快速 | 无连接, 无重传 |
 | DNS | 应用层 | 域名→IP解析 | 层次化域名空间, 缓存 |
+
+---
 
 ### Q: 手撕：DFS解法+优化为O(NlogN)？
 

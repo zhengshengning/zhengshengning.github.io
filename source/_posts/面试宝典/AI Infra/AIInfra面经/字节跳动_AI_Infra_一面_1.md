@@ -84,6 +84,8 @@ call [rax + 0]        ; 调用vtable[0]指向的函数
 - **多重继承**：对象有多个vptr（每个基类一个），vtable变为多组。
 - **RTTI**：vtable中还包含type_info指针，`dynamic_cast`和`typeid`依赖它。
 
+---
+
 ### Q: C++内存对齐的规则？
 
 **内存对齐规则（x86-64默认，#pragma pack(8)）**：
@@ -135,6 +137,8 @@ struct Packed { ... };
 
 alignas(64) float cache_line_aligned_array[16];  // 64字节对齐（避免false sharing）
 ```
+
+---
 
 ### Q: C++动态库和静态库的区别？
 

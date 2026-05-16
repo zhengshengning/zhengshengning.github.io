@@ -15,6 +15,8 @@ tags: [AIInfra, 算子优化, 大厂面经, 面经]
 
 （编程题）
 
+---
+
 ### Q: 手撕：CUDA实现GEMM，讲优化方法和评估指标？
 
 （编程题）
@@ -111,6 +113,8 @@ Tensor Core单条指令完成数百次FMA，吞吐比CUDA Core高16x。
 - 大矩阵（M,N,K>4096）：compute-bound，追求高TFLOPS。
 - 小矩阵（M或N<256）：可能memory-bound，关注带宽利用。
 - Batch小GEMM：可能latency-bound（kernel launch开销占比高）。
+
+---
 
 ### Q: 手撕：实现MLA（Multi-head Latent Attention）？
 
