@@ -2,7 +2,7 @@
 title: AI Infra学习路线
 date: 2026-03-26 10:00:00
 categories:
-  - [AI Infra, 学习路线]
+  - [AI Infra, 学习指南]
 tags: [AI Infra, LLM, 分布式训练, 推理优化, CUDA, 学习路线]
 ---
 

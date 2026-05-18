@@ -19,7 +19,7 @@ comments: false
 ### 一、AI Infra（核心方向）
 
 从入门到进阶的完整学习体系：
-- **AIInfra 学习路线**： 系统化的学习路径、知识图谱、推荐资源 
+- **AIInfra 学习指南**： 系统化的学习路径、知识图谱、推荐资源 
 - **AIInfra 前置基础**： GPU 架构、NVIDIA 架构演进、计算机体系结构、Transformer 基础 
 - **CUDA 编程与算子优化**： CUDA 编程模型、Kernel 开发、FlashAttention、Triton 
 - **分布式训练**： DDP、FSDP、ZeRO、3D 并行、DeepSpeed、Megatron-LM 

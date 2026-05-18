@@ -4,7 +4,7 @@
 
 | 一级分类 | 二级分类 | 适用主题 | 已有文章 |
 |---------|---------|---------|---------|
-| AI Infra | 学习路线 | AI Infra 整体学习路径、知识图谱 | AI Infra学习路线 |
+| AI Infra | 学习指南 | AI Infra 整体学习路径、知识图谱 | AI Infra学习路线 |
 | AI Infra | 前置知识 | Transformer架构、PyTorch框架、线性代数、概率论、Python/C++基础、Linux | 编程语言入门、Transformer架构入门、PyTorch框架入门、通信拓扑入门、AI Infra工程师为什么必须懂Transformer、Transformer全貌及代码实现、Tokenization与词嵌入、Self-Attention机制深入理解、Transformer前馈网络FFN深入理解、Transformer位置编码深入理解、LayerNorm与残差连接深入理解、Transformer Decoder Block完整解析、从Transformer到LLM自回归生成深入理解 |
 | AI Infra | CUDA编程与算子优化 | CUDA编程、算子开发、Kernel优化、FlashAttention、Triton、GPU架构 | CUDA编程入门指南、高效CUDA编程速查、Thread Block Cluster 架构特性、GPU架构与存储体系、CUDA开发环境搭建、CUDA编程模型、CUDA内存模型、第一个实用Kernel、Warp与执行模型、内存访问优化、Occupancy与资源分配、同步与原子操作、CUDA 13.1新特性：Tile编程模型 |
 | AI Infra | 分布式训练 | DDP、FSDP、3D并行、ZeRO、DeepSpeed、Megatron-LM | 分布式训练入门 |
