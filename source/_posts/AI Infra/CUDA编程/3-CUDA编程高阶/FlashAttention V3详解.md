@@ -18,7 +18,7 @@ tags: [FlashAttention, Attention, CUDA, Hopper, WGMMA, TMA]
 - [3. Warp-Specialization 与异步流水线](#3-warp-specialization-与异步流水线)
 - [4. WGMMA 指令的利用](#4-wgmma-指令的利用)
 - [5. TMA 异步数据搬运](#5-tma-异步数据搬运)
-- [6. Ping-Pong 调度：跨 Warpgroup 重叠 GEMM 与 Softmax](#6-ping-pong-调度跨-warpgroup-重叠-gemm-与-softmax)
+- [6. 让 GEMM 与 Softmax 在硬件上并行](#6-让-gemm-与-softmax-在硬件上并行)
 - [7. FP8 低精度支持](#7-fp8-低精度支持)
 - [8. Incoherent Processing 与精度细节](#8-incoherent-processing-与精度细节)
 - [9. 性能分析](#9-性能分析)
@@ -97,7 +97,7 @@ NVIDIA 在硬件里写死了两点：
 
 ### 2.2 TMA（Tensor Memory Accelerator）
 
-TMA 是 Hopper 新增的专用硬件单元，用于在全局内存和共享内存之间高效搬运多维张量：
+TMA 是 Hopper 新增的专用硬件单元，用于在**全局内存和共享内存之间**高效搬运多维张量：
 
 - **硬件驱动**：一旦发射 TMA 请求，由专用硬件完成，不占用 CUDA Core
 - **支持多维寻址**：直接处理 2D/3D/4D 张量的复杂地址计算
@@ -111,6 +111,8 @@ Hopper 引入了 Cluster 概念——将多个 Thread Block 组成一个 Cluster
 - Cluster 内的 Thread Block 可以直接读写彼此的 Shared Memory
 - 通过 TMA 多播，一次全局内存读取可以分发到 Cluster 内所有 SM
 
+⚠️ **澄清**：FA3 论文本身**并未实际使用** Cluster / DSMEM / TMA Multicast，正文中只把它作为 Hopper 的背景特性列出。FA3 的三大算法贡献（warp-specialization、GEMM-Softmax 重叠、FP8）都在**单个 SM 内部**展开。Cluster 留给后续工作（如跨 SM 的 K/V 共享）作为优化方向。
+
 ---
 
 ## 3. Warp-Specialization 与异步流水线
@@ -122,7 +124,7 @@ V3 在每个 Thread Block 内部采用 **warp-specialization**：Thread Block �
 | 角色 | 谁 | 做什么 | 用什么硬件 |
 |------|-----|--------|----------|
 | **Producer warpgroup** | 1 个 warpgroup（128 线程，且只需 1 个线程发射 TMA） | 发射 TMA 请求把 K/V tile 从 HBM 拉到 SMEM | TMA 硬件单元 |
-| **Consumer warpgroup** | 1 个或 2 个 warpgroup（128 / 256 线程） | 等数据就位 → WGMMA(QKᵀ) → CUDA Core 算 Softmax → WGMMA(PV) + rescale 累积 O | Tensor Core + 多功能单元 |
+| **Consumer warpgroup** | 默认 2 个 warpgroup（256 线程，用于 §6.3 的 ping-pong；也可退化为 1 个） | 等数据就位 → WGMMA(QKᵀ) → CUDA Core 算 Softmax → WGMMA(PV) + rescale 累积 O | Tensor Core + 多功能单元 |
 
 📌 **关键点**：因为 Producer 只发射 TMA、几乎不用寄存器，Consumer 才是真正需要寄存器存放 Q tile / 累加器的"大户"，Hopper 的 `setmaxnreg` 指令允许在 kernel 启动后**动态把 Producer 的寄存器配额还回去给 Consumer**——在论文 Algorithm 1 的第 3 行/第 12 行可以看到这个调整。
 
@@ -287,7 +289,9 @@ TMA 通过 Descriptor（张量描述符）工作，描述符包含：
 
 ---
 
-## 6. Ping-Pong 调度：跨 Warpgroup 重叠 GEMM 与 Softmax
+## 6. 让 GEMM 与 Softmax 在硬件上并行
+
+📖 **本章对应论文**：§3.1 末段（Pingpong scheduling，inter-warpgroup）+ §3.2（Intra-warpgroup overlapping GEMMs and softmax）。论文把 ping-pong 与 intra-warpgroup pipelining 视为**两个独立**的优化，前者跨 warpgroup 错相位，后者在单个 warpgroup 内打破 GEMM-Softmax 串行依赖。本文按此顺序展开。
 
 ### 6.1 数字直觉：为什么 Softmax 是头号公敌
 
@@ -298,86 +302,83 @@ H100 SXM5 的两类硬件单元算力差距悬殊：
 | Tensor Core（matmul） | 989 TFLOPS |
 | 多功能单元（exp 等 special function） | ≈ 3.9 TFLOPS（按 16 ops/SM/cycle × 132 SM × 1.83 GHz 估算） |
 
-带入 head dim 128 的 FP16 前向：matmul FLOPS 是 exp FLOPS 的 **512 倍**，但单位吞吐慢 **256 倍**——也就是说 Softmax 只贡献 0.4% 左右的 FLOPS，却**可能吃掉将近 50% 的总周期**。FP8 让 Tensor Core 翻倍，多功能单元不变，矛盾更尖锐。
+论文 §3.1 给出的估算：head dim 128 的 FP16 前向中，matmul FLOPs 是 exp FLOPs 的 **512 倍**，但 exp 的吞吐量低 **256 倍**——Softmax 只贡献不到 1% 的 FLOPs，**却可能占据 50% 左右的总周期**。FP8 让 Tensor Core 吞吐翻倍而多功能单元不变，矛盾更尖锐。
 
-📌 **关键点**：**只要让 multi-function unit 的 Softmax 执行窗口落在 Tensor Core 的 GEMM 执行窗口内，几乎可以"白拿"Softmax 的时间**。这就是 ping-pong 调度的目标。
+📌 **关键点**：只要让多功能单元的 Softmax 执行窗口落在 Tensor Core 的 GEMM 执行窗口内，几乎可以"白拿"Softmax 的时间。这是 §6.2 与 §6.3 两个优化的共同目标。
 
-### 6.2 Intra-Warpgroup Overlap：先把 Softmax 塞进 GEMM 间隙
+### 6.2 Inter-Warpgroup Ping-Pong（论文 §3.1）
 
-V3 通过额外寄存器 $S\_{\text{next}}$ 打破 Algorithm 1 中 Softmax 与 GEMM 的串行依赖，构造一个 2-stage 流水（论文 Algorithm 2 / 第 3.2 节）：
+<img src="/images/flashattentionv3-1.png" alt="" style="max-width: 100%; display: block; margin: 0 auto;" />
+
+V3 在一个 Block 内同时起 **2 个 Consumer Warpgroup**（共 256 线程）。论文给出的调度做法是用 `bar.sync` 同步屏障：
+
+> "we use synchronization barriers (`bar.sync` instructions) to force the GEMMs (GEMM1 – PV) of warpgroup 1 to be scheduled before the GEMM0 (QKᵀ) of warpgroup 2 (which in turn is scheduled before the GEMM1 of warpgroup 2)" —— FA3 paper §3.1
+
+WG1 在跑 GEMM 时 WG2 跑 Softmax，反之亦然——任意时刻 Tensor Core 与 MFU 都在被某一个 warpgroup 占用。论文用 Figure 1 直观展示了这种"乒乓"切换。
+
+📌 **澄清要点**：
+
+- ping-pong 的名字来自 CUTLASS 的 warp-specialized ping-pong GEMM；FA3 沿用同一调度模式，让两个 consumer warpgroup 处理**不同的输出 tile**（这是 CUTLASS ping-pong 的固有语义，论文未在正文重复说明）
+- 论文坦承"实际中的乒乓调度并不像示意图那样整洁"，但实测有效：head dim 128、seqlen 8192 的 FP16 forward 从 570 TFLOPS 提升到 **620–640 TFLOPS**
+
+### 6.3 Intra-Warpgroup Overlap：单个 warpgroup 内的 2-stage 流水（论文 §3.2）
+
+<img src="/images/flashattentionv3-2.png" alt="" style="max-width: 100%; display: block; margin: 0 auto;" />
+
+Algorithm 1 中单个 consumer 主循环里，Softmax 必须等 GEMM0（QKᵀ）的 `S` 返回才能开始，PV 又依赖 Softmax 的输出 `P`，三者**串行**。论文 §3.2 提出用一个额外的寄存器缓冲 $S\_{\text{next}}$ 打破这条依赖链，把迭代 $j+1$ 的 GEMM0 与迭代 $j+1$ 的 softmax、迭代 $j$ 的 GEMM1（PV）流水化：
 
 ```python
-# 单 Consumer Warpgroup 内（已切换到 RS-GEMM 形式）
-S_cur = wgmma(Q_i, K_0); wgmma_wait()        # 第一轮 QKᵀ
-m_i, P_cur, l_i = softmax_step(S_cur, ...)
-for j in range(1, T_c - 1):
-    S_next = wgmma(Q_i, K_j)                  # 异步发射，不等待
-    O_i   = wgmma(P_cur, V_{j-1})             # 异步发射，不等待
-    wgmma_wait_for(S_next)                    # 等 QKᵀ 回来
-    m_i, P_next, l_i = softmax_step(S_next)   # ★ 此时 PV 还在 Tensor Core 跑
-    wgmma_wait_for(O_i); rescale(O_i)
-    P_cur, S_cur = P_next, S_next
+# 单 Consumer Warpgroup 内的 2-stage 流水（论文 Algorithm 2 简化版）
+S_cur = wgmma(Q_i, K_0); wgmma_wait()                # 预热：第一轮 QKᵀ
+m_i, P_cur, l_i, _ = softmax_step(S_cur, ...)
+for j in range(1, T_c):
+    S_next = wgmma_async(Q_i, K_j)                   # 下一轮 QKᵀ，异步
+    O_i    = wgmma_async(P_cur, V_{j-1}, O_i)        # 本轮 PV，异步
+    wgmma_wait_for(S_next)                           # 等 QKᵀ
+    m_i, P_next, l_i, alpha = softmax_step(S_next)   # ★ 与 PV 并行
+    wgmma_wait_for(O_i); rescale(O_i, alpha)
+    P_cur = P_next
 ```
 
-效果：**Softmax(j+1) 与 PV(j) 在硬件上并行**——Tensor Core 跑 PV 时多功能单元做下一轮的 exp。代价是多占用 $B\_r \times B\_c \times 4$ B 的寄存器存放 $S\_{\text{next}}$。
+关键：`softmax_step(S_next)` 的指数运算在多功能单元上执行，**与 Tensor Core 上仍在进行的 `wgmma(P_cur, V_{j-1})` 并行**。代价是多占用 $B\_r \times B\_c \times \text{sizeof(float)}$ B 的寄存器存放 $S\_{\text{next}}$。
 
-⚠️ **注意**：
+⚠️ **论文 §3.2 提到的两个工程坑**：
 
-- **NVCC 重排**：编译器会重写指令顺序，论文反复强调要看 SASS 确认 overlap 是否真的发生（论文 §B.2）
-- **3-stage 变体**：把第二条 WGMMA 也滚一阶可继续提升占用率，但寄存器消耗再增一份，需在 tile 大小和流水深度间权衡（论文 §B.3）
+- **编译器重排**：NVCC 可能打乱伪代码中精心安排的发射顺序，论文 §B.2 通过 SASS 分析验证 overlap 真的发生（Softmax 被前移、第一条 WGMMA 与 Softmax 交错、`exp2`/`rowsum`/rescale/类型转换互相交织）
+- **寄存器压力**：2-stage 流水多吃 $S\_{\text{next}}$ 的寄存器，与"用更大 tile 提性能"这个常见手段冲突，需要权衡
 
-### 6.3 Inter-Warpgroup Ping-Pong：让两个 Consumer Warpgroup 错相位
+### 6.4 3-Stage 变体（论文 §B.3，简介）
 
-intra-warpgroup overlap 仍然有 bubble——同一个 warpgroup 等 GEMM 的某些拍，多功能单元会闲下来。V3 干脆**起两个 Consumer Warpgroup**（共 256 线程，分别处理 Q tile 的两段不同行），并用 `bar.sync` 强制让它们的 GEMM 阶段错开调度：
+把第二条 WGMMA（PV）也滚一阶，让迭代 $j+2$ 的 GEMM0、迭代 $j+1$ 的 softmax、迭代 $j$ 的 GEMM1 三者并行。论文实测**性能反而下降**，原因：
 
-{% mermaid graph TD %}
-    subgraph t1["时间片 1"]
-        WG1A["WG1: GEMM (Tensor Core)"]
-        WG2A["WG2: Softmax (MFU)"]
-    end
-    subgraph t2["时间片 2"]
-        WG1B["WG1: Softmax (MFU)"]
-        WG2B["WG2: GEMM (Tensor Core)"]
-    end
-    t1 --> t2
-{% endmermaid %}
+- SASS 分析显示 NVCC 只让第一条 WGMMA 与 softmax 重叠，第二条没有
+- 需要额外保存一份 $\tilde{P}\_i$ 与 $\text{scale}\_o$，寄存器压力增大，迫使采用更小 tile
 
-```
-WG1: [GEMM₁][Sfmx₁][GEMM₂][Sfmx₂]...
-WG2: [Sfmx₀][GEMM₁][Sfmx₁][GEMM₂]...   ← 半拍位移
-       ↑       ↑       ↑
-    MFU 与 Tensor Core 几乎从不闲置同时
-```
-
-具体做法：在 WG1 进入 GEMM 区段前 `bar.arrive`，WG2 在自己的 Softmax 段尾 `bar.wait`，被迫等待——这强制 NVCC 把 WG1 的 GEMM **排在** WG2 的 GEMM 之前。两次 `bar.sync` 一前一后，把 GEMM 区段串成"GEMM-of-WG1 → GEMM-of-WG2 → GEMM-of-WG1 …"，于是任意时刻**只有一个 warpgroup 在用 Tensor Core，另一个则在用 MFU**。
-
-📌 **关键澄清**：
-
-- 两个 Consumer Warpgroup 各自负责 Q tile 的**不同行**（按行二分），而不是协同处理同一段数据；ping-pong 是相位错开
-- "Ping-pong" 名字来自 CUTLASS 的 warp-specialized GEMM 实现，FA3 移植到了 attention
-- 这与 Hopper 的 **Cluster / DSMEM / TMA Multicast** 是不同特性——后者解决跨 SM 共享 K/V，本节是单 SM 内的两 warpgroup 错峰
-
-### 6.4 实测数据（论文 Table 2）
+### 6.5 消融实测（论文 Table 2）
 
 固定 batch=4, seqlen=8448, nheads=16, hdim=128，FP16 forward：
 
 | 配置 | 时间 | TFLOPS |
 |------|------|--------|
 | FA3 完整（warp-spec + GEMM-Softmax pipelining） | 3.538 ms | **661** |
-| 关闭 GEMM-Softmax pipelining，保留 warp-spec | 4.021 ms | 582 |
-| 关闭 warp-spec，保留 GEMM-Softmax pipelining | 4.105 ms | 570 |
+| 有 warp-spec，关闭 GEMM-Softmax pipelining | 4.021 ms | 582 |
+| 有 GEMM-Softmax pipelining，关闭 warp-spec | 4.105 ms | 570 |
 
-两项互相独立，**各自贡献约 80–90 TFLOPS**。论文还提到 ping-pong 调度（同时引入两 Consumer Warpgroup）让单 head dim 128、seqlen 8192 的 FP16 forward 从 570 提升到 620–640 TFLOPS。
+📌 **解读**：
 
-### 6.5 资源限制
+- Table 2 验证 **warp-specialization** 与 **intra-warpgroup GEMM-Softmax pipelining** 两项算法改进各自有效——两两组合带来 ~80 TFLOPS 的额外提升（不能简单叠加，因为二者底层共用同一组资源）
+- ping-pong 的实测数据在论文 §3.1 末段独立陈述：head dim 128 / seqlen 8192，570 → 620–640 TFLOPS，并未出现在 Table 2 中
+- 三项优化（warp-spec、ping-pong、intra-warpgroup pipelining）共同把 FA3 推到 H100 上 ~75% 峰值利用率
 
-ping-pong 要求一个 Block 同时塞下：
+### 6.6 资源代价
 
-- **2 个 Consumer Warpgroup**：各自一份 $Q\_i$ 寄存器副本 + 累加器 + $S\_{\text{next}}$
-- **1 个 Producer Warpgroup**：寄存器极少（`setmaxnreg_dec`）
-- **多级 K/V SMEM buffer**：总占用 $s \times 2 B\_c \times d \times \text{sizeof}$
+§6.2 与 §6.3 都会增加寄存器与 SMEM 占用：
 
-H100 每 SM 256 KB Register File、228 KB SMEM，搭配 `setmaxnreg` 的动态再分配能勉强容纳；这也是 **head dim 越大、tile 越大时**寄存器压力越紧、越需要谨慎调参的原因。
+- **Inter-warpgroup ping-pong**：需要 2 个 Consumer Warpgroup 同时驻留，各自持有自己负责的 Q tile / 累加器 / S
+- **Intra-warpgroup 2-stage 流水**：每个 consumer 多占 $B\_r \times B\_c \times 4$ B 寄存器存放 $S\_{\text{next}}$
+- **多级 K/V SMEM buffer**：$s \times 2 B\_c \times d \times \text{sizeof}$
+
+H100 每 SM 256 KB Register File、228 KB SMEM，配合 `setmaxnreg` 把 Producer 让出来的寄存器划给 Consumer，能勉强容纳。**head dim 越大、tile 越大，寄存器压力越紧**，这也是为什么 head dim 256 反而比 head dim 128 更接近峰值（大 tile 把固定开销摊薄）但调参更敏感的原因。
 
 ---
 
@@ -431,6 +432,8 @@ Q/K/V 在 GMEM 中通常按 `[N, d]` 排，head dimension 是连续维度。对�
 
 **约束 2：FP32 累加器布局 ≠ FP8 操作数 A 布局**
 
+<img src="/images/flashattentionv3-3.png" alt="" style="max-width: 100%; display: block; margin: 0 auto;" />
+
 FP16 时这两套布局恰好兼容，所以从 $S$ 一路走到 $P$ 再当作下一次 WGMMA 的 A 操作数无需搬动。但在 FP8 模式下，**FP32 累加器的元素分布**（图 3：每线程持有 d0..d7）与 **FP8 A 操作数的元素分布**（图 4：每线程持有 a0..a7）不同——按 d0 d1 d2 d3 ... 的顺序写出，喂给 FP8 WGMMA 会算出错位的结果。
 
 V3 的解法是用 `prmt`（byte permute）指令对累加器寄存器**按 8 字节为周期重排**：
@@ -454,7 +457,7 @@ V3 默认对 Q、K、V 统一使用 **E4M3** 格式（4 位指数 + 3 位尾数�
 
 ### 8.1 Incoherent Processing：用随机正交矩阵"打散"异常值
 
-LLM 中 Q、K 经常出现 outlier features（个别 channel 的数值远大于其它），直接 per-block 量化时这些 outlier 会把 scale 拉得极大，让其它正常数值损失精度。论文做法是在量化前给 Q、K 各乘一个**随机正交矩阵 $M$**：
+LLM 中 Q、K 经常出现 outlier features（个别 channel 的数值远大于其它），直接 per-block 量化时这些 outlier 会把 scale 拉得极大，让其它正常数值损失精度。论文做法是在量化前给 Q、K 各乘一个**随机正交矩阵 $M\$**：
 
 $$
 \hat{Q} = Q M, \quad \hat{K} = K M
@@ -572,9 +575,9 @@ FP8 峰值 1171 TFLOPS ≈ **1.17 PFLOPS**，对应 H100 SXM5 FP8 峰值 1979 TF
 
 ### 9.3 各优化的贡献来源
 
-- **Warp-specialization + circular buffer**：消除 CUDA Core 参与数据搬运的开销，Producer/Consumer 解耦后任意一方阻塞不影响另一方。论文 Table 2 显示单独 warp-spec 贡献 ≈ 80 TFLOPS（参考 §6.4）
-- **GEMM-Softmax intra-warpgroup pipelining**：通过 $S\_{\text{next}}$ 寄存器让 Softmax 与下一轮 PV 在硬件上并行，单独贡献也 ≈ 80 TFLOPS（参考 §6.4）
-- **Inter-warpgroup ping-pong**：在前两者基础上额外 ~50–70 TFLOPS（论文 §3.1.1，head dim 128 / seq 8k 从 570 → 620–640）
+- **Warp-specialization + circular buffer**：消除 CUDA Core 参与数据搬运的开销，Producer/Consumer 解耦后任意一方阻塞不影响另一方。论文 Table 2 显示在已启用 intra-warpgroup pipelining 的基础上再开启 warp-spec 可额外提升 ~79 TFLOPS（570 → 661）
+- **GEMM-Softmax intra-warpgroup pipelining**：通过 $S\_{\text{next}}$ 寄存器让 Softmax 与下一轮 PV 在硬件上并行。Table 2 显示在已启用 warp-spec 的基础上再开启该优化可额外提升 ~79 TFLOPS（582 → 661）。注意论文未给"两项都关"的 baseline，因此**不能直接把两项相加**
+- **Inter-warpgroup ping-pong**：论文 §3.1 末段独立报告，head dim 128 / seqlen 8192 / FP16 forward 从 570 提升到 620–640 TFLOPS（对照基准不是 Table 2 的 661，而是关闭 ping-pong 时的版本）
 - **FP8 + Block Quant + Incoherent Processing**：在精度可接受前提下吞吐再翻 ~1.6–1.9×（FP8 head dim 256 seq 8k：1151 vs 等价 FP16 的 ~750），未达理想 2× 的主因是 Softmax 仍走 FP32 + layout 适配开销（参考 §7.4 / §8.2）
 
 ### 9.4 Roofline 分析
@@ -595,13 +598,30 @@ FP8 峰值 1171 TFLOPS ≈ **1.17 PFLOPS**，对应 H100 SXM5 FP8 峰值 1979 TF
 
 ## 📝 总结
 
-FlashAttention V3 是针对 Hopper 架构的深度定制优化，核心创新：
+FlashAttention V3 对应论文的三项核心贡献，全部围绕 **Hopper 上的异步性与低精度** 展开：
 
-1. **三级异步流水线**：TMA 加载 / WGMMA 计算 / Softmax 处理并行执行，消除流水线空泡
-2. **WGMMA 异步矩阵乘**：发射后不等待，用 Softmax 计算填充等待时间
-3. **TMA 硬件数据搬运**：释放 CUDA Core 专注于计算，多级缓冲实现加载-计算完全重叠
-4. **Ping-Pong 双 Warpgroup 调度**：同一 Block 内的两个 Consumer Warpgroup 错相位执行 GEMM 与 Softmax，让 Tensor Core 与 CUDA Core 同时跑满
-5. **FP8 混合精度**：利用 H100 的 FP8 Tensor Core 翻倍吞吐，配合 Block-wise 量化保精度
+**1. 生产者-消费者异步（Warp-Specialization + Circular SMEM Buffer）**
+- 用 1 个 Producer Warpgroup 专门发射 TMA、2 个 Consumer Warpgroup 专门跑 WGMMA + Softmax
+- 通过多级 SMEM 缓冲区 + mbarrier 解耦数据搬运与计算，让 TMA / Tensor Core / 多功能单元三类硬件**同时运转**
+- 用 `setmaxnreg` 动态把 Producer 的寄存器配额让给 Consumer
+
+**2. 在异步 GEMM 下隐藏 Softmax（论文 §3.1 + §3.2 两个独立优化）**
+- **Inter-warpgroup ping-pong**（§3.1）：用 `bar.sync` 强制两个 Consumer Warpgroup 错相位，任意时刻一个跑 GEMM、另一个跑 Softmax
+- **Intra-warpgroup 2-stage 流水**（§3.2）：单个 warpgroup 内用额外寄存器 $S\_{\text{next}}$ 打破 GEMM-Softmax 的串行依赖，让 Softmax(j+1) 与 PV(j) 并行
+- 解决的根本矛盾：Tensor Core 989 TFLOPS vs 多功能单元 ~3.9 TFLOPS，Softmax 只占 <1% FLOPs 却可能占 50% 周期
+
+**3. FP8 低精度 GEMM**
+- 利用 H100 FP8 Tensor Core 把峰值算力翻倍至 1979 TFLOPS，混合精度策略：GEMM 走 FP8、Softmax 与累加器保持 FP32
+- 通过 **kernel 内 LDSM/STSM 转置 V** + **`prmt` 重排累加器** 解决 FP8 WGMMA 的两个布局约束
+- 通过 **Block-wise 量化** + **Incoherent Processing**（Hadamard，$O(d \log d)$）把 FP8 RMSE 从 standard FP8 的 1/2.6 降下来
+
+**实测收益**（H100 SXM5）
+
+- FP16 head dim 256：**756 TFLOPS（76% 峰值利用率）**，比 FA2 快 ~2.3×，长序列下超过 cuDNN
+- FP16 head dim 128：~650 TFLOPS，比 FA2 快 ~1.75×
+- FP8 head dim 256：**1.17 PFLOPS**，配合上述精度技术后误差仍可控
+
+FA3 的方法论同样适用于其他具有异步硬件单元与低精度算力的加速器；论文遗留的方向包括 LLM 推理优化、Persistent Kernel 与低精度训练。
 
 ---
 

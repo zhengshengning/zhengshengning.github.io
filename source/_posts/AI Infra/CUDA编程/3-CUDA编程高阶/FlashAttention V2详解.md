@@ -61,7 +61,7 @@ A100 GPU 的关键参数：
 V1 中外循环遍历 K/V 块，内循环遍历 Q 块。这带来两个问题：
 
 1. **Q 和 O 的重复读写**：每处理一个新的 K/V 块，所有 Q 块和对应的输出 O 都需要重新加载和写回 HBM
-2. **难以并行化**：内循环的各 Q 块之间有写依赖（都在更新同一个 O），但跨 Q 块的并行性无法利用
+2. **并行度受限**：外循环 K/V 块之间因 online softmax 的 running max/sum 累积存在串行依赖，V1 只能在 batch × heads 维度上并行。当 batch 和 heads 较小、序列较长时（长上下文场景），无法利用序列维度的并行性，SM 利用率不足
 
 ### 2.2 V2 的新循环结构
 
@@ -206,9 +206,9 @@ V2 引入了块级（Block-level）的 Causal Mask 优化：
 
 对于第 $i$ 个 Q 块（行范围 $[iB\_r, (i+1)B\_r)$）和第 $j$ 个 K 块（列范围 $[jB\_c, (j+1)B\_c)$）：
 
-1. **完全在 mask 下方**（$iB\_r \geq (j+1)B\_c$）：这个块完全可见，正常计算
-2. **完全在 mask 上方**（$(i+1)B\_r \leq jB\_c$）：这个块完全不可见，直接跳过
-3. **跨越对角线**：块内需要逐元素应用 mask
+1. **完全在 mask 下方**（$(i+1)B\_r - 1 \geq (j+1)B\_c - 1$ 且 $iB\_r \geq (j+1)B\_c - 1$，即 Q 块最小行号 ≥ K 块最大列号）：块内所有位置都满足 row ≥ col，完全可见，正常计算
+2. **完全在 mask 上方**（$(i+1)B\_r - 1 < jB\_c$，即 Q 块最大行号 < K 块最小列号）：块内所有位置都满足 row < col，完全不可见，直接跳过
+3. **跨越对角线**：块内既有可见位置也有不可见位置，需要逐元素应用 mask
 
 ```
 对角线以下（全可见）    对角线块（部分mask）    对角线以上（全跳过）
@@ -254,8 +254,8 @@ def flash_attention_v2_forward(Q, K, V, B_r, B_c, causal=False):
             S_ij = Q_i @ K_j.T / sqrt(d)
 
             # 应用 causal mask（仅对角线块需要）
-            # i, j 已是绝对起始坐标；当 col 块越过 row 块起点时本块跨对角线
-            if causal and i < j + B_c:
+            # i, j 已是绝对起始坐标；当 K 块最大列号(j+B_c-1) > Q 块最小行号(i) 时本块跨对角线
+            if causal and i < j + B_c - 1:
                 apply_causal_mask(S_ij, i, j, B_r, B_c)
 
             # 更新统计量
@@ -340,7 +340,9 @@ V2 相比 V1 实现了约 1.6x 的加速。
 | FlashAttention V2 | 4.3x | 3.9x |
 | xFormers (cutlass) | 3.1x | 2.8x |
 
-### 8.3 长序列的显存优势
+### 8.3 长序列的显存优势（训练激活总占用估算）
+
+下表估算的是训练时与 attention 相关的**激活显存总量**（含中间张量与梯度缓存，按典型多头配置粗估，便于看出 N² vs N 的缩放差异），非单一矩阵的存储成本：
 
 | 📊 序列长度 | 标准 Attention 显存 | FlashAttention V2 显存 |
 |------------|-------------------|---------------------|
@@ -376,7 +378,7 @@ FlashAttention V2 通过三个核心改进 + 一项附加优化将 A100 上的�
 ## 📚 参考资料
 
 - [FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning](https://arxiv.org/abs/2307.08691)
-- [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135)
+- [FlashAttention-1: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135)
 - [FlashAttention 官方实现 - GitHub](https://github.com/Dao-AILab/flash-attention)
 - [Tri Dao - FlashAttention-2 Blog Post](https://tridao.me/publications/flash2/flash2.html)
 - [NVIDIA A100 Tensor Core GPU Architecture](https://www.nvidia.com/content/dam/en-zz/Solutions/Data-Center/a100/pdf/nvidia-a100-datasheet.pdf)

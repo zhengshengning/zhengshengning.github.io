@@ -75,6 +75,8 @@ $$
 
 ## 2. FlashAttention 核心思想
 
+<img src="/images/flashattentionv1-0.png" alt="" style="max-width: 100%; display: block; margin: 0 auto;" />
+
 ### 2.1 IO-Awareness：关注数据搬运
 
 FlashAttention 的核心洞察是：**在现代 GPU 上，Attention 是一个 Memory-Bound 操作，优化的关键不在于减少浮点运算，而在于减少 HBM 访问次数。**
@@ -122,7 +124,7 @@ $$
 
 第二、三遍都依赖第一遍得到的全局最大值 $m$，第三遍又依赖第二遍得到的 $\ell$，这要求我们必须先完整扫描一次才能开始下一遍，显然与分块策略矛盾。
 
-> 📖 **延伸**：Online Softmax（NVIDIA, 2018）将上述三遍合并为两遍——边扫描边同步维护 $m$ 和 $\ell$；FlashAttention 在此基础上进一步把"乘 $V$ 求输出"也融合进来，最终只需一遍扫描即可完成 Attention 计算。
+> 📖 **延伸**：Online Softmax（NVIDIA, 2018）将上述三遍合并为两遍——边扫描边同步维护 $m$ 和 $\ell$；FlashAttention 在此基础上进一步把"乘 $V$ 求输出"也融合进来。
 
 ### 3.2 Online Softmax 的递推公式
 
@@ -366,8 +368,6 @@ $$
 
 ### 7.1 标准 Attention 的 IO 复杂度
 
-标准实现需要将中间矩阵 $S$、$P$ 写入和读取 HBM：
-
 $$
 \text{HBM 访问量} = O(Nd + N^2) = O(N^2)
 $$
@@ -443,7 +443,7 @@ Step 3  输出：
 ### 8.2 Kernel 设计要点
 
 > 📌 **关于并行划分（grid 与 block 设计）**：
-> - **grid（program 粒度）=（B, H）**：每个 program 负责一个 `(batch, head)` 切片下完整的 $N \times N$ 注意力计算，program 之间完全独立、无通信。
+> - **grid（program 粒度）=（B, H）**：每个 program 负责一个 `(batch, head)` 切片下完整的注意力计算，program 之间完全独立、无通信。
 > - **block 内部线程**：在一个 program 内部，Triton 会把 `tl.dot`、`tl.max`、`tl.sum` 等向量化操作自动拆分到一个 thread block 的若干 warp 上。块大小由 `BLOCK_M`（Q 的行数 $B\_r$）、`BLOCK_N`（K/V 的行数 $B\_c$）、`BLOCK_D`（D 维向量化宽度）共同决定。
 > - **program 内部串行**：外循环遍历 K/V 块、内循环遍历 Q 块
 >

@@ -605,16 +605,13 @@ __global__ void reduce_base(float* input, float* output, int n) {
 当 `step <= 32` 时，只有 1 个 Warp（32 线程）在工作。Warp 内线程天然 SIMT 锁步执行，不需要 `__syncthreads()`。直接展开这几轮循环可以省去多余的同步屏障开销：
 
 ```cuda
-// 最后 Warp 内规约：用 Warp Shuffle 替代 Shared Memory
-if (tid < 32) {
-    float val = smem[tid];
-    // __shfl_down_sync：直接从寄存器读取其他线程的值，无需经过 Shared Memory
-    val += __shfl_down_sync(0xFFFFFFFF, val, 16);
-    val += __shfl_down_sync(0xFFFFFFFF, val, 8);
-    val += __shfl_down_sync(0xFFFFFFFF, val, 4);
-    val += __shfl_down_sync(0xFFFFFFFF, val, 2);
-    val += __shfl_down_sync(0xFFFFFFFF, val, 1);
-    if (tid == 0) output[blockIdx.x] = val;
+__device__ void warpReduce(volatile float* smem, int tid) {
+    smem[tid] += smem[tid + 32];
+    smem[tid] += smem[tid + 16];
+    smem[tid] += smem[tid +  8];
+    smem[tid] += smem[tid +  4];
+    smem[tid] += smem[tid +  2];
+    smem[tid] += smem[tid +  1];
 }
 ```
 
@@ -645,10 +642,11 @@ __global__ void reduce_opt(float* input, float* output, int n) {
 
     // 最后 Warp 用 Shuffle 规约
     if (tid < 32) {
-        val = smem[tid];
-        for (int offset = 16; offset > 0; offset >>= 1)
-            val += __shfl_down_sync(0xFFFFFFFF, val, offset);
-        if (tid == 0) output[blockIdx.x] = val;
+        warpReduce(smem, tid);
+    }
+    
+    if (tid == 0) {
+        output[blockIdx.x] = smem[0];
     }
 }
 ```
