@@ -25,3 +25,8 @@ Attention 是 Transformer 的核心计算，也是 AI Infra 优化的重中之�
 **PagedAttention CUDA 实现**解读 vLLM 中虚拟页到物理页映射在 GPU 上的实现。
 
 **动手实验**：白板推导 FlashAttention Tiling 过程，用 Triton 实现简化版 FlashAttention。
+
+
+
+## 优秀博客
+- [Flash Attention From Scratch](https://link.zhihu.com/?target=https%3A//lubits.ch/flash/)

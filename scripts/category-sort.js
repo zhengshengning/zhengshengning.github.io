@@ -21,6 +21,27 @@ const level3CategoryOrder = {
   '前置知识': ['编程基础', '深度学习基础', 'Transformer', 'Pytorch']
 };
 
+// 文章排序比较函数：优先按 order 数值升序，其次按标题（含数字感知）
+// - 同时有 order：按 order 升序
+// - 只有一方有 order：有 order 的排前面
+// - 都没有 order：按标题做数字感知比较（"第2章" < "第11章"）
+function comparePosts(a, b) {
+  const hasA = typeof a.order === 'number' && !isNaN(a.order);
+  const hasB = typeof b.order === 'number' && !isNaN(b.order);
+  if (hasA && hasB) {
+    if (a.order !== b.order) return a.order - b.order;
+    return a.title.localeCompare(b.title, 'zh-CN', { numeric: true });
+  }
+  if (hasA) return -1;
+  if (hasB) return 1;
+  return a.title.localeCompare(b.title, 'zh-CN', { numeric: true });
+}
+
+// 分类名兜底比较：数字感知，保证 "第2章" < "第11章"、"1-基础" < "3-高阶"
+function compareCategoryName(a, b) {
+  return a.name.localeCompare(b.name, 'zh-CN', { numeric: true });
+}
+
 // 二级分类排序函数
 function sortSubCategories(children, parentName) {
   const order = subCategoryOrder[parentName] || [];
@@ -30,7 +51,7 @@ function sortSubCategories(children, parentName) {
     if (idxA !== -1 && idxB !== -1) return idxA - idxB;
     if (idxA !== -1) return -1;
     if (idxB !== -1) return 1;
-    return a.name.localeCompare(b.name, 'zh-CN');
+    return compareCategoryName(a, b);
   });
 }
 
@@ -43,7 +64,7 @@ function sortLevel3Categories(children, parentName) {
     if (idxA !== -1 && idxB !== -1) return idxA - idxB;
     if (idxA !== -1) return -1;
     if (idxB !== -1) return 1;
-    return a.name.localeCompare(b.name, 'zh-CN');
+    return compareCategoryName(a, b);
   });
 }
 
@@ -57,19 +78,19 @@ function buildLevel2Data(level2Cat, allCategories) {
     // 有三级子分类：分离直接文章和子分组文章
     const level3PostIds = new Set();
     const subGroups = level3Children.map(l3 => {
-      const posts = l3.posts.toArray().sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
+      const posts = l3.posts.toArray().sort(comparePosts);
       posts.forEach(p => level3PostIds.add(p._id));
       return { name: l3.name, posts };
     });
     // 直接挂在二级分类下、不属于任何三级的文章
     const directPosts = level2Cat.posts.toArray()
       .filter(p => !level3PostIds.has(p._id))
-      .sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
+      .sort(comparePosts);
     const totalPosts = directPosts.length + subGroups.reduce((sum, sg) => sum + sg.posts.length, 0);
     return { hasSubGroups: true, name: level2Cat.name, path: level2Cat.path, subGroups, directPosts, totalPosts };
   } else {
     // 无三级子分类：与现有结构兼容
-    const posts = level2Cat.posts.toArray().sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
+    const posts = level2Cat.posts.toArray().sort(comparePosts);
     return { hasSubGroups: false, name: level2Cat.name, path: level2Cat.path, posts, totalPosts: posts.length };
   }
 }
@@ -134,7 +155,7 @@ hexo.extend.helper.register('sorted_categories_tree', function() {
           l3.posts.forEach(p => level3PostIds.add(p._id));
         });
         // 所有文章 = 直接文章 + 三级子分类文章（去重）
-        const allPosts = child.posts.toArray().sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
+        const allPosts = child.posts.toArray().sort(comparePosts);
         return {
           name: child.name,
           length: child.length,
@@ -172,7 +193,7 @@ hexo.extend.helper.register('get_category_first_post_url', function(categoryName
   sortSubCategories(children, parent.name);
 
   for (const child of children) {
-    const posts = child.posts.toArray().sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
+    const posts = child.posts.toArray().sort(comparePosts);
     if (posts.length > 0) {
       return this.url_for(posts[0].path);
     }
@@ -283,7 +304,7 @@ hexo.extend.helper.register('get_category_landing', function(categoryName) {
 
   // 按标题名称排序
   const allPosts = Array.from(postMap.values());
-  allPosts.sort((a, b) => a.post.title.localeCompare(b.post.title, 'zh-CN'));
+  allPosts.sort((a, b) => comparePosts(a.post, b.post));
 
   return {
     name: parent.name,
