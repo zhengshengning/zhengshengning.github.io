@@ -6,6 +6,7 @@ categories:
   - [AI Infra, 分布式训练, 第10章-MoE并行]
 order: 30
 tags: ["MoE", "Expert Parallelism", "All-to-All", "负载均衡", "稀疏模型"]
+mathjax: true
 ---
 
 ## 📖 本章概述

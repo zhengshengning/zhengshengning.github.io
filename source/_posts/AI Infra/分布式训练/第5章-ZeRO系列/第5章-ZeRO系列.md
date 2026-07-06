@@ -6,6 +6,7 @@ categories:
   - [AI Infra, 分布式训练, 第5章-ZeRO系列]
 order: 25
 tags: ["ZeRO", "DeepSpeed", "显存优化", "Offload", "通信分析"]
+mathjax: true
 ---
 
 ## 📖 本章概述
