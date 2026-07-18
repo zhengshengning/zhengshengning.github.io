@@ -1,7 +1,7 @@
 ---
-title: 路飞玩AI
+title: 战胜玩AI
 date: 2026-02-07 18:42:00
 type: "category-landing"
-category_name: "路飞玩AI"
+category_name: "战胜玩AI"
 comments: false
 ---

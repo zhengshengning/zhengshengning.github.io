@@ -6,13 +6,13 @@
  */
 
 // 一级分类的展示顺序
-const topLevelOrder = ['AI Infra', '求职面试', '路飞玩AI', '编程技能包'];
+const topLevelOrder = ['AI Infra', '求职面试', '战胜玩AI', '编程技能包'];
 
 // 二级分类的展示顺序（按一级分类分组，顺序与 categories.md 一致）
 const subCategoryOrder = {
   'AI Infra': ['学习指南', '前置知识', 'CUDA编程与算子优化', '分布式训练', '推理与部署', '性能分析'],
   '求职面试': ['大厂面经', '知名科技公司面经', '车企/自驾面经', 'AI 创业公司面经', '芯片/研究院面经', '其他公司面经', '综合面经'],
-  '路飞玩AI': ['AI编程', 'Agent开发'],
+  '战胜玩AI': ['AI编程', 'Agent开发'],
   '编程技能包': ['Python', 'C++基础', 'Web开发']
 };
 
@@ -102,7 +102,7 @@ const homepageCollapsedCategories = ['求职面试'];
 const categoryIcons = {
   'AI Infra': 'fa-server',
   '求职面试': 'fa-briefcase',
-  '路飞玩AI': 'fa-robot',
+  '战胜玩AI': 'fa-robot',
   '编程技能包': 'fa-code'
 };
 
@@ -171,7 +171,7 @@ hexo.extend.helper.register('sorted_categories_tree', function() {
 const categoryDescriptions = {
   'AI Infra': '涵盖计算机底层基础、大模型训练部署和 CUDA GPU 编程等基础设施技术。',
   '求职面试': '汇总 AI Infra 方向的大厂面经、常见面试题和求职经验分享。',
-  '路飞玩AI': '探索 AI 编程工具的最佳实践与 Agent 智能体的设计开发。',
+  '战胜玩AI': '探索 AI 编程工具的最佳实践与 Agent 智能体的设计开发。',
   '编程技能包': '实用编程技能：Web 开发、Python 生态、工具链与工程实践。'
 };
 
@@ -179,7 +179,7 @@ const categoryDescriptions = {
 const categoryLandingPaths = {
   'AI Infra': '/ai-infra/',
   '求职面试': '/interview/',
-  '路飞玩AI': '/play-ai/',
+  '战胜玩AI': '/play-ai/',
   '编程技能包': '/coding-skills/'
 };
 
